@@ -107,7 +107,10 @@ namespace GraphVis {
 			SIMULATION		=	0x2,
 			MOVE			=	0x4,
 			EULER			=	0x8,
-			RUNGE_KUTTA		=	1 << 4
+			RUNGE_KUTTA		=	0x1 << 4,
+			
+			POINT			=	0x1 << 5,
+			LINE			=	0x1 << 6
 		}
 
 		enum State {
@@ -402,12 +405,11 @@ namespace GraphVis {
 
 			//	Render: ---------------------------------------------------------------------------
 			//
-//			string signature;
 			
-
+			// draw points: ------------------------------------------------------------------------
 			shader.SetVertexShader( 0 );
 			shader.SetPixelShader( 0 );
-			shader.SetGeometryShader( 0 );
+			shader.SetGeometryShader( (int)Flags.POINT );
 
 			device.SetPSResource( 0, texture );
 			device.SetCSRWBuffer( 0, null );
@@ -419,9 +421,14 @@ namespace GraphVis {
 			device.SetDepthStencilState( DepthStencilState.Readonly );
 
 	//		device.Draw( Primitive.PointList, MaxSimulatedParticles, 0 );
-			device.Draw( Primitive.LineStrip, MaxSimulatedParticles, 0 );
+			device.Draw( Primitive.PointList, MaxSimulatedParticles, 0 );
 
-			// ------------------------------------------------------------------------------------
+			// draw lines: --------------------------------------------------------------------------
+			shader.SetGeometryShader( (int)Flags.LINE );
+			device.SetGSResource( 1, simulationBufferSrc );
+			device.Draw( Primitive.LineList, MaxSimulatedParticles, 0 );
+			// --------------------------------------------------------------------------------------
+
 
 			/*var testSrc = new Particle[MaxSimulatedParticles];
 			var testDst = new Particle[MaxSimulatedParticles];

@@ -1,7 +1,7 @@
 
 #if 0
 $compute INJECTION|SIMULATION|MOVE EULER|RUNGE_KUTTA
-$geometry
+$geometry POINT|LINE
 $pixel
 $vertex
 #endif
@@ -323,10 +323,11 @@ float Ramp(float f_in, float f_out, float t)
 }
 
 
-
+#ifdef POINT
 [maxvertexcount(6)]
 void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> outputStream )
 {
+
 	GSOutput p0, p1, p2, p3;
 	
 //	VSOutput prt = inputPoint[0];
@@ -384,8 +385,41 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 		outputStream.Append(p2);
 		outputStream.Append(p3);
 		outputStream.RestartStrip();
+
+}
+#endif
+
+#ifdef LINE
+[maxvertexcount(2)]
+void GSMain( line VSOutput inputLine[2], inout LineStream<GSOutput> outputStream )
+{
+	GSOutput p1, p2;
+
+	PARTICLE3D end1 = GSResourceBuffer[ inputLine[0].vertexID ];
+	PARTICLE3D end2 = GSResourceBuffer[ inputLine[1].vertexID ];
+
+	float4 pos1		=	float4( end1.Position.xyz, 1 );
+	float4 pos2		=	float4( end2.Position.xyz, 1 );
+
+	float4 posV1	=	mul( pos1, Params.View );
+	float4 posV2	=	mul( pos2, Params.View );
+
+	p1.Position		=	mul( posV1, Params.Projection );
+	p2.Position		=	mul( posV2, Params.Projection );
+
+	p1.TexCoord		=	float2(0, 0);
+	p2.TexCoord		=	float2(0, 0);
+
+	p1.Color		=	end1.Color0;
+	p2.Color		=	end2.Color0;
+
+	outputStream.Append(p1);
+	outputStream.Append(p2);
+	outputStream.RestartStrip();
 }
 
+
+#endif
 
 
 float4 PSMain( GSOutput input ) : SV_Target
