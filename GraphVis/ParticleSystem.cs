@@ -64,7 +64,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	32;
+		const int	MaxInjectingParticles	=	1024;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -202,12 +202,12 @@ namespace GraphVis {
 		/// <summary>
 		/// Add particle at a specified 3d position
 		/// </summary>
-		public void AddParticle ( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
+		public Vector3 AddParticle ( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
 		{
 			if (injectionCount>=MaxInjectingParticles) {
 				Log.Warning("Too much injected particles per frame");
 				injectionCount = 0;
-				return;
+				return pos;
 			}
 
 			//Log.LogMessage("...particle added");
@@ -251,6 +251,7 @@ namespace GraphVis {
 
 			injectionCount ++;
 
+			return newPos;
 		}
 
 
@@ -258,8 +259,10 @@ namespace GraphVis {
 		public void AddMaxParticles( int N = MaxInjectingParticles )
 		{
 			ClearParticleBuffer();
+			Vector3 prevPos = new Vector3();
+			prevPos = AddParticle( new Vector3( 0, 0, -400), 9999, 20, 1.0f );
 			for( int i = 0; i < N; ++i ) {
-				AddParticle( new Vector3( 0, 0, -400), 9999, 20, 1.0f ); 
+				prevPos = AddParticle( prevPos, 9999, 20, 1.0f ); 
 			}
 			simulationBufferSrc.SetData(injectionBufferCPU);
 		}

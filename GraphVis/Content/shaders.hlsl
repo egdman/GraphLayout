@@ -76,7 +76,7 @@ float3 twoBodyAccel( in float4 bodyState, in float4 otherBodyState )
 	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
 	float Rabs			= sqrt( Rsquared );
 	float Rsixth		= Rsquared * Rsquared * Rsquared;
-	float invRCubed		= - 10000000.0f * otherBodyState.w / sqrt( Rsixth ) + 10.0f * ( Rabs - 50.0f ) / ( bodyState.w * Rabs );
+	float invRCubed		= - 10000000.0f * otherBodyState.w / sqrt( Rsixth ) + 0.1f * ( Rabs - 100.0f ) / ( bodyState.w * Rabs );
 	return mul( invRCubed, R );
 
 }
@@ -156,7 +156,7 @@ void CSMain(
 
 			float accel	=	length( state.Acceleration );
 
-			float maxAccel = 10.0f;
+			float maxAccel = 150.0f;
 			accel = saturate( accel / maxAccel );
 
 			p.Color0	=	float4( accel, - 0.5f * accel +1.0f, - 0.5f * accel +1.0f, 1 );
