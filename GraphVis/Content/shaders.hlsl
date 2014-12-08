@@ -2,7 +2,7 @@
 #if 0
 $compute INJECTION|SIMULATION|MOVE EULER|RUNGE_KUTTA
 $geometry POINT|LINE
-$pixel
+$pixel POINT|LINE
 $vertex
 #endif
 
@@ -36,8 +36,12 @@ cbuffer CB1 : register(b0) {
 
 SamplerState						Sampler				: 	register(s0);
 Texture2D							Texture 			: 	register(t0);
-RWStructuredBuffer<PARTICLE3D>		particleBufferSrc	: 	register(u0);
+
 StructuredBuffer<PARTICLE3D>		GSResourceBuffer	:	register(u1);
+
+RWStructuredBuffer<PARTICLE3D>		particleBufferSrc	: 	register(u0);
+RWStructuredBuffer<PARTICLE3D>		particleBufferSrc2	:	register(u2);
+
 //AppendStructuredBuffer<PARTICLE3D>	particleBufferDst	: 	register(u0);
 
 // group shared array for body coordinates:
@@ -72,45 +76,11 @@ float3 twoBodyAccel( in float4 bodyState, in float4 otherBodyState )
 	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
 	float Rabs			= sqrt( Rsquared );
 	float Rsixth		= Rsquared * Rsquared * Rsquared;
-	float invRCubed		= /*- otherBodyState.w / sqrt( Rsixth ) + */10.0f * ( Rabs - 150.0f ) / ( bodyState.w * Rabs );
+	float invRCubed		= - 10000000.0f * otherBodyState.w / sqrt( Rsixth ) + 10.0f * ( Rabs - 50.0f ) / ( bodyState.w * Rabs );
 	return mul( invRCubed, R );
+
 }
 
-/*
-float3 calculateTile( in float4 bodyState, in float3 accel )
-{
-	for ( uint i = 0; i < BLOCK_SIZE; ++i ) {
-
-		accel += twoBodyAccel( bodyState, shPositions[i] );	
-
-	}
-	return accel;
-}*/
-
-/*
-float3 Acceleration_SHARED( in BodyState state, in uint threadIndex, in uint numParticles )
-{
-	// cancel out self-interaction:
-	float3 acc = - twoBodyAccel( state.Position, particleBufferSrc[state.id].Position );
-
-	uint tileNum = 0;
-
-	for ( uint i = 0; i < numParticles; i += BLOCK_SIZE ) {
-		uint srcIndex = tileNum * BLOCK_SIZE + threadIndex;
-
-		shPositions[threadIndex] = particleBufferSrc[srcIndex].Position;
-		
-		// barrier sync:
-		GroupMemoryBarrier();
-
-		acc = calculateTile( state.Position, acc );
-		// barrier sync:
-		GroupMemoryBarrier();
-		tileNum++;
-	}
-
-	return acc;
-}*/
 
 
 float3 Acceleration( in PARTICLE3D prt )
@@ -124,19 +94,6 @@ float3 Acceleration( in PARTICLE3D prt )
 }
 
 
-/*
-Derivative Evaluate_SHARED( BodyState state, float dt, Derivative der, uint threadIndex, uint numParticles )
-{
-	state.Position.xyz += mul( der.dxdt, dt );
-	state.Velocity += mul( der.dvdt, dt );
-
-	Derivative output;
-	output.dxdt = state.Velocity;
-	output.dvdt = Acceleration_SHARED( state, threadIndex, numParticles );
-
-	return output;
-}*/
-
 
 
 void IntegrateEUL_SHARED( inout BodyState state, in float dt, in uint threadIndex, in uint numParticles )
@@ -145,31 +102,6 @@ void IntegrateEUL_SHARED( inout BodyState state, in float dt, in uint threadInde
 	state.Acceleration	= Acceleration( particleBufferSrc[state.id] );
 }
 
-
-
-/*
-void IntegrateRK4_SHARED( inout BodyState state, in float dt, in uint threadIndex, in uint numParticles )
-{
-	Derivative init;
-	init.dxdt	=	float3( 0, 0, 0 );
-	init.dvdt	=	float3( 0, 0, 0 );
-	Derivative a;
-	Derivative b;
-	Derivative c;
-	Derivative d;
-
-	a	=	Evaluate_SHARED( state,   0.0f,		init,		threadIndex, numParticles );
-	b	=	Evaluate_SHARED( state,   0.5f * dt,	a,		threadIndex, numParticles );
-	c	=	Evaluate_SHARED( state,   0.5f * dt,	b,		threadIndex, numParticles );
-	d	=	Evaluate_SHARED( state,   dt,			c,		threadIndex, numParticles );
-
-	float3 dxdt	=	1.0f / 6.0f * ( a.dxdt + 2.0f * ( b.dxdt + c.dxdt ) + d.dxdt );
-	float3 dvdt	=	1.0f / 6.0f * ( a.dvdt + 2.0f * ( b.dvdt + c.dvdt ) + d.dvdt );
-
-	state.Position.xyz	+=	mul( dxdt, dt );
-	state.Velocity	+=	mul( dvdt, dt );
-}
-*/
 
 
 [numthreads( BLOCK_SIZE, 1, 1 )]
@@ -222,14 +154,15 @@ void CSMain(
 
 #endif
 
-			float accel	=	state.Acceleration;
+			float accel	=	length( state.Acceleration );
 
-			float maxAccel = 7.0f;
+			float maxAccel = 10.0f;
 			accel = saturate( accel / maxAccel );
 
 			p.Color0	=	float4( accel, - 0.5f * accel +1.0f, - 0.5f * accel +1.0f, 1 );
 
 			p.Acceleration = state.Acceleration;
+
 			particleBufferSrc[id] = p;
 		}
 	}
@@ -387,6 +320,8 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 		outputStream.RestartStrip();
 
 }
+
+
 #endif
 
 #ifdef LINE
@@ -418,11 +353,20 @@ void GSMain( line VSOutput inputLine[2], inout LineStream<GSOutput> outputStream
 	outputStream.RestartStrip();
 }
 
-
 #endif
 
+#ifdef LINE
+float4 PSMain( GSOutput input ) : SV_Target
+{
+	return float4(input.Color.rgb,1);
+}
+#endif
 
+#ifdef POINT
 float4 PSMain( GSOutput input ) : SV_Target
 {
 	return Texture.Sample( Sampler, input.TexCoord ) * float4(input.Color.rgb,1);
 }
+#endif
+
+

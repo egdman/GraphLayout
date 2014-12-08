@@ -64,7 +64,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	3;
+		const int	MaxInjectingParticles	=	32;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -75,6 +75,7 @@ namespace GraphVis {
 		Particle3d[]		injectionBufferCPU = new Particle3d[MaxInjectingParticles];
 		StructuredBuffer	injectionBuffer;
 		StructuredBuffer	simulationBufferSrc;
+
 		StructuredBuffer	simulationBufferDst;
 		StructuredBuffer	linksBuffer;
 		int[]				linksBufferCPU		= new int[MaxInjectingParticles];
@@ -103,12 +104,13 @@ namespace GraphVis {
 		}
 
 		enum Flags {
+			// for compute shader:
 			INJECTION		=	0x1,
-			SIMULATION		=	0x2,
-			MOVE			=	0x4,
-			EULER			=	0x8,
+			SIMULATION		=	0x1 << 1,
+			MOVE			=	0x1 << 2,
+			EULER			=	0x1 << 3,
 			RUNGE_KUTTA		=	0x1 << 4,
-			
+			// for geometry shader:
 			POINT			=	0x1 << 5,
 			LINE			=	0x1 << 6
 		}
@@ -145,7 +147,7 @@ namespace GraphVis {
 		/// </summary>
 		public override void Initialize ()
 		{
-			texture		=	Game.Content.Load<Texture2D>("star");
+			texture		=	Game.Content.Load<Texture2D>("particle");
 			shader		=	Game.Content.Load<Ubershader>("shaders");
 			shader.Map( typeof(Flags) );
 
@@ -217,9 +219,8 @@ namespace GraphVis {
 
 			var p = new Particle3d () {
 				Position		=	new Vector4( newPos, ParticleMass ),
-	//			Velocity		=	RadialRandomVector() * 10,
-				Velocity		=	tangent * spinRate,
-	//			Velocity		=	Vector3.Zero,
+	//			Velocity		=	tangent * spinRate,
+				Velocity		=	Vector3.Zero,
 				Color0			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
 				Size0			=	size0,
 				TotalLifeTime	=	rand.NextFloat(lifeTime/2, lifeTime),
@@ -256,9 +257,11 @@ namespace GraphVis {
 
 		public void AddMaxParticles( int N = MaxInjectingParticles )
 		{
+			ClearParticleBuffer();
 			for( int i = 0; i < N; ++i ) {
 				AddParticle( new Vector3( 0, 0, -400), 9999, 20, 1.0f ); 
 			}
+			simulationBufferSrc.SetData(injectionBufferCPU);
 		}
 
 
@@ -357,11 +360,11 @@ namespace GraphVis {
 
 			//	Inject : --------------------------------------------------------------------------
 			//
-			simulationBufferSrc.SetData( injectionBufferCPU );
-			injectionBuffer.SetData( injectionBufferCPU );
+	//		simulationBufferSrc.SetData( injectionBufferCPU );
+	//		injectionBuffer.SetData( injectionBufferCPU );
 			
 
-			device.SetCSResource( 1, injectionBuffer );
+			device.SetCSResource( 1, simulationBufferSrc );
 	//		device.SetCSRWBuffer( 0, simulationBufferSrc, MaxInjectingParticles );
 
 			param.MaxParticles	=	injectionCount;
@@ -381,6 +384,8 @@ namespace GraphVis {
 			//
 
 			if ( state == State.RUN ) {
+
+				// calculate accelerations: ---------------------------------------------------
 				device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
 				param.MaxParticles	=	MaxSimulatedParticles;
 				paramsCB.SetData( param );
@@ -388,11 +393,12 @@ namespace GraphVis {
 
 				shader.SetComputeShader( (int)Flags.SIMULATION|(int)cfg.IType );
 				device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-		//		shader.ResetComputeShader();
+				shader.ResetComputeShader();
 
 
-	//			device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
-	//			device.SetCSConstant( 0, paramsCB );
+				// move particles: ------------------------------------------------------------
+				device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
+				device.SetCSConstant( 0, paramsCB );
 				shader.SetComputeShader( (int)Flags.MOVE|(int)cfg.IType );
 				device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
 				shader.ResetComputeShader();
@@ -408,7 +414,7 @@ namespace GraphVis {
 			
 			// draw points: ------------------------------------------------------------------------
 			shader.SetVertexShader( 0 );
-			shader.SetPixelShader( 0 );
+			shader.SetPixelShader( (int)Flags.POINT );
 			shader.SetGeometryShader( (int)Flags.POINT );
 
 			device.SetPSResource( 0, texture );
@@ -420,13 +426,13 @@ namespace GraphVis {
 			device.SetBlendState( BlendState.Additive );
 			device.SetDepthStencilState( DepthStencilState.Readonly );
 
-	//		device.Draw( Primitive.PointList, MaxSimulatedParticles, 0 );
 			device.Draw( Primitive.PointList, MaxSimulatedParticles, 0 );
 
 			// draw lines: --------------------------------------------------------------------------
+			shader.SetPixelShader( (int)Flags.LINE );
 			shader.SetGeometryShader( (int)Flags.LINE );
 			device.SetGSResource( 1, simulationBufferSrc );
-			device.Draw( Primitive.LineList, MaxSimulatedParticles, 0 );
+			device.Draw( Primitive.LineStrip, MaxSimulatedParticles, 0 );
 			// --------------------------------------------------------------------------------------
 
 
