@@ -27,7 +27,7 @@ struct PARAMS {
 	float4x4	Projection;
 	int			MaxParticles;
 	float		DeltaTime;
-	float		Mass;
+	float		LinkSize;
 };
 
 cbuffer CB1 : register(b0) { 
@@ -69,27 +69,48 @@ struct Derivative
 
 
 
-float3 twoBodyAccel( in float4 bodyState, in float4 otherBodyState )
+float3 SpringForce( in float4 bodyState, in float4 otherBodyState )
 {
 	float3 R			= otherBodyState.xyz - bodyState.xyz;			
 //	float softenerSq	= 0.1f; 
 	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
 	float Rabs			= sqrt( Rsquared );
 	float Rsixth		= Rsquared * Rsquared * Rsquared;
-	float invRCubed		= - 10000000.0f * otherBodyState.w / sqrt( Rsixth ) + 0.1f * ( Rabs - 100.0f ) / ( bodyState.w * Rabs );
+	float invRCubed		=  0.1f * ( Rabs - Params.LinkSize ) / ( bodyState.w * Rabs );
+	return mul( invRCubed, R );
+
+}
+
+
+float3 Repulsion( in float4 bodyState, in float4 otherBodyState )
+{
+	float3 R			= otherBodyState.xyz - bodyState.xyz;			
+//	float softenerSq	= 0.1f; 
+	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
+	float Rabs			= sqrt( Rsquared );
+	float Rsixth		= Rsquared * Rsquared * Rsquared;
+	float invRCubed		= - 10000.0f * otherBodyState.w / sqrt( Rsixth );
 	return mul( invRCubed, R );
 
 }
 
 
 
-float3 Acceleration( in PARTICLE3D prt )
+float3 Acceleration( in PARTICLE3D prt, in int totalNum  )
 {
 	float3 acc = {0,0,0};
 	PARTICLE3D other = particleBufferSrc[ prt.LinkedTo1 ];
-	acc += twoBodyAccel( prt.Position, other.Position );
+	acc += SpringForce( prt.Position, other.Position );
 	other = particleBufferSrc[ prt.LinkedTo2 ];
-	acc += twoBodyAccel( prt.Position, other.Position );
+	acc += SpringForce( prt.Position, other.Position );
+
+	[allow_uav_condition] for ( int i = 0; i < totalNum; ++i ) {
+		other = particleBufferSrc[ i ];
+		acc += Repulsion( prt.Position, other.Position );
+	}
+	acc -= mul ( prt.Velocity, 1.6f );
+
+
 	return acc;
 }
 
@@ -99,7 +120,7 @@ float3 Acceleration( in PARTICLE3D prt )
 void IntegrateEUL_SHARED( inout BodyState state, in float dt, in uint threadIndex, in uint numParticles )
 {
 	
-	state.Acceleration	= Acceleration( particleBufferSrc[state.id] );
+	state.Acceleration	= Acceleration( particleBufferSrc[state.id], numParticles );
 }
 
 
@@ -145,12 +166,12 @@ void CSMain(
 
 #ifdef EULER
 
-			IntegrateEUL_SHARED( state, Params.DeltaTime, groupIndex, numParticles );
+			IntegrateEUL_SHARED( state, Params.DeltaTime, groupIndex, Params.MaxParticles );
 
 #endif
 #ifdef RUNGE_KUTTA
 	
-			IntegrateEUL_SHARED( state, Params.DeltaTime, groupIndex, numParticles );
+			IntegrateEUL_SHARED( state, Params.DeltaTime, groupIndex, Params.MaxParticles );
 
 #endif
 

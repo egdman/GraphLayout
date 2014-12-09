@@ -64,12 +64,13 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	1024;
+		const int	MaxInjectingParticles	=	3;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
 		float		MinParticleMass;
 		float		spinRate;
+		float		linkSize;
 
 		int					injectionCount = 0;
 		Particle3d[]		injectionBufferCPU = new Particle3d[MaxInjectingParticles];
@@ -77,8 +78,14 @@ namespace GraphVis {
 		StructuredBuffer	simulationBufferSrc;
 
 		StructuredBuffer	simulationBufferDst;
+		StructuredBuffer	linksPtrBuffer;
+		int[]				linksPtrBufferCPU		= new int[MaxInjectingParticles];
+
+
+		int					linkCount;
+		int					maxLinkCount;
 		StructuredBuffer	linksBuffer;
-		int[]				linksBufferCPU		= new int[MaxInjectingParticles];
+		Link[]				linksBufferCPU;
 		ConstantBuffer		paramsCB;
 
 
@@ -101,6 +108,18 @@ namespace GraphVis {
 				return string.Format("life time = {0}/{1}", LifeTime, TotalLifeTime );
 			}
 
+		}
+
+
+		// link between 2 particles:
+		[StructLayout(LayoutKind.Explicit)]
+		struct Link
+		{
+			[FieldOffset( 0)] public int par1;
+			[FieldOffset( 4)] public int par2;
+			[FieldOffset( 8)] public float force1;
+			[FieldOffset(12)] public float force2;
+			[FieldOffset(16)] public Vector3 orientation;
 		}
 
 		enum Flags {
@@ -126,7 +145,7 @@ namespace GraphVis {
 			[FieldOffset( 64)] public Matrix	Projection;
 			[FieldOffset(128)] public int		MaxParticles;
 			[FieldOffset(132)] public float		DeltaTime;
-			[FieldOffset(136)] public float		Mass;
+			[FieldOffset(136)] public float		LinkSize;
 		} 
 
 		Random rand = new Random();
@@ -161,7 +180,13 @@ namespace GraphVis {
 			MaxParticleMass		=	cfg.Max_mass;
 			MinParticleMass		=	cfg.Min_mass;
 			spinRate			=	cfg.Rotation;
+			linkSize			=	1.0f;
 
+			linkCount			=	0;
+			maxLinkCount		=	MaxSimulatedParticles * MaxSimulatedParticles - MaxSimulatedParticles;
+
+			linksBufferCPU		=	new Link[maxLinkCount];
+			linksPtrBufferCPU	=	new int[maxLinkCount];
 			state				=	State.RUN;
 
 			base.Initialize();
@@ -212,7 +237,7 @@ namespace GraphVis {
 
 			//Log.LogMessage("...particle added");
 
-			Vector3 newPos		=	pos + RadialRandomVector() * 100;
+			Vector3 newPos		=	pos + RadialRandomVector() * linkSize;
 
 			Vector3 tangent		=	Vector3.Cross( newPos, new Vector3( 0, 0, 1 ) );
 			float ParticleMass	=	rand.NextFloat( MinParticleMass, MaxParticleMass );
@@ -230,9 +255,16 @@ namespace GraphVis {
 
 			
 			// link this particle to previous and next:
+			if ( injectionCount > 0 ) {
 
+				Link link = new Link();
+				link.par1 = injectionCount - 1;
+				link.par2 = injectionCount;
+				link.force1 = link.force2 = 0;
+				linksBufferCPU[linkCount] = link;
+			}
 
-			linksBufferCPU[ injectionCount ] = injectionCount;
+			linksPtrBufferCPU[ injectionCount ] = injectionCount;
 			if ( injectionCount < MaxInjectingParticles - 1 ) {
 				p.linkedTo1	=	injectionCount + 1;
 			}
@@ -260,9 +292,9 @@ namespace GraphVis {
 		{
 			ClearParticleBuffer();
 			Vector3 prevPos = new Vector3();
-			prevPos = AddParticle( new Vector3( 0, 0, -400), 9999, 20, 1.0f );
+			prevPos = AddParticle( new Vector3( 0, 0, -100), 9999, 5.0f, 1.0f );
 			for( int i = 0; i < N; ++i ) {
-				prevPos = AddParticle( prevPos, 9999, 20, 1.0f ); 
+				prevPos = AddParticle( prevPos, 9999, 5.0f, 1.0f );
 			}
 			simulationBufferSrc.SetData(injectionBufferCPU);
 		}
@@ -350,7 +382,7 @@ namespace GraphVis {
 			param.Projection	=	cam.ProjMatrix;
 			param.MaxParticles	=	0;
 			param.DeltaTime		=	gameTime.ElapsedSec;
-			param.Mass			=	1.0f;
+			param.LinkSize			=	linkSize;
 
 
 			device.SetCSConstant( 0, paramsCB );
