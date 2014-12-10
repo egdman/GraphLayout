@@ -16,8 +16,8 @@ struct PARTICLE3D {
 	float	Size0;
 	float	TotalLifeTime;
 	float	LifeTime;
-	int		LinkedTo1;
-	int		LinkedTo2;
+	int		LinksPtr;
+	int		LinksCount;
 	float3	Acceleration;
 };
 
@@ -30,6 +30,15 @@ struct PARAMS {
 	float		LinkSize;
 };
 
+
+struct Link {
+	int par1;
+	int par2;
+	float force1;
+	float force2;
+	float3 orientation;
+};
+
 cbuffer CB1 : register(b0) { 
 	PARAMS Params; 
 };
@@ -37,10 +46,14 @@ cbuffer CB1 : register(b0) {
 SamplerState						Sampler				: 	register(s0);
 Texture2D							Texture 			: 	register(t0);
 
-StructuredBuffer<PARTICLE3D>		GSResourceBuffer	:	register(u1);
-
 RWStructuredBuffer<PARTICLE3D>		particleBufferSrc	: 	register(u0);
+StructuredBuffer<PARTICLE3D>		GSResourceBuffer	:	register(u1);
 RWStructuredBuffer<PARTICLE3D>		particleBufferSrc2	:	register(u2);
+StructuredBuffer<int>				linksPtrBuffer		:	register(u3);
+StructuredBuffer<Link>				linksBuffer			:	register(u4);
+
+StructuredBuffer<int>				linksPtrBufferGS	:	register(u5);
+StructuredBuffer<Link>				linksBufferGS		:	register(u6);
 
 //AppendStructuredBuffer<PARTICLE3D>	particleBufferDst	: 	register(u0);
 
@@ -99,14 +112,20 @@ float3 Repulsion( in float4 bodyState, in float4 otherBodyState )
 float3 Acceleration( in PARTICLE3D prt, in int totalNum  )
 {
 	float3 acc = {0,0,0};
-	PARTICLE3D other = particleBufferSrc[ prt.LinkedTo1 ];
-	acc += SpringForce( prt.Position, other.Position );
-	other = particleBufferSrc[ prt.LinkedTo2 ];
-	acc += SpringForce( prt.Position, other.Position );
+	PARTICLE3D other;
+	[allow_uav_condition] for ( int lNum = 0; lNum < prt.LinksCount + 1; ++ lNum ) {
+		other = particleBufferSrc[linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum]].par1];
+		acc += SpringForce( prt.Position, other.Position );
+
+		other = particleBufferSrc[linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum]].par2];
+		acc += SpringForce( prt.Position, other.Position );
+	
+	}
+
 
 	[allow_uav_condition] for ( int i = 0; i < totalNum; ++i ) {
 		other = particleBufferSrc[ i ];
-		acc += Repulsion( prt.Position, other.Position );
+	//	acc += Repulsion( prt.Position, other.Position );
 	}
 	acc -= mul ( prt.Velocity, 1.6f );
 
@@ -346,32 +365,77 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 #endif
 
 #ifdef LINE
-[maxvertexcount(2)]
-void GSMain( line VSOutput inputLine[2], inout LineStream<GSOutput> outputStream )
+/*
+[maxvertexcount(4)]
+void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStream )
+{
+
+	PARTICLE3D prt = GSResourceBuffer[ inputLine[0].vertexID ];
+	for ( int lNum = 0; lNum < prt.LinksCount; ++lNum ) {
+		PARTICLE3D end1 = GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr + lNum]].par1];
+		PARTICLE3D end2 = GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr + lNum]].par2];
+	
+
+		GSOutput p1, p2;
+
+		float4 pos1		=	float4( end1.Position.xyz, 1 );
+		float4 pos2		=	float4( end2.Position.xyz, 1 );
+
+		float4 posV1	=	mul( pos1, Params.View );
+		float4 posV2	=	mul( pos2, Params.View );
+
+		p1.Position		=	mul( posV1, Params.Projection );
+		p2.Position		=	mul( posV2, Params.Projection );
+
+		p1.TexCoord		=	float2(0, 0);
+		p2.TexCoord		=	float2(0, 0);
+
+		p1.Color		=	end1.Color0;
+		p2.Color		=	end2.Color0;
+
+		outputStream.Append(p1);
+		outputStream.Append(p2);
+		outputStream.RestartStrip();
+	}
+}*/
+[maxvertexcount(8)]
+void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStream )
 {
 	GSOutput p1, p2;
-
-	PARTICLE3D end1 = GSResourceBuffer[ inputLine[0].vertexID ];
-	PARTICLE3D end2 = GSResourceBuffer[ inputLine[1].vertexID ];
-
-	float4 pos1		=	float4( end1.Position.xyz, 1 );
-	float4 pos2		=	float4( end2.Position.xyz, 1 );
-
-	float4 posV1	=	mul( pos1, Params.View );
-	float4 posV2	=	mul( pos2, Params.View );
-
-	p1.Position		=	mul( posV1, Params.Projection );
-	p2.Position		=	mul( posV2, Params.Projection );
-
-	p1.TexCoord		=	float2(0, 0);
-	p2.TexCoord		=	float2(0, 0);
-
-	p1.Color		=	end1.Color0;
-	p2.Color		=	end2.Color0;
-
+	PARTICLE3D prt = GSResourceBuffer[ inputLine[0].vertexID ];
+//	PARTICLE3D end2 = GSResourceBuffer[ inputLine[1].vertexID ];
+	float4 pos1 = float4( prt.Position.xyz, 1 );
+//	float4 pos2 = float4( end2.Position.xyz, 1 );
+	float4 posV1 = mul( pos1, Params.View );
+	//float4 posV2 = mul( pos2, Params.View );
+	float4 posV2 = posV1 + float4( 5,0,0,1 );
+	p1.Position = mul( posV1, Params.Projection );
+	p2.Position = mul( posV2, Params.Projection );
+	p1.TexCoord = float2(0, 0);
+	p2.TexCoord = float2(0, 0);
+	p1.Color = prt.Color0;
+	p2.Color = prt.Color0;
 	outputStream.Append(p1);
 	outputStream.Append(p2);
 	outputStream.RestartStrip();
+
+//	for ( int lNum = 0; lNum < prt.LinksCount; ++lNum ) {
+		PARTICLE3D end1 =  GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr ]].par1];
+		PARTICLE3D end2 =  GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr ]].par2];
+		 pos1 = float4( prt.Position.xyz, 1 );
+		float4 pos2 = float4( end2.Position.xyz, 1 );
+		 posV1 = mul( pos1, Params.View );
+		 posV2 = mul( pos2, Params.View );
+		p1.Position = mul( posV1, Params.Projection );
+		p2.Position = mul( posV2, Params.Projection );
+		p1.TexCoord = float2(0, 0);
+		p2.TexCoord = float2(0, 0);
+		p1.Color = prt.Color0;
+		p2.Color = prt.Color0;
+		outputStream.Append(p1);
+		outputStream.Append(p2);
+		outputStream.RestartStrip();
+//	}
 }
 
 #endif

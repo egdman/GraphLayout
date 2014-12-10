@@ -98,8 +98,8 @@ namespace GraphVis {
 			[FieldOffset(44)] public float		Size0;
 			[FieldOffset(48)] public float		TotalLifeTime;
 			[FieldOffset(52)] public float		LifeTime;
-			[FieldOffset(56)] public int		linkedTo1;
-			[FieldOffset(60)] public int		linkedTo2;
+			[FieldOffset(56)] public int		linksPtr;
+			[FieldOffset(60)] public int		linksCount;
 			[FieldOffset(64)] public Vector3	Acceleration;
 
 
@@ -170,23 +170,26 @@ namespace GraphVis {
 			shader		=	Game.Content.Load<Ubershader>("shaders");
 			shader.Map( typeof(Flags) );
 
+			maxLinkCount		=	MaxSimulatedParticles * MaxSimulatedParticles;
+
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 
 			injectionBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxInjectingParticles, StructuredBufferFlags.Counter );
 			simulationBufferSrc	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Counter );
 			simulationBufferDst	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Append );
-			linksBuffer			=	new StructuredBuffer( Game.GraphicsDevice, typeof(int),        MaxSimulatedParticles, StructuredBufferFlags.Counter );
- 
+			linksBuffer			=	new StructuredBuffer( Game.GraphicsDevice, typeof(Link),        maxLinkCount, StructuredBufferFlags.Counter );
+			linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(int),        maxLinkCount, StructuredBufferFlags.Counter );
+
 			MaxParticleMass		=	cfg.Max_mass;
 			MinParticleMass		=	cfg.Min_mass;
 			spinRate			=	cfg.Rotation;
-			linkSize			=	1.0f;
+			linkSize			=	10.0f;
 
 			linkCount			=	0;
-			maxLinkCount		=	MaxSimulatedParticles * MaxSimulatedParticles - MaxSimulatedParticles;
 
 			linksBufferCPU		=	new Link[maxLinkCount];
 			linksPtrBufferCPU	=	new int[maxLinkCount];
+
 			state				=	State.RUN;
 
 			base.Initialize();
@@ -229,6 +232,8 @@ namespace GraphVis {
 		/// </summary>
 		public Vector3 AddParticle ( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
 		{
+
+			int linksPerParticle = 2;
 			if (injectionCount>=MaxInjectingParticles) {
 				Log.Warning("Too much injected particles per frame");
 				injectionCount = 0;
@@ -253,6 +258,8 @@ namespace GraphVis {
 				Acceleration	=	new Vector3(0, 0, 0)
 			};
 
+			p.linksPtr = injectionCount * linksPerParticle;
+			p.linksCount = 0;
 			
 			// link this particle to previous and next:
 			if ( injectionCount > 0 ) {
@@ -262,26 +269,24 @@ namespace GraphVis {
 				link.par2 = injectionCount;
 				link.force1 = link.force2 = 0;
 				linksBufferCPU[linkCount] = link;
+
+				var prt1 = injectionBufferCPU[injectionCount-1];
+
+				linksPtrBufferCPU[prt1.linksPtr + prt1.linksCount] = linkCount;
+				prt1.linksCount++;
+				
+				linksPtrBufferCPU[p.linksPtr + p.linksCount] = linkCount;
+				if ( injectionCount < MaxInjectingParticles - 1 )
+				{
+					p.linksCount++;
+				}
+				++linkCount;
 			}
 
-			linksPtrBufferCPU[ injectionCount ] = injectionCount;
-			if ( injectionCount < MaxInjectingParticles - 1 ) {
-				p.linkedTo1	=	injectionCount + 1;
-			}
-			else {
-				p.linkedTo1 =	injectionCount;
-			}
-
-			if ( injectionCount > 0 ) {
-				p.linkedTo2	=	injectionCount - 1;
-			}
-			else {
-				p.linkedTo2 =	injectionCount;
-			}
 
 			injectionBufferCPU[ injectionCount ] = p;
 
-			injectionCount ++;
+			injectionCount++;
 
 			return newPos;
 		}
@@ -291,12 +296,15 @@ namespace GraphVis {
 		public void AddMaxParticles( int N = MaxInjectingParticles )
 		{
 			ClearParticleBuffer();
+			linkCount = 0;
 			Vector3 prevPos = new Vector3();
 			prevPos = AddParticle( new Vector3( 0, 0, -100), 9999, 5.0f, 1.0f );
 			for( int i = 0; i < N; ++i ) {
 				prevPos = AddParticle( prevPos, 9999, 5.0f, 1.0f );
 			}
 			simulationBufferSrc.SetData(injectionBufferCPU);
+			linksPtrBuffer.SetData(linksPtrBufferCPU);
+			linksBuffer.SetData(linksBufferCPU);
 		}
 
 
@@ -422,6 +430,9 @@ namespace GraphVis {
 
 				// calculate accelerations: ---------------------------------------------------
 				device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
+				device.SetCSResource( 3, linksPtrBuffer );
+				device.SetCSResource( 4, linksBuffer );
+
 				param.MaxParticles	=	MaxSimulatedParticles;
 				paramsCB.SetData( param );
 				device.SetCSConstant( 0, paramsCB );
@@ -467,7 +478,9 @@ namespace GraphVis {
 			shader.SetPixelShader( (int)Flags.LINE );
 			shader.SetGeometryShader( (int)Flags.LINE );
 			device.SetGSResource( 1, simulationBufferSrc );
-			device.Draw( Primitive.LineStrip, MaxSimulatedParticles, 0 );
+			device.SetGSResource( 5, linksPtrBuffer );
+			device.SetGSResource( 6, linksBuffer );
+			device.Draw( Primitive.PointList, MaxSimulatedParticles, 0 );
 			// --------------------------------------------------------------------------------------
 
 
