@@ -64,7 +64,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	5;
+		const int	MaxInjectingParticles	=	4;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -79,15 +79,16 @@ namespace GraphVis {
 
 		StructuredBuffer	simulationBufferDst;
 		StructuredBuffer	linksPtrBuffer;
-		int[]				linksPtrBufferCPU; //		= new int[MaxInjectingParticles];
+		LinkId[]			linksPtrBufferCPU; //		= new int[MaxInjectingParticles];
 
+		StructuredBuffer	linksBuffer;
+		Link[]				linksBufferCPU;
 
 
 
 		int					linkCount;
 		int					maxLinkCount;
-		StructuredBuffer	linksBuffer;
-		Link[]				linksBufferCPU;
+
 		ConstantBuffer		paramsCB;
 		List<int>[]			linkPtrLists;
 
@@ -126,6 +127,13 @@ namespace GraphVis {
 			[FieldOffset( 8)] public float force1;
 			[FieldOffset(12)] public float force2;
 			[FieldOffset(16)] public Vector3 orientation;
+		}
+
+
+		[StructLayout(LayoutKind.Explicit)]
+		struct LinkId
+		{
+			[FieldOffset( 0)] public int id;
 		}
 
 		enum Flags {
@@ -184,7 +192,7 @@ namespace GraphVis {
 			simulationBufferSrc	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Counter );
 			simulationBufferDst	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Append );
 			linksBuffer			=	new StructuredBuffer( Game.GraphicsDevice, typeof(Link),       maxLinkCount, StructuredBufferFlags.Counter );
-			linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(int),        maxLinkCount, StructuredBufferFlags.Counter );
+			linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(LinkId),     maxLinkCount, StructuredBufferFlags.Counter );
 			linkPtrLists		=	new List<int>[MaxSimulatedParticles];
 
 			MaxParticleMass		=	cfg.Max_mass;
@@ -293,7 +301,7 @@ namespace GraphVis {
 		void addChain( int N )
 		{
 			linkPtrLists = new List<int>[N];
-			Vector3 pos = Vector3.Zero;
+			Vector3 pos = new Vector3( 0, 0, -100);
 			ParticleList.Clear();
 			linkList.Clear();
 			for ( int i = 0; i < N; ++i ) {
@@ -323,17 +331,18 @@ namespace GraphVis {
 				++iter;
 			}
 
-			linksPtrBufferCPU = new int[linkList.Count * 2];
+			linksPtrBufferCPU = new LinkId[linkList.Count * 2];
 			iter = 0;
+			int lpIter = 0;
 			foreach( var ptrList in linkPtrLists ) {
-				injectionBufferCPU[iter].linksPtr = iter;
 
 				int blockSize = 0;
+				injectionBufferCPU[iter].linksPtr = lpIter;
 				foreach ( var linkPtr in ptrList ) {
-					linksPtrBufferCPU[iter + blockSize] = linkPtr;
+					linksPtrBufferCPU[lpIter] = new LinkId {id = linkPtr};
+					++lpIter;
 					++blockSize;
 				}
-
 				injectionBufferCPU[iter].linksCount = blockSize;
 				++iter;
 			}
@@ -343,6 +352,20 @@ namespace GraphVis {
 			linksPtrBuffer.SetData(linksPtrBufferCPU);
 
 
+			for ( int i = 0; i < ParticleList.Count; ++i ) {
+				var p = injectionBufferCPU[i];
+				Console.WriteLine( "particle #" + i + ":" );
+				for ( int lNum = 0; lNum < p.linksCount; ++lNum ) {
+					Particle3d end1 =  injectionBufferCPU[linksBufferCPU[linksPtrBufferCPU[p.linksPtr + lNum ].id].par1];
+					Particle3d end2 =  injectionBufferCPU[linksBufferCPU[linksPtrBufferCPU[p.linksPtr + lNum ].id].par2];
+					Console.WriteLine( "	link #" + lNum + ":" );
+					Console.WriteLine( "	end1:" +end1.Position.X + ", " + end1.Position.Y + ", " + end1.Position.Z);
+					Console.WriteLine( "	end2:" +end2.Position.X + ", " + end2.Position.Y + ", " + end2.Position.Z);
+				} 
+
+
+
+			}
 		}
 
 
@@ -429,7 +452,7 @@ namespace GraphVis {
 			param.Projection	=	cam.ProjMatrix;
 			param.MaxParticles	=	0;
 			param.DeltaTime		=	gameTime.ElapsedSec;
-			param.LinkSize			=	linkSize;
+			param.LinkSize		=	linkSize;
 
 
 			device.SetCSConstant( 0, paramsCB );
@@ -517,8 +540,8 @@ namespace GraphVis {
 			shader.SetPixelShader( (int)Flags.LINE );
 			shader.SetGeometryShader( (int)Flags.LINE );
 			device.SetGSResource( 1, simulationBufferSrc );
-			device.SetGSResource( 5, linksPtrBuffer );
-			device.SetGSResource( 6, linksBuffer );
+			device.SetGSResource( 3, linksPtrBuffer );
+			device.SetGSResource( 4, linksBuffer );
 			device.Draw( Primitive.PointList, MaxSimulatedParticles, 0 );
 			// --------------------------------------------------------------------------------------
 
