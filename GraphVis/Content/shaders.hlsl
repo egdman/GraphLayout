@@ -405,6 +405,7 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 	PARTICLE3D prt = GSResourceBuffer[ inputLine[0].vertexID ];
 //	PARTICLE3D end2 = GSResourceBuffer[ inputLine[1].vertexID ];
 	float4 pos1 = float4( prt.Position.xyz, 1 );
+	float4 pos2;
 //	float4 pos2 = float4( end2.Position.xyz, 1 );
 	float4 posV1 = mul( pos1, Params.View );
 	//float4 posV2 = mul( pos2, Params.View );
@@ -419,11 +420,11 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 	outputStream.Append(p2);
 	outputStream.RestartStrip();
 
-//	for ( int lNum = 0; lNum < prt.LinksCount; ++lNum ) {
-		PARTICLE3D end1 =  GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr ]].par1];
-		PARTICLE3D end2 =  GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr ]].par2];
+	for ( int lNum = 0; lNum < prt.LinksCount; ++lNum ) {
+		PARTICLE3D end1 =  GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr + lNum ]].par1];
+		PARTICLE3D end2 =  GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr + lNum ]].par2];
 		 pos1 = float4( prt.Position.xyz, 1 );
-		float4 pos2 = float4( end2.Position.xyz, 1 );
+		 pos2 = float4( end2.Position.xyz, 1 );
 		 posV1 = mul( pos1, Params.View );
 		 posV2 = mul( pos2, Params.View );
 		p1.Position = mul( posV1, Params.Projection );
@@ -435,7 +436,7 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 		outputStream.Append(p1);
 		outputStream.Append(p2);
 		outputStream.RestartStrip();
-//	}
+	}
 }
 
 #endif
