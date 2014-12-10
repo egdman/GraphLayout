@@ -113,7 +113,7 @@ float3 Acceleration( in PARTICLE3D prt, in int totalNum  )
 {
 	float3 acc = {0,0,0};
 	PARTICLE3D other;
-	[allow_uav_condition] for ( int lNum = 0; lNum < prt.LinksCount + 1; ++ lNum ) {
+	[allow_uav_condition] for ( int lNum = 0; lNum < prt.LinksCount; ++ lNum ) {
 		other = particleBufferSrc[linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum]].par1];
 		acc += SpringForce( prt.Position, other.Position );
 

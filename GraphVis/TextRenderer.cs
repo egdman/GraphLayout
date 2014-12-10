@@ -246,7 +246,7 @@ namespace GraphVis
 			[FieldOffset( 8)] public int RenderedSize;
 			[FieldOffset(12)] public int Width;
 			[FieldOffset(16)] public int Height;
-			[FieldOffset(20)] public BitmapCharacter[] Characters = new BitmapCharacter[256];
+			[FieldOffset(20)] public BitmapCharacter[] Characters;
 		}
  
 
@@ -523,7 +523,7 @@ public class BitmapFont
         StringBlock b = new StringBlock( text, textBox, alignment, size, color, kerning );
         m_strings.Add( b );
         int index = m_strings.Count - 1;
-        m_quads.AddRange( GetProcessedQuads( index ) );
+   //     m_quads.AddRange( GetProcessedQuads( index ) );
         return index;
     }
  
@@ -540,7 +540,7 @@ public class BitmapFont
         m_strings.Clear();
         m_quads.Clear();
     }
- 
+ /*
     /// <summary>Gets the list of Quads from a StringBlock all ready to render.</summary>
     /// <param name="index">Index into StringBlock List</param>
     /// <returns>List of Quads</returns>
@@ -884,6 +884,7 @@ public class BitmapFont
     {
         get { return m_texture; }
     }
+  * */
 }
 
 

@@ -64,7 +64,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	3;
+		const int	MaxInjectingParticles	=	5;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -73,13 +73,15 @@ namespace GraphVis {
 		float		linkSize;
 
 		int					injectionCount = 0;
-		Particle3d[]		injectionBufferCPU = new Particle3d[MaxInjectingParticles];
+		Particle3d[]		injectionBufferCPU; // = new Particle3d[MaxInjectingParticles];
 		StructuredBuffer	injectionBuffer;
 		StructuredBuffer	simulationBufferSrc;
 
 		StructuredBuffer	simulationBufferDst;
 		StructuredBuffer	linksPtrBuffer;
-		int[]				linksPtrBufferCPU		= new int[MaxInjectingParticles];
+		int[]				linksPtrBufferCPU; //		= new int[MaxInjectingParticles];
+
+
 
 
 		int					linkCount;
@@ -87,6 +89,10 @@ namespace GraphVis {
 		StructuredBuffer	linksBuffer;
 		Link[]				linksBufferCPU;
 		ConstantBuffer		paramsCB;
+		List<int>[]			linkPtrLists;
+
+		List<Link>			linkList;
+		List<Particle3d>	ParticleList;
 
 
 		// Particle in 3d space:
@@ -177,8 +183,9 @@ namespace GraphVis {
 			injectionBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxInjectingParticles, StructuredBufferFlags.Counter );
 			simulationBufferSrc	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Counter );
 			simulationBufferDst	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Append );
-			linksBuffer			=	new StructuredBuffer( Game.GraphicsDevice, typeof(Link),        maxLinkCount, StructuredBufferFlags.Counter );
+			linksBuffer			=	new StructuredBuffer( Game.GraphicsDevice, typeof(Link),       maxLinkCount, StructuredBufferFlags.Counter );
 			linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(int),        maxLinkCount, StructuredBufferFlags.Counter );
+			linkPtrLists		=	new List<int>[MaxSimulatedParticles];
 
 			MaxParticleMass		=	cfg.Max_mass;
 			MinParticleMass		=	cfg.Min_mass;
@@ -187,8 +194,10 @@ namespace GraphVis {
 
 			linkCount			=	0;
 
-			linksBufferCPU		=	new Link[maxLinkCount];
-			linksPtrBufferCPU	=	new int[maxLinkCount];
+	//		linksBufferCPU		=	new Link[maxLinkCount];
+	//		linksPtrBufferCPU	=	new int[maxLinkCount];
+			linkList			=	new List<Link>();
+			ParticleList		=	new List<Particle3d>();
 
 			state				=	State.RUN;
 
@@ -227,84 +236,113 @@ namespace GraphVis {
 
 
 
-		/// <summary>
-		/// Add particle at a specified 3d position
-		/// </summary>
-		public Vector3 AddParticle ( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
+
+		public void AddMaxParticles( int N = MaxInjectingParticles )
 		{
+	
+			addChain(N);
+			setBuffers();
 
-			int linksPerParticle = 2;
-			if (injectionCount>=MaxInjectingParticles) {
-				Log.Warning("Too much injected particles per frame");
-				injectionCount = 0;
-				return pos;
-			}
+		}
 
-			//Log.LogMessage("...particle added");
 
-			Vector3 newPos		=	pos + RadialRandomVector() * linkSize;
-
-			Vector3 tangent		=	Vector3.Cross( newPos, new Vector3( 0, 0, 1 ) );
+		void addParticle( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
+		{
 			float ParticleMass	=	rand.NextFloat( MinParticleMass, MaxParticleMass );
-
-			var p = new Particle3d () {
-				Position		=	new Vector4( newPos, ParticleMass ),
-	//			Velocity		=	tangent * spinRate,
-				Velocity		=	Vector3.Zero,
-				Color0			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
-				Size0			=	size0,
-				TotalLifeTime	=	rand.NextFloat(lifeTime/2, lifeTime),
-				LifeTime		=	0,
-				Acceleration	=	new Vector3(0, 0, 0)
-			};
-
-			p.linksPtr = injectionCount * linksPerParticle;
-			p.linksCount = 0;
-			
-			// link this particle to previous and next:
-			if ( injectionCount > 0 ) {
-
-				Link link = new Link();
-				link.par1 = injectionCount - 1;
-				link.par2 = injectionCount;
-				link.force1 = link.force2 = 0;
-				linksBufferCPU[linkCount] = link;
-
-				var prt1 = injectionBufferCPU[injectionCount-1];
-
-				linksPtrBufferCPU[prt1.linksPtr + prt1.linksCount] = linkCount;
-				prt1.linksCount++;
-				
-				linksPtrBufferCPU[p.linksPtr + p.linksCount] = linkCount;
-				if ( injectionCount < MaxInjectingParticles - 1 )
-				{
-					p.linksCount++;
+			ParticleList.Add( new Particle3d {
+					Position = new Vector4( pos, ParticleMass ),
+					Velocity		=	Vector3.Zero,
+					Color0			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
+					Size0			=	size0,
+					TotalLifeTime	=	lifeTime,
+					LifeTime		=	0,
+					Acceleration	=	Vector3.Zero
 				}
-				++linkCount;
+				
+			);
+
+
+		}
+
+
+		void addLink( int end1, int end2 )
+		{
+			int linkNumber = linkList.Count;
+			linkList.Add( new Link{
+					par1 = end1,
+					par2 = end2,
+					force1 = 0,
+					force2 = 0,
+					orientation = Vector3.Zero
+				}
+			);
+			if ( linkPtrLists[end1] == null ) {
+				linkPtrLists[end1] = new List<int>();
 			}
+			linkPtrLists[end1].Add(linkNumber);
 
+			if ( linkPtrLists[end2] == null ) {
+				linkPtrLists[end2] = new List<int>();
+			}
+			linkPtrLists[end2].Add(linkNumber);
 
-			injectionBufferCPU[ injectionCount ] = p;
-
-			injectionCount++;
-
-			return newPos;
 		}
 
 
 
-		public void AddMaxParticles( int N = MaxInjectingParticles )
+		void addChain( int N )
 		{
-			ClearParticleBuffer();
-			linkCount = 0;
-			Vector3 prevPos = new Vector3();
-			prevPos = AddParticle( new Vector3( 0, 0, -100), 9999, 5.0f, 1.0f );
-			for( int i = 0; i < N; ++i ) {
-				prevPos = AddParticle( prevPos, 9999, 5.0f, 1.0f );
+			linkPtrLists = new List<int>[N];
+			Vector3 pos = Vector3.Zero;
+			ParticleList.Clear();
+			linkList.Clear();
+			for ( int i = 0; i < N; ++i ) {
+				
+				addParticle( pos, 9999, 5.0f, 1.0f );
+				pos += RadialRandomVector() * linkSize;
 			}
+
+			for ( int i = 1; i < N; ++i ) {
+				addLink(i - 1, i);
+			}
+		}
+
+
+		void setBuffers()
+		{
+			injectionBufferCPU = new Particle3d[ParticleList.Count];
+			int iter = 0;
+			foreach( var p in ParticleList ) {
+				injectionBufferCPU[iter] = p;
+				++iter;
+			}
+			linksBufferCPU = new Link[linkList.Count];
+			iter = 0;
+			foreach ( var l in linkList ) {
+				linksBufferCPU[iter] = l;
+				++iter;
+			}
+
+			linksPtrBufferCPU = new int[linkList.Count * 2];
+			iter = 0;
+			foreach( var ptrList in linkPtrLists ) {
+				injectionBufferCPU[iter].linksPtr = iter;
+
+				int blockSize = 0;
+				foreach ( var linkPtr in ptrList ) {
+					linksPtrBufferCPU[iter + blockSize] = linkPtr;
+					++blockSize;
+				}
+
+				injectionBufferCPU[iter].linksCount = blockSize;
+				++iter;
+			}
+
 			simulationBufferSrc.SetData(injectionBufferCPU);
-			linksPtrBuffer.SetData(linksPtrBufferCPU);
 			linksBuffer.SetData(linksBufferCPU);
+			linksPtrBuffer.SetData(linksPtrBufferCPU);
+
+
 		}
 
 
@@ -335,6 +373,7 @@ namespace GraphVis {
 				simulationBufferSrc.Dispose();
 				simulationBufferDst.Dispose();
 				linksBuffer.Dispose();
+				linksPtrBuffer.Dispose();
 			}
 			base.Dispose( disposing );
 		}
