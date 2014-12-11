@@ -53,15 +53,15 @@ Texture2D							Texture 			: 	register(t0);
 
 RWStructuredBuffer<PARTICLE3D>		particleBufferSrc	: 	register(u0);
 StructuredBuffer<PARTICLE3D>		GSResourceBuffer	:	register(u1);
-RWStructuredBuffer<PARTICLE3D>		particleBufferSrc2	:	register(u2);
-StructuredBuffer<LinkId>			linksPtrBuffer		:	register(u3);
-StructuredBuffer<Link>				linksBuffer			:	register(u4);
+
+StructuredBuffer<LinkId>			linksPtrBuffer		:	register(u2);
+StructuredBuffer<Link>				linksBuffer			:	register(u3);
 
 
 //AppendStructuredBuffer<PARTICLE3D>	particleBufferDst	: 	register(u0);
 
 // group shared array for body coordinates:
-groupshared float4 shPositions[BLOCK_SIZE];
+// groupshared float4 shPositions[BLOCK_SIZE];
 
 /*-----------------------------------------------------------------------------
 	Simulation :
@@ -401,10 +401,10 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 		outputStream.RestartStrip();
 	}
 }*/
-[maxvertexcount(8)]
+[maxvertexcount(2)]
 void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStream )
 {
-	GSOutput p1, p2;
+	/*GSOutput p1, p2;
 	PARTICLE3D prt = GSResourceBuffer[ inputLine[0].vertexID ];
 
 	float4 pos1 = float4( prt.Position.xyz, 1 );
@@ -441,7 +441,33 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 		outputStream.Append(p1);
 		outputStream.Append(p2);
 		outputStream.RestartStrip();
-	}
+	}*/
+
+	GSOutput p1, p2;
+
+	Link lk = linksBuffer[ inputLine[0].vertexID ];
+	PARTICLE3D end1 = GSResourceBuffer[ lk.par1 ];
+	PARTICLE3D end2 = GSResourceBuffer[ lk.par2 ];
+	float4 pos1 = float4( end1.Position.xyz, 1 );
+	float4 pos2 = float4( end2.Position.xyz, 1 );
+
+	float4 posV1	=	mul( pos1, Params.View );
+	float4 posV2	=	mul( pos2, Params.View );
+
+	p1.Position		=	mul( posV1, Params.Projection );
+	p2.Position		=	mul( posV2, Params.Projection );
+
+	p1.TexCoord		=	float2(0, 0);
+	p2.TexCoord		=	float2(0, 0);
+
+	p1.Color		=	end1.Color0;
+	p2.Color		=	end2.Color0;
+
+	outputStream.Append(p1);
+	outputStream.Append(p2);
+	outputStream.RestartStrip();
+
+
 }
 
 #endif

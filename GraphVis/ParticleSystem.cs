@@ -492,8 +492,8 @@ namespace GraphVis {
 
 				// calculate accelerations: ---------------------------------------------------
 				device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
-				device.SetCSResource( 3, linksPtrBuffer );
-				device.SetCSResource( 4, linksBuffer );
+				device.SetCSResource( 2, linksPtrBuffer );
+				device.SetCSResource( 3, linksBuffer );
 
 				param.MaxParticles	=	MaxSimulatedParticles;
 				paramsCB.SetData( param );
@@ -534,16 +534,23 @@ namespace GraphVis {
 			device.SetBlendState( BlendState.Additive );
 			device.SetDepthStencilState( DepthStencilState.Readonly );
 
-			device.Draw( Primitive.PointList, MaxSimulatedParticles, 0 );
+			device.Draw( Primitive.PointList, ParticleList.Count, 0 );
+		
 
 			// draw lines: --------------------------------------------------------------------------
+			shader.SetVertexShader( 0 );
 			shader.SetPixelShader( (int)Flags.LINE );
 			shader.SetGeometryShader( (int)Flags.LINE );
 			device.SetGSResource( 1, simulationBufferSrc );
 			device.SetGSResource( 3, linksPtrBuffer );
 			device.SetGSResource( 4, linksBuffer );
-			device.Draw( Primitive.PointList, MaxSimulatedParticles, 0 );
+			device.Draw( Primitive.PointList, linkList.Count, 0 );
+
+
+			
+
 			// --------------------------------------------------------------------------------------
+
 
 
 			/*var testSrc = new Particle[MaxSimulatedParticles];
@@ -557,8 +564,46 @@ namespace GraphVis {
 			debStr.Add("deltaT = " + gameTime.ElapsedSec );
 			debStr.Add("Press Z to start simulation");
 			debStr.Add("Press Q to pause/unpause");
+			debStr.Add( "drawing " + ParticleList.Count + " points" );
+			debStr.Add( "drawing " + linkList.Count + " lines" );
 
+			if ( linkList.Count > 0 && ParticleList.Count > 0 ) {
+				Link[] linksBufferData = new Link[linkList.Count];
+				linksBuffer.GetData( linksBufferData );
 
+				Particle3d[] particleBufferData = new Particle3d[ParticleList.Count];
+				simulationBufferSrc.GetData( particleBufferData );
+			
+				LinkId[] linksPtrBufferData = new LinkId[2 * linkList.Count];
+				linksPtrBuffer.GetData(linksPtrBufferData);
+
+				for ( int i = 0; i < linkList.Count; ++i )
+				{
+					Link l = linksBufferData[i];
+		/*			
+					debStr.Add( "link #" + i + ": end1 = " +  
+						particleBufferData[l.par1].Position.X + ", " + 
+						particleBufferData[l.par1].Position.Y + ", " +
+						particleBufferData[l.par1].Position.Z + ", end2 = " +
+						particleBufferData[l.par2].Position.X + ", " +
+						particleBufferData[l.par2].Position.Y + ", " +
+						particleBufferData[l.par2].Position.Z + ", " );*/
+					debStr.Add( "link #" + i + ": end1 = " + l.par1 + ", end2 = " + l.par2 );
+
+				}
+
+				for ( int i = 0; i < ParticleList.Count; ++i )
+				{
+					Particle3d p = particleBufferData[i];
+					debStr.Add( "Particle #" + i + ": " );
+					for ( int j = 0; j < p.linksCount; ++j )
+					{
+						Link lk = linksBufferData[linksPtrBufferData[p.linksPtr + j].id];
+						debStr.Add("  link #" + j + ": end1 = " + lk.par1 + ", " + lk.par2 );
+					}
+				}
+
+			}
 			base.Draw( gameTime, stereoEye );
 		}
 
