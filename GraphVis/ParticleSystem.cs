@@ -64,7 +64,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	512;
+		const int	MaxInjectingParticles	=	4096;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -246,12 +246,14 @@ namespace GraphVis {
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-			addChain(N / 8);
+			addChain(N / 32);
 			while ( ParticleList.Count < N ) {
-				int id = rand.Next( 0, ParticleList.Count - 1 );
-				int ifJoins = rand.Next( 0, countSumOfDegrees() - 1 );
-				if ( ifJoins < linkPtrLists[id].Count ) {
-					addChildren( 1, id );
+			//	int id = rand.Next( 0, ParticleList.Count - 1 );
+				for ( int id = 0; id < ParticleList.Count; ++id ) {
+					int ifJoins = rand.Next( 0, 2 * linkList.Count - 1 );
+					if ( ifJoins < linkPtrLists[id].Count ) {
+						addChildren( 1, id );
+					}
 				}
 			}
 			setBuffers();
@@ -433,7 +435,7 @@ namespace GraphVis {
 				linksPtrBuffer.SetData(linksPtrBufferCPU);
 			}
 
-
+			/*
 			for ( int i = 0; i < ParticleList.Count; ++i ) {
 				var p = injectionBufferCPU[i];
 				Console.WriteLine( "particle #" + i + ":" );
@@ -447,7 +449,7 @@ namespace GraphVis {
 					+linksBufferCPU[linksPtrBufferCPU[p.linksPtr + lNum ].id].par2);
 
 				} 
-			}
+			}*/
 		}
 
 
