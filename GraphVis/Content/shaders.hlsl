@@ -198,7 +198,7 @@ void CSMain(
 
 			float accel	=	length( state.Acceleration );
 
-			float maxAccel = 150.0f;
+			float maxAccel = 9.0f;
 			accel = saturate( accel / maxAccel );
 
 			p.Color0	=	float4( accel, - 0.5f * accel +1.0f, - 0.5f * accel +1.0f, 1 );

@@ -64,7 +64,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	128;
+		const int	MaxInjectingParticles	=	8192;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -74,7 +74,7 @@ namespace GraphVis {
 
 		int					injectionCount = 0;
 		Particle3d[]		injectionBufferCPU; // = new Particle3d[MaxInjectingParticles];
-		StructuredBuffer	injectionBuffer;
+//		StructuredBuffer	injectionBuffer;
 		StructuredBuffer	simulationBufferSrc;
 
 		StructuredBuffer	simulationBufferDst;
@@ -188,11 +188,11 @@ namespace GraphVis {
 
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 
-			injectionBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxInjectingParticles, StructuredBufferFlags.Counter );
-			simulationBufferSrc	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Counter );
-			simulationBufferDst	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Append );
-			linksBuffer			=	new StructuredBuffer( Game.GraphicsDevice, typeof(Link),       maxLinkCount, StructuredBufferFlags.Counter );
-			linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(LinkId),     maxLinkCount, StructuredBufferFlags.Counter );
+		//	injectionBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxInjectingParticles, StructuredBufferFlags.Counter );
+		//	simulationBufferSrc	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Counter );
+		//	simulationBufferDst	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Append );
+		//	linksBuffer			=	new StructuredBuffer( Game.GraphicsDevice, typeof(Link),       maxLinkCount, StructuredBufferFlags.Counter );
+		//	linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(LinkId),     maxLinkCount, StructuredBufferFlags.Counter );
 
 			MaxParticleMass		=	cfg.Max_mass;
 			MinParticleMass		=	cfg.Min_mass;
@@ -250,7 +250,7 @@ namespace GraphVis {
 
 			addChain(N / 2);
 			int howManyMore = N - N / 2;
-			int howManyStars = 10;
+			int howManyStars = 80;
 			for ( int i = 0; i < howManyStars; ++i ) {
 				long parentId = rand.NextLong( 0, N/2 - 1 );
 				addChildren( howManyMore / howManyStars, (int)parentId );
@@ -378,13 +378,32 @@ namespace GraphVis {
 				injectionBufferCPU[iter].linksCount = blockSize;
 				++iter;
 			}
+
+		
+			
+			if ( simulationBufferSrc != null ) {
+				simulationBufferSrc.Dispose();
+			}
+
+			if ( linksBuffer != null ) {
+				linksBuffer.Dispose();
+			}
+
+			if ( linksPtrBuffer != null ) {
+				linksPtrBuffer.Dispose();
+			}
+		
+
 			if ( injectionBufferCPU.Length != 0 ) {
+				simulationBufferSrc	= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	injectionBufferCPU.Length, StructuredBufferFlags.Counter );
 				simulationBufferSrc.SetData(injectionBufferCPU);
 			}
 			if ( linksBufferCPU.Length != 0 ) {
+				linksBuffer			= new StructuredBuffer( Game.GraphicsDevice, typeof(Link),			linksBufferCPU.Length, StructuredBufferFlags.Counter );
 				linksBuffer.SetData(linksBufferCPU);
 			}
 			if ( linksPtrBufferCPU.Length != 0 ) {
+				linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(LinkId),		linksPtrBufferCPU.Length, StructuredBufferFlags.Counter );
 				linksPtrBuffer.SetData(linksPtrBufferCPU);
 			}
 
@@ -429,9 +448,7 @@ namespace GraphVis {
 			if (disposing) {
 				paramsCB.Dispose();
 
-				injectionBuffer.Dispose();
 				simulationBufferSrc.Dispose();
-				simulationBufferDst.Dispose();
 				linksBuffer.Dispose();
 				linksPtrBuffer.Dispose();
 			}
@@ -453,7 +470,7 @@ namespace GraphVis {
 		//	ds.Add( Color.Yellow, "Total particles DST: {0}", simulationBufferDst.GetStructureCount() );
 		//	ds.Add( Color.Yellow, "Total particles SRC: {0}", simulationBufferSrc.GetStructureCount() );
 		//	ds.Add( Color.Yellow, "Injection count: {0}", injectionCount );
-			ds.Add( Color.Yellow, "Particle array length: {0}", injectionBufferCPU == null ? "null" : injectionBufferCPU.Length.ToString() );
+		//	ds.Add( Color.Yellow, "Particle array length: {0}", injectionBufferCPU == null ? "null" : injectionBufferCPU.Length.ToString() );
 		}
 
 
@@ -583,11 +600,10 @@ namespace GraphVis {
 			
 			var debStr = Game.GetService<DebugStrings>();
 
-			debStr.Add("deltaT = " + gameTime.ElapsedSec );
 			debStr.Add("Press Z to start simulation");
 			debStr.Add("Press Q to pause/unpause");
-			debStr.Add( "drawing " + ParticleList.Count + " points" );
-			debStr.Add( "drawing " + linkList.Count + " lines" );
+			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
+			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
 			
 			/*
 			if ( linkList.Count > 0 && ParticleList.Count > 0 ) {
