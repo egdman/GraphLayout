@@ -52,16 +52,11 @@ SamplerState						Sampler				: 	register(s0);
 Texture2D							Texture 			: 	register(t0);
 
 RWStructuredBuffer<PARTICLE3D>		particleBufferSrc	: 	register(u0);
-StructuredBuffer<PARTICLE3D>		GSResourceBuffer	:	register(u1);
+StructuredBuffer<PARTICLE3D>		GSResourceBuffer	:	register(t1);
 
-StructuredBuffer<LinkId>			linksPtrBuffer		:	register(u2);
-StructuredBuffer<Link>				linksBuffer			:	register(u3);
+StructuredBuffer<LinkId>			linksPtrBuffer		:	register(t2);
+StructuredBuffer<Link>				linksBuffer			:	register(t3);
 
-
-//AppendStructuredBuffer<PARTICLE3D>	particleBufferDst	: 	register(u0);
-
-// group shared array for body coordinates:
-// groupshared float4 shPositions[BLOCK_SIZE];
 
 /*-----------------------------------------------------------------------------
 	Simulation :
@@ -112,23 +107,27 @@ float3 Repulsion( in float4 bodyState, in float4 otherBodyState )
 
 
 
-float3 Acceleration( in PARTICLE3D prt, in int totalNum  )
+float3 Acceleration( in PARTICLE3D prt, in int totalNum, in int particleId  )
 {
 	float3 acc = {0,0,0};
 	PARTICLE3D other;
 	[allow_uav_condition] for ( int lNum = 0; lNum < prt.LinksCount; ++ lNum ) {
-		other = particleBufferSrc[linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum].id].par1];
+
+		int otherId = linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum].id].par1;
+
+		if ( otherId == particleId ) {
+			otherId = linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum].id].par2;
+		}
+
+		other = particleBufferSrc[otherId];
 		acc += SpringForce( prt.Position, other.Position );
 
-		other = particleBufferSrc[linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum].id].par2];
-		acc += SpringForce( prt.Position, other.Position );
-	
 	}
 
 
 	[allow_uav_condition] for ( int i = 0; i < totalNum; ++i ) {
 		other = particleBufferSrc[ i ];
-	//	acc += Repulsion( prt.Position, other.Position );
+		acc += Repulsion( prt.Position, other.Position );
 	}
 	acc -= mul ( prt.Velocity, 1.6f );
 
@@ -139,10 +138,10 @@ float3 Acceleration( in PARTICLE3D prt, in int totalNum  )
 
 
 
-void IntegrateEUL_SHARED( inout BodyState state, in float dt, in uint threadIndex, in uint numParticles )
+void IntegrateEUL_SHARED( inout BodyState state, in uint numParticles )
 {
 	
-	state.Acceleration	= Acceleration( particleBufferSrc[state.id], numParticles );
+	state.Acceleration	= Acceleration( particleBufferSrc[state.id], numParticles, state.id );
 }
 
 
@@ -188,12 +187,12 @@ void CSMain(
 
 #ifdef EULER
 
-			IntegrateEUL_SHARED( state, Params.DeltaTime, groupIndex, Params.MaxParticles );
+			IntegrateEUL_SHARED( state, Params.MaxParticles );
 
 #endif
 #ifdef RUNGE_KUTTA
 	
-			IntegrateEUL_SHARED( state, Params.DeltaTime, groupIndex, Params.MaxParticles );
+			IntegrateEUL_SHARED( state, Params.MaxParticles );
 
 #endif
 
@@ -368,81 +367,9 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 #endif
 
 #ifdef LINE
-/*
-[maxvertexcount(4)]
-void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStream )
-{
-
-	PARTICLE3D prt = GSResourceBuffer[ inputLine[0].vertexID ];
-	for ( int lNum = 0; lNum < prt.LinksCount; ++lNum ) {
-		PARTICLE3D end1 = GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr + lNum]].par1];
-		PARTICLE3D end2 = GSResourceBuffer[linksBufferGS[linksPtrBufferGS[prt.LinksPtr + lNum]].par2];
-	
-
-		GSOutput p1, p2;
-
-		float4 pos1		=	float4( end1.Position.xyz, 1 );
-		float4 pos2		=	float4( end2.Position.xyz, 1 );
-
-		float4 posV1	=	mul( pos1, Params.View );
-		float4 posV2	=	mul( pos2, Params.View );
-
-		p1.Position		=	mul( posV1, Params.Projection );
-		p2.Position		=	mul( posV2, Params.Projection );
-
-		p1.TexCoord		=	float2(0, 0);
-		p2.TexCoord		=	float2(0, 0);
-
-		p1.Color		=	end1.Color0;
-		p2.Color		=	end2.Color0;
-
-		outputStream.Append(p1);
-		outputStream.Append(p2);
-		outputStream.RestartStrip();
-	}
-}*/
 [maxvertexcount(2)]
 void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStream )
 {
-	/*GSOutput p1, p2;
-	PARTICLE3D prt = GSResourceBuffer[ inputLine[0].vertexID ];
-
-	float4 pos1 = float4( prt.Position.xyz, 1 );
-	float4 pos2;
-//	float4 pos2 = float4( end2.Position.xyz, 1 );
-	float4 posV1 = mul( pos1, Params.View );
-	//float4 posV2 = mul( pos2, Params.View );
-	float4 posV2 = posV1 + float4( 5,0,0,1 );
-	p1.Position = mul( posV1, Params.Projection );
-	p2.Position = mul( posV2, Params.Projection );
-	p1.TexCoord = float2(0, 0);
-	p2.TexCoord = float2(0, 0);
-	p1.Color = prt.Color0;
-	p2.Color = prt.Color0;
-	outputStream.Append(p1);
-	outputStream.Append(p2);
-	outputStream.RestartStrip();
-
-	for ( int lNum = 0; lNum < prt.LinksCount; ++lNum ) {
-		PARTICLE3D end1 =  GSResourceBuffer[linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum ].id].par1];
-		PARTICLE3D end2 =  GSResourceBuffer[linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum ].id].par2];
-		pos1 = float4( end1.Position.xyz, 1 );
-		pos2 = float4( end2.Position.xyz, 1 );
-	//	pos1 = float4( prt.Position.xyz, 1 );
-//		pos2 = float4( 30, 30, -100, 1 );
-		posV1 = mul( pos1, Params.View );
-		posV2 = mul( pos2, Params.View );
-		p1.Position = mul( posV1, Params.Projection );
-		p2.Position = mul( posV2, Params.Projection );
-		p1.TexCoord = float2(0, 0);
-		p2.TexCoord = float2(0, 0);
-		p1.Color = prt.Color0;
-		p2.Color = prt.Color0;
-		outputStream.Append(p1);
-		outputStream.Append(p2);
-		outputStream.RestartStrip();
-	}*/
-
 	GSOutput p1, p2;
 
 	Link lk = linksBuffer[ inputLine[0].vertexID ];
@@ -453,6 +380,14 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 
 	float4 posV1	=	mul( pos1, Params.View );
 	float4 posV2	=	mul( pos2, Params.View );
+	
+
+//	PARTICLE3D end1 = GSResourceBuffer[inputLine[0].vertexID];
+//	float4 pos1 = float4( end1.Position.xyz, 1 );
+//	float4 pos2 = float4( end1.Position.xyz + float3(5,0,0), 1 );
+
+//	float4 posV1	=	mul( pos1, Params.View );
+//	float4 posV2	=	mul( pos2, Params.View );
 
 	p1.Position		=	mul( posV1, Params.Projection );
 	p2.Position		=	mul( posV2, Params.Projection );
@@ -465,7 +400,7 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 
 	outputStream.Append(p1);
 	outputStream.Append(p2);
-	outputStream.RestartStrip();
+	outputStream.RestartStrip(); 
 
 
 }
