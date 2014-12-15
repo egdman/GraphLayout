@@ -160,6 +160,10 @@ namespace GraphVis
 		//		}
 			}
 
+			if(InputDevice.IsKeyDown(Keys.X)) {
+				partSys.AddScaleFreeNetwork();
+			}
+
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);
 			ds.Add("F1   - show developer console");
 			ds.Add("F5   - build content and reload textures");

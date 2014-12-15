@@ -64,7 +64,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	8192;
+		const int	MaxInjectingParticles	=	512;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -241,6 +241,23 @@ namespace GraphVis {
 
 
 
+		public void AddScaleFreeNetwork( int N = MaxInjectingParticles )
+		{
+			ParticleList.Clear();
+			linkList.Clear();
+			linkPtrLists.Clear();
+			addChain(N / 8);
+			while ( ParticleList.Count < N ) {
+				int id = rand.Next( 0, ParticleList.Count - 1 );
+				int ifJoins = rand.Next( 0, countSumOfDegrees() - 1 );
+				if ( ifJoins < linkPtrLists[id].Count ) {
+					addChildren( 1, id );
+				}
+			}
+			setBuffers();
+
+		}
+
 
 		public void AddMaxParticles( int N = MaxInjectingParticles )
 		{
@@ -344,6 +361,15 @@ namespace GraphVis {
 
 		}
 
+
+		int countSumOfDegrees()
+		{
+			int sum = 0;
+			foreach ( var ls in linkPtrLists ) {
+				sum += ls.Count;
+			}
+			return sum;
+		}
 
 
 		void setBuffers()
