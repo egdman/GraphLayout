@@ -64,7 +64,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	512;
 
-		const int	MaxInjectingParticles	=	8192;
+		const int	MaxInjectingParticles	=	1024;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -99,15 +99,18 @@ namespace GraphVis {
 		// Particle in 3d space:
 		[StructLayout(LayoutKind.Explicit)]
 			struct Particle3d {
-			[FieldOffset( 0)] public Vector4	Position;
-			[FieldOffset(16)] public Vector3	Velocity;	
-			[FieldOffset(28)] public Vector4	Color0;
-			[FieldOffset(44)] public float		Size0;
-			[FieldOffset(48)] public float		TotalLifeTime;
-			[FieldOffset(52)] public float		LifeTime;
-			[FieldOffset(56)] public int		linksPtr;
-			[FieldOffset(60)] public int		linksCount;
-			[FieldOffset(64)] public Vector3	Acceleration;
+			[FieldOffset( 0)] public Vector3	Position;
+			[FieldOffset(12)] public Vector3	Velocity;	
+			[FieldOffset(24)] public Vector4	Color0;
+			[FieldOffset(40)] public float		Size0;
+			[FieldOffset(44)] public float		TotalLifeTime;
+			[FieldOffset(48)] public float		LifeTime;
+			[FieldOffset(52)] public int		linksPtr;
+			[FieldOffset(56)] public int		linksCount;
+			[FieldOffset(60)] public Vector3	Acceleration;
+			[FieldOffset(72)] public float		Mass;
+			[FieldOffset(76)] public float		Charge;
+
 
 
 			public override string ToString ()
@@ -283,13 +286,15 @@ namespace GraphVis {
 		{
 			float ParticleMass	=	rand.NextFloat( MinParticleMass, MaxParticleMass );
 			ParticleList.Add( new Particle3d {
-					Position = new Vector4( pos, ParticleMass ),
+					Position		=	pos,
 					Velocity		=	Vector3.Zero,
 					Color0			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
 					Size0			=	size0,
 					TotalLifeTime	=	lifeTime,
 					LifeTime		=	0,
-					Acceleration	=	Vector3.Zero
+					Acceleration	=	Vector3.Zero,
+					Mass			=	ParticleMass,
+					Charge			=	0.1f
 				}
 			);
 			linkPtrLists.Add( new List<int>() );
@@ -320,6 +325,18 @@ namespace GraphVis {
 				linkPtrLists.Insert( end1, new List<int>() );
 			}
 			linkPtrLists[end2].Add(linkNumber);
+
+
+			// modify particles masses and sizes according to number of links:
+			Particle3d newPrt1 = ParticleList[end1];
+			Particle3d newPrt2 = ParticleList[end2];
+			newPrt1.Mass	+= 0.3f;
+			newPrt2.Mass	+= 0.3f;
+			newPrt1.Size0	+= 1.0f;
+			newPrt2.Size0	+= 1.0f;
+			ParticleList[end1] = newPrt1;
+			ParticleList[end2] = newPrt2;
+
 
 		}
 

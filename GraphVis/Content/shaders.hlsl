@@ -10,7 +10,7 @@ $vertex
 
 
 struct PARTICLE3D {
-	float4	Position; // 3 coordinates + mass
+	float3	Position; // 3 coordinates
 	float3	Velocity;
 	float4	Color0;
 	float	Size0;
@@ -19,6 +19,8 @@ struct PARTICLE3D {
 	int		LinksPtr;
 	int		LinksCount;
 	float3	Acceleration;
+	float	Mass;
+	float	Charge;
 };
 
 
@@ -65,7 +67,7 @@ StructuredBuffer<Link>				linksBuffer			:	register(t3);
 
 struct BodyState
 {
-	float4 Position;
+	float3 Position;
 	float3 Velocity;
 	float3 Acceleration;
 	uint id;
@@ -80,29 +82,22 @@ struct Derivative
 
 
 
-float3 SpringForce( in float4 bodyState, in float4 otherBodyState )
+float3 SpringForce( in float3 bodyState, in float3 otherBodyState, float linkLength )
 {
-	float3 R			= otherBodyState.xyz - bodyState.xyz;			
-//	float softenerSq	= 0.1f; 
-	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
-	float Rabs			= sqrt( Rsquared );
-	float Rsixth		= Rsquared * Rsquared * Rsquared;
-	float invRCubed		=  0.1f * ( Rabs - Params.LinkSize ) / ( bodyState.w * Rabs );
-	return mul( invRCubed, R );
-
+	float3 R			= otherBodyState - bodyState;			
+	float Rabs			= length( R ) + 0.1f;
+	float absForce		= 0.1f * ( Rabs - linkLength ) / ( Rabs );
+	return mul( absForce, R );
 }
 
 
-float3 Repulsion( in float4 bodyState, in float4 otherBodyState )
+float3 RepulsionForce( in float3 bodyState, in float3 otherBodyState, float charge1, float charge2 )
 {
-	float3 R			= otherBodyState.xyz - bodyState.xyz;			
-//	float softenerSq	= 0.1f; 
+	float3 R			= otherBodyState - bodyState;			
 	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
-	float Rabs			= sqrt( Rsquared );
 	float Rsixth		= Rsquared * Rsquared * Rsquared;
-	float invRCubed		= - 10000.0f * otherBodyState.w / sqrt( Rsixth );
+	float invRCubed		= - 10000.0f * charge1 * charge2  / sqrt( Rsixth );
 	return mul( invRCubed, R );
-
 }
 
 
@@ -110,6 +105,9 @@ float3 Repulsion( in float4 bodyState, in float4 otherBodyState )
 float3 Acceleration( in PARTICLE3D prt, in int totalNum, in int particleId  )
 {
 	float3 acc = {0,0,0};
+	float3 deltaForce = {0, 0, 0};
+	float invMass = 1 / prt.Mass;
+	
 	PARTICLE3D other;
 	[allow_uav_condition] for ( int lNum = 0; lNum < prt.LinksCount; ++ lNum ) {
 
@@ -120,17 +118,18 @@ float3 Acceleration( in PARTICLE3D prt, in int totalNum, in int particleId  )
 		}
 
 		other = particleBufferSrc[otherId];
-		acc += SpringForce( prt.Position, other.Position );
+		deltaForce += SpringForce( prt.Position, other.Position, Params.LinkSize );
 
 	}
 
-
+	
 	[allow_uav_condition] for ( int i = 0; i < totalNum; ++i ) {
 		other = particleBufferSrc[ i ];
-		acc += Repulsion( prt.Position, other.Position );
+		deltaForce += RepulsionForce( prt.Position, other.Position, prt.Charge, other.Charge );
 	}
-	acc -= mul ( prt.Velocity, 1.6f );
 
+	acc += mul( deltaForce, invMass );
+	acc -= mul ( prt.Velocity, 1.6f );
 
 	return acc;
 }
@@ -196,12 +195,12 @@ void CSMain(
 
 #endif
 
-			float accel	=	length( state.Acceleration );
+			float color	= p.Size0;
 
-			float maxAccel = 9.0f;
-			accel = saturate( accel / maxAccel );
+			float maxColor = 15.0f;
+			color = saturate( color / maxColor );
 
-			p.Color0	=	float4( accel, - 0.5f * accel +1.0f, - 0.5f * accel +1.0f, 1 );
+			p.Color0	=	float4( color, - 0.5f * color +1.0f, - 0.5f * color +1.0f, 1 );
 
 			p.Acceleration = state.Acceleration;
 
