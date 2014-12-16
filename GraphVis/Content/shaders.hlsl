@@ -41,7 +41,7 @@ struct PARAMS {
 struct Link {
 	int par1;
 	int par2;
-	float force1;
+	float length;
 	float force2;
 	float3 orientation;
 };
@@ -118,7 +118,7 @@ float3 Acceleration( in PARTICLE3D prt, in int totalNum, in int particleId  )
 		}
 
 		other = particleBufferSrc[otherId];
-		deltaForce += SpringForce( prt.Position, other.Position, Params.LinkSize );
+		deltaForce += SpringForce( prt.Position, other.Position, linksBuffer[linksPtrBuffer[prt.LinksPtr + lNum].id].length );
 
 	}
 

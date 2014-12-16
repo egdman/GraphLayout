@@ -127,7 +127,7 @@ namespace GraphVis {
 		{
 			[FieldOffset( 0)] public int par1;
 			[FieldOffset( 4)] public int par2;
-			[FieldOffset( 8)] public float force1;
+			[FieldOffset( 8)] public float length;
 			[FieldOffset(12)] public float force2;
 			[FieldOffset(16)] public Vector3 orientation;
 		}
@@ -200,7 +200,7 @@ namespace GraphVis {
 			MaxParticleMass		=	cfg.Max_mass;
 			MinParticleMass		=	cfg.Min_mass;
 			spinRate			=	cfg.Rotation;
-			linkSize			=	10.0f;
+			linkSize			=	1.0f;
 
 			linkCount			=	0;
 
@@ -294,7 +294,7 @@ namespace GraphVis {
 					LifeTime		=	0,
 					Acceleration	=	Vector3.Zero,
 					Mass			=	ParticleMass,
-					Charge			=	0.1f
+					Charge			=	0.05f
 				}
 			);
 			linkPtrLists.Add( new List<int>() );
@@ -309,7 +309,7 @@ namespace GraphVis {
 			linkList.Add( new Link{
 					par1 = end1,
 					par2 = end2,
-					force1 = 0,
+					length = linkSize,
 					force2 = 0,
 					orientation = Vector3.Zero
 				}
@@ -336,10 +336,23 @@ namespace GraphVis {
 			newPrt2.Size0	+= 1.0f;
 			ParticleList[end1] = newPrt1;
 			ParticleList[end2] = newPrt2;
-
+			stretchLinks(end1);
+			stretchLinks(end2);
 
 		}
 
+
+		void stretchLinks( int particleId )
+		{
+			var lList = linkPtrLists[particleId];
+
+			foreach ( var link in lList )
+			{
+				Link modifLink = linkList[link];
+ 				modifLink.length += 0.5f;
+				linkList[link] = modifLink;
+			}
+		}
 
 
 
