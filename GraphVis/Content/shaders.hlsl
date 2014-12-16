@@ -197,7 +197,7 @@ void CSMain(
 
 			float color	= p.Size0;
 
-			float maxColor = 15.0f;
+			float maxColor = 10.0f;
 			color = saturate( color / maxColor );
 
 			p.Color0	=	float4( color, - 0.5f * color +1.0f, - 0.5f * color +1.0f, 1 );

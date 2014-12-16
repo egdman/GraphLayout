@@ -249,7 +249,7 @@ namespace GraphVis {
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-			addChain(N / 32);
+			addChain(5);
 			while ( ParticleList.Count < N ) {
 			//	int id = rand.Next( 0, ParticleList.Count - 1 );
 				for ( int id = 0; id < ParticleList.Count; ++id ) {
@@ -330,10 +330,10 @@ namespace GraphVis {
 			// modify particles masses and sizes according to number of links:
 			Particle3d newPrt1 = ParticleList[end1];
 			Particle3d newPrt2 = ParticleList[end2];
-			newPrt1.Mass	+= 0.3f;
-			newPrt2.Mass	+= 0.3f;
-			newPrt1.Size0	+= 1.0f;
-			newPrt2.Size0	+= 1.0f;
+			newPrt1.Mass	+= 0.7f;
+			newPrt2.Mass	+= 0.7f;
+			newPrt1.Size0	+= 0.1f;
+			newPrt2.Size0	+= 0.1f;
 			ParticleList[end1] = newPrt1;
 			ParticleList[end2] = newPrt2;
 			stretchLinks(end1);
@@ -349,7 +349,7 @@ namespace GraphVis {
 			foreach ( var link in lList )
 			{
 				Link modifLink = linkList[link];
- 				modifLink.length += 0.5f;
+ 				modifLink.length *= 1.1f;
 				linkList[link] = modifLink;
 			}
 		}
@@ -627,6 +627,7 @@ namespace GraphVis {
 			device.SetRasterizerState( RasterizerState.CullNone );
 
 			device.SetBlendState( BlendState.Additive );
+
 			device.SetDepthStencilState( DepthStencilState.Readonly );
 
 			device.Draw( Primitive.PointList, ParticleList.Count, 0 );
