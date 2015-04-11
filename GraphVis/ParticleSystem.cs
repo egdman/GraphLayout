@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Fusion;
-using Fusion.Graphics;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
+
+using Fusion;
+using Fusion.Graphics;
+using Fusion.Mathematics;
 
 namespace GraphVis {
 
@@ -59,6 +61,7 @@ namespace GraphVis {
 
 		Texture2D	texture;
 		Ubershader	shader;
+		StateFactory factory;
 
 		State		state;
 
@@ -148,7 +151,10 @@ namespace GraphVis {
 			RUNGE_KUTTA		=	0x1 << 4,
 			// for geometry shader:
 			POINT			=	0x1 << 5,
-			LINE			=	0x1 << 6
+			LINE			=	0x1 << 6,
+
+			COMPUTE			=	0x1 << 7,
+			DRAW			=	0x1 << 8
 		}
 
 		enum State {
@@ -156,7 +162,7 @@ namespace GraphVis {
 			PAUSE
 		}
 
-		[StructLayout(LayoutKind.Explicit)]
+		[StructLayout(LayoutKind.Explicit, Size = 144)]
 		struct Params {
 			[FieldOffset(  0)] public Matrix	View;
 			[FieldOffset( 64)] public Matrix	Projection;
@@ -185,7 +191,12 @@ namespace GraphVis {
 		{
 			texture		=	Game.Content.Load<Texture2D>("particle");
 			shader		=	Game.Content.Load<Ubershader>("shaders");
-			shader.Map( typeof(Flags) );
+
+			factory = new StateFactory( shader, typeof(Flags), ( plState, comb ) => 
+			{
+				plState.RasterizerState	= RasterizerState.CullNone;
+				plState.BlendState		= BlendState.Additive;
+			} );
 
 			maxLinkCount		=	MaxSimulatedParticles * MaxSimulatedParticles;
 
@@ -506,9 +517,20 @@ namespace GraphVis {
 			if (disposing) {
 				paramsCB.Dispose();
 
-				simulationBufferSrc.Dispose();
-				linksBuffer.Dispose();
-				linksPtrBuffer.Dispose();
+				if ( simulationBufferSrc != null ) {
+					simulationBufferSrc.Dispose();
+				}
+				if ( linksBuffer != null ) {
+					linksBuffer.Dispose();
+				}
+
+				if ( linksPtrBuffer != null ) {
+					linksPtrBuffer.Dispose();
+				}
+
+				if ( factory != null ) {
+					factory.Dispose();
+				}
 			}
 			base.Dispose( disposing );
 		}
@@ -556,90 +578,87 @@ namespace GraphVis {
 			var device	=	Game.GraphicsDevice;
 			var cam = Game.GetService<Camera>();
 
-			int	w	=	device.Viewport.Width;
-			int h	=	device.Viewport.Height;
+	//		int	w	=	device.Viewport.Width;
+	//		int h	=	device.Viewport.Height;
 
 			Params param = new Params();
 
-			param.View			=	cam.ViewMatrix;
-			param.Projection	=	cam.ProjMatrix;
+			param.View			=	cam.GetViewMatrix( stereoEye );
+			param.Projection	=	cam.GetProjectionMatrix( stereoEye );
 			param.MaxParticles	=	0;
-			param.DeltaTime		=	gameTime.ElapsedSec;
+			param.DeltaTime		=	gameTime.ElapsedSec*10;
 			param.LinkSize		=	linkSize;
 
 
-			device.SetCSConstant( 0, paramsCB );
-			device.SetVSConstant( 0, paramsCB );
-			device.SetGSConstant( 0, paramsCB );
-			device.SetPSConstant( 0, paramsCB );
+			device.ComputeShaderConstants	[0] = paramsCB;
+			device.VertexShaderConstants	[0] = paramsCB;
+			device.GeometryShaderConstants	[0] = paramsCB;
+			device.PixelShaderConstants		[0] = paramsCB;
 			
-			device.SetPSSamplerState( 0, SamplerState.LinearWrap );
-
+			device.PixelShaderSamplers[0] = SamplerState.LinearWrap;
 			
 			//	Simulate : ------------------------------------------------------------------------
 			//
 
 			param.MaxParticles	=	injectionCount;
 			paramsCB.SetData( param );
-			device.SetCSConstant( 0, paramsCB );
 
 			if ( state == State.RUN ) {
 
 				// calculate accelerations: ---------------------------------------------------
 				device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
-				device.SetCSResource( 2, linksPtrBuffer );
-				device.SetCSResource( 3, linksBuffer );
+				device.ComputeShaderResources[2] = linksPtrBuffer;
+				device.ComputeShaderResources[3] = linksBuffer;
+				device.ComputeShaderConstants	[0] = paramsCB;
 
 				param.MaxParticles	=	MaxSimulatedParticles;
 				paramsCB.SetData( param );
-				device.SetCSConstant( 0, paramsCB );
 
-				shader.SetComputeShader( (int)Flags.SIMULATION|(int)cfg.IType );
+				device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)cfg.IType];
+
 				device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-				shader.ResetComputeShader();
-
+	//			device.ResetStates();
 
 				// move particles: ------------------------------------------------------------
 				device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
-				device.SetCSConstant( 0, paramsCB );
-				shader.SetComputeShader( (int)Flags.MOVE|(int)cfg.IType );
+
+				device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE|(int)cfg.IType];
 				device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-				shader.ResetComputeShader();
-
-
+				device.ResetStates();
 
 			}
 			// ------------------------------------------------------------------------------------
 
-
+			device.ResetStates();
+			device.SetTargets( null, device.BackbufferColor );
 			//	Render: ---------------------------------------------------------------------------
 			//
+
+
+			device.ComputeShaderConstants	[0] = paramsCB;
+			device.VertexShaderConstants	[0] = paramsCB;
+			device.GeometryShaderConstants	[0] = paramsCB;
+			device.PixelShaderConstants		[0] = paramsCB;
 			
 			// draw points: ------------------------------------------------------------------------
-			shader.SetVertexShader( 0 );
-			shader.SetPixelShader( (int)Flags.POINT );
-			shader.SetGeometryShader( (int)Flags.POINT );
+			device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.POINT];
 
-			device.SetPSResource( 0, texture );
 			device.SetCSRWBuffer( 0, null );
-			device.SetGSResource( 1, simulationBufferSrc );
 
-			device.SetRasterizerState( RasterizerState.CullNone );
+			device.PixelShaderResources[0] = texture;
+			device.GeometryShaderResources[1] = simulationBufferSrc;
 
-			device.SetBlendState( BlendState.Additive );
 
-			device.SetDepthStencilState( DepthStencilState.Readonly );
+			device.DepthStencilState = DepthStencilState.Readonly;
 
 			device.Draw( Primitive.PointList, ParticleList.Count, 0 );
 		
 
 			// draw lines: --------------------------------------------------------------------------
-			shader.SetVertexShader( 0 );
-			shader.SetPixelShader( (int)Flags.LINE );
-			shader.SetGeometryShader( (int)Flags.LINE );
+			device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
 			
-			device.SetGSResource( 1, simulationBufferSrc );
-			device.SetGSResource( 3, linksBuffer );
+			device.GeometryShaderResources[1] = simulationBufferSrc;
+			device.GeometryShaderResources[3] = linksBuffer;
 	//		device.SetGSResource( 1, linksPtrBuffer );
 
 			device.Draw( Primitive.PointList, linkList.Count, 0 );

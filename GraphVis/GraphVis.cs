@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Fusion;
-using Fusion.Audio;
-using Fusion.Content;
+using Fusion.Mathematics;
 using Fusion.Graphics;
+using Fusion.Audio;
 using Fusion.Input;
-using Fusion.Utils;
+using Fusion.Content;
+using Fusion.Development;
 
 namespace GraphVis
 {
@@ -20,36 +21,35 @@ namespace GraphVis
 		public GraphVis()
 			: base()
 		{
-			//	root directory for standard x64 C# application
-
-	
-
 			//	enable object tracking :
 			Parameters.TrackObjects = true;
 
-			//	enable debug graphics device in Debug :
-#if DEBUG
-				Parameters.UseDebugDevice	=	true;
-#endif
+			//	uncomment to enable debug graphics device:
+			//	(MS Platform SDK must be installed)
+			//	Parameters.UseDebugDevice	=	true;
 
 			//	add services :
 			AddService(new SpriteBatch(this), false, false, 0, 0);
 			AddService(new DebugStrings(this), true, true, 9999, 9999);
 			AddService(new DebugRender(this), true, true, 9998, 9998);
-			AddService(new Camera(this), true, false, 9997, 9997);
 
 			//	add here additional services :
+			AddService(new Camera(this), true, false, 9997, 9997);
 			AddService(new ParticleSystem(this), true, true, 9996, 9996);
+
+
+			//	add here additional services :
+
 			//	load configuration for each service :
 			LoadConfiguration();
 
 			//	make configuration saved on exit :
-			Exiting += FusionGame_Exiting;
+			Exiting += Game_Exiting;
 		}
 
 
 		/// <summary>
-		/// Add services :
+		/// Initializes game :
 		/// </summary>
 		protected override void Initialize()
 		{
@@ -59,18 +59,33 @@ namespace GraphVis
 			var cam = GetService<Camera>();
 
 			cam.Config.FreeCamEnabled = true;
-		//	cam.SetPose( new Vector3(-30, 0, 0), 0, 0, 0 );
 
-			
-			
 			//	add keyboard handler :
 			InputDevice.KeyDown += InputDevice_KeyDown;
+
+			//	load content & create graphics and audio resources here:
 		}
 
 
 
 		/// <summary>
-		/// Handle keys for each demo
+		/// Disposes game
+		/// </summary>
+		/// <param name="disposing"></param>
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				//	dispose disposable stuff here
+				//	Do NOT dispose objects loaded using ContentManager.
+			}
+			base.Dispose(disposing);
+		}
+
+
+
+		/// <summary>
+		/// Handle keys
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
@@ -78,19 +93,12 @@ namespace GraphVis
 		{
 			if (e.Key == Keys.F1)
 			{
-	//			ShowEditor();
+				DevCon.Show(this);
 			}
 
 			if (e.Key == Keys.F5)
 			{
-	//			BuildContent();
-	//			Content.Reload<Texture2D>();
-			}
-
-			if (e.Key == Keys.F7)
-			{
-	//			BuildContent();
-				Content.ReloadDescriptors();
+				Reload();
 			}
 
 			if (e.Key == Keys.F12)
@@ -102,21 +110,16 @@ namespace GraphVis
 			{
 				Exit();
 			}
-			if (e.Key == Keys.Q)
-			{
-				var ps = GetService<ParticleSystem>();
-				ps.Pause();
-			}
 		}
 
 
 
 		/// <summary>
-		/// Save configuration on exit.
+		/// Saves configuration on exit.
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		void FusionGame_Exiting(object sender, EventArgs e)
+		void Game_Exiting(object sender, EventArgs e)
 		{
 			SaveConfiguration();
 		}
@@ -124,31 +127,17 @@ namespace GraphVis
 
 
 		/// <summary>
-		/// 
+		/// Updates game
 		/// </summary>
 		/// <param name="gameTime"></param>
 		protected override void Update(GameTime gameTime)
 		{
+
 			var ds = GetService<DebugStrings>();
 
 			var cam = GetService<Camera>();
 			var debRen = GetService<DebugRender>();
-
-			int	w	=	GraphicsDevice.Viewport.Width;
-			int h	=	GraphicsDevice.Viewport.Height;
-
-			debRen.View			= cam.ViewMatrix;
-			debRen.Projection	= cam.ProjMatrix;
-	
-	//		debRen.DrawGrid(10);
-
-	//		debRen.DrawBox( 
-	//			new BoundingBox(
-	//				new Vector3(-10.0f, -10.0f, -10.0f),
-	//				new Vector3( 10.0f,  10.0f,  10.0f)
-	//			), 
-	//			Color.White
-	//		);
+		
 			
 			var partSys = GetService<ParticleSystem>();
 			
@@ -160,6 +149,7 @@ namespace GraphVis
 		//		}
 			}
 
+
 			if(InputDevice.IsKeyDown(Keys.X)) {
 				partSys.AddScaleFreeNetwork();
 			}
@@ -169,26 +159,26 @@ namespace GraphVis
 			ds.Add("F5   - build content and reload textures");
 			ds.Add("F12  - make screenshot");
 			ds.Add("ESC  - exit");
-	//		ds.Add("Vector3 = " + System.Runtime.InteropServices.Marshal.SizeOf(new float()).ToString() );
 
-	//		ds.Add(cam.ViewMatrix.Row1.ToString());
-	//		ds.Add(cam.ViewMatrix.Row2.ToString());
-	//		ds.Add(cam.ViewMatrix.Row3.ToString());
-	//		ds.Add(cam.ViewMatrix.Row4.ToString());
-			
 			base.Update(gameTime);
+
+			//	Update stuff here :
 		}
 
 
 
+
+
 		/// <summary>
-		/// 
+		/// Draws game
 		/// </summary>
 		/// <param name="gameTime"></param>
 		/// <param name="stereoEye"></param>
 		protected override void Draw(GameTime gameTime, StereoEye stereoEye)
 		{
 			base.Draw(gameTime, stereoEye);
+
+			//	Draw stuff here :
 		}
 	}
 }

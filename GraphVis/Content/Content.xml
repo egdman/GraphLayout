@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ArrayOfDescriptor xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Descriptor xsi:type="ImageContentItem">
-    <Path>debugFont.tga</Path>
-    <Dependencies />
-    <ContentProcessor>Image Processor</ContentProcessor>
+<ArrayOfAsset xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Asset xsi:type="ImageFileTextureAsset">
+    <AssetPath>debugFont.tga</AssetPath>
+    <BuildOrder>0</BuildOrder>
     <IgnoreToolChanges>false</IgnoreToolChanges>
     <NoMips>false</NoMips>
     <Fast>false</Fast>
@@ -12,13 +11,13 @@
     <Alpha>false</Alpha>
     <Normal>false</Normal>
     <Compression>RGB</Compression>
-  </Descriptor>
-  <Descriptor xsi:type="UbershaderContentItem">
-    <Path>debugRender.hlsl</Path>
-    <Dependencies />
-    <ContentProcessor>Ubershader Compiler</ContentProcessor>
+    <SourceFile>debugFont.tga</SourceFile>
+  </Asset>
+  <Asset xsi:type="UbershaderAsset">
+    <AssetPath>debugRender.hlsl</AssetPath>
+    <BuildOrder>0</BuildOrder>
     <IgnoreToolChanges>false</IgnoreToolChanges>
-    <HardwareProfile>HiDef</HardwareProfile>
+    <GraphicsProfile>HiDef</GraphicsProfile>
     <DisableOptimization>false</DisableOptimization>
     <OptimizationLevel>1</OptimizationLevel>
     <AvoidFlowControl>false</AvoidFlowControl>
@@ -30,13 +29,15 @@
     <DSEntryPoint>DSMain</DSEntryPoint>
     <HSEntryPoint>HSMain</HSEntryPoint>
     <CSEntryPoint>CSMain</CSEntryPoint>
-  </Descriptor>
-  <Descriptor xsi:type="UbershaderContentItem">
-    <Path>spriteBatch.hlsl</Path>
-    <Dependencies />
-    <ContentProcessor>Ubershader Compiler</ContentProcessor>
+    <SourceFile>debugRender.hlsl</SourceFile>
+    <ShowPemutations>false</ShowPemutations>
+    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\0EC7C2D14F65EFBA65B361728EE70CD3.html</ListingPath>
+  </Asset>
+  <Asset xsi:type="UbershaderAsset">
+    <AssetPath>spriteBatch.hlsl</AssetPath>
+    <BuildOrder>0</BuildOrder>
     <IgnoreToolChanges>false</IgnoreToolChanges>
-    <HardwareProfile>HiDef</HardwareProfile>
+    <GraphicsProfile>HiDef</GraphicsProfile>
     <DisableOptimization>false</DisableOptimization>
     <OptimizationLevel>1</OptimizationLevel>
     <AvoidFlowControl>false</AvoidFlowControl>
@@ -48,39 +49,15 @@
     <DSEntryPoint>DSMain</DSEntryPoint>
     <HSEntryPoint>HSMain</HSEntryPoint>
     <CSEntryPoint>CSMain</CSEntryPoint>
-  </Descriptor>
-  <Descriptor xsi:type="ImageContentItem">
-    <Path>particle.tga</Path>
-    <Dependencies />
-    <ContentProcessor>Image Processor</ContentProcessor>
+    <SourceFile>spriteBatch.hlsl</SourceFile>
+    <ShowPemutations>false</ShowPemutations>
+    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\A41575F61A6644F1898EE4AE0783DAF8.html</ListingPath>
+  </Asset>
+  <Asset xsi:type="UbershaderAsset">
+    <AssetPath>stereo.hlsl</AssetPath>
+    <BuildOrder>0</BuildOrder>
     <IgnoreToolChanges>false</IgnoreToolChanges>
-    <NoMips>false</NoMips>
-    <Fast>false</Fast>
-    <ToNormal>false</ToNormal>
-    <Color>true</Color>
-    <Alpha>false</Alpha>
-    <Normal>false</Normal>
-    <Compression>RGB</Compression>
-  </Descriptor>
-  <Descriptor xsi:type="ImageContentItem">
-    <Path>star.tga</Path>
-    <Dependencies />
-    <ContentProcessor>Image Processor</ContentProcessor>
-    <IgnoreToolChanges>false</IgnoreToolChanges>
-    <NoMips>false</NoMips>
-    <Fast>false</Fast>
-    <ToNormal>false</ToNormal>
-    <Color>true</Color>
-    <Alpha>false</Alpha>
-    <Normal>false</Normal>
-    <Compression>RGB</Compression>
-  </Descriptor>
-  <Descriptor xsi:type="UbershaderContentItem">
-    <Path>shaders.hlsl</Path>
-    <Dependencies />
-    <ContentProcessor>Ubershader Compiler</ContentProcessor>
-    <IgnoreToolChanges>false</IgnoreToolChanges>
-    <HardwareProfile>HiDef</HardwareProfile>
+    <GraphicsProfile>HiDef</GraphicsProfile>
     <DisableOptimization>false</DisableOptimization>
     <OptimizationLevel>1</OptimizationLevel>
     <AvoidFlowControl>false</AvoidFlowControl>
@@ -92,5 +69,41 @@
     <DSEntryPoint>DSMain</DSEntryPoint>
     <HSEntryPoint>HSMain</HSEntryPoint>
     <CSEntryPoint>CSMain</CSEntryPoint>
-  </Descriptor>
-</ArrayOfDescriptor>
+    <SourceFile>stereo.hlsl</SourceFile>
+    <ShowPemutations>true</ShowPemutations>
+    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\4B9F5097212F68238CEF9BFF980979F4.html</ListingPath>
+  </Asset>
+  <Asset xsi:type="UbershaderAsset">
+    <AssetPath>shaders.hlsl</AssetPath>
+    <BuildOrder>0</BuildOrder>
+    <IgnoreToolChanges>false</IgnoreToolChanges>
+    <GraphicsProfile>HiDef</GraphicsProfile>
+    <DisableOptimization>false</DisableOptimization>
+    <OptimizationLevel>1</OptimizationLevel>
+    <AvoidFlowControl>false</AvoidFlowControl>
+    <PreferFlowControl>false</PreferFlowControl>
+    <MatrixPacking>RowMajor</MatrixPacking>
+    <PSEntryPoint>PSMain</PSEntryPoint>
+    <VSEntryPoint>VSMain</VSEntryPoint>
+    <GSEntryPoint>GSMain</GSEntryPoint>
+    <DSEntryPoint>DomainShader</DSEntryPoint>
+    <HSEntryPoint>HullShader</HSEntryPoint>
+    <CSEntryPoint>CSMain</CSEntryPoint>
+    <SourceFile>shaders.hlsl</SourceFile>
+    <ShowPemutations>false</ShowPemutations>
+    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\A6E732B3F997403BA517EAD44A033465.html</ListingPath>
+  </Asset>
+  <Asset xsi:type="ImageFileTextureAsset">
+    <AssetPath>particle.tga</AssetPath>
+    <BuildOrder>0</BuildOrder>
+    <IgnoreToolChanges>false</IgnoreToolChanges>
+    <NoMips>false</NoMips>
+    <Fast>false</Fast>
+    <ToNormal>false</ToNormal>
+    <Color>true</Color>
+    <Alpha>false</Alpha>
+    <Normal>false</Normal>
+    <Compression>RGB</Compression>
+    <SourceFile>particle.tga</SourceFile>
+  </Asset>
+</ArrayOfAsset>

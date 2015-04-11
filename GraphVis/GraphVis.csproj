@@ -36,11 +36,11 @@
     <Reference Include="Fusion">
       <HintPath>$(FUSION_BIN)\Fusion.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX">
-      <HintPath>$(FUSION_BIN)\SharpDX.dll</HintPath>
-    </Reference>
     <Reference Include="BEPUphysics">
       <HintPath>$(FUSION_BIN)\BEPUphysics.dll</HintPath>
+    </Reference>
+    <Reference Include="BEPUutilities">
+      <HintPath>$(FUSION_BIN)\BEPUutilities.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -61,6 +61,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Content.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\shaders.hlsl" />
+    <Content Include="DllOVR.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

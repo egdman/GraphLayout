@@ -1,9 +1,6 @@
 
 #if 0
-$compute INJECTION|SIMULATION|MOVE EULER|RUNGE_KUTTA
-$geometry POINT|LINE
-$pixel POINT|LINE
-$vertex
+$ubershader (COMPUTE INJECTION|SIMULATION|MOVE EULER|RUNGE_KUTTA)|(DRAW POINT|LINE)
 #endif
 
 #define BLOCK_SIZE	512
@@ -143,7 +140,7 @@ void IntegrateEUL_SHARED( inout BodyState state, in uint numParticles )
 	state.Acceleration	= Acceleration( particleBufferSrc[state.id], numParticles, state.id );
 }
 
-
+#ifdef COMPUTE
 
 [numthreads( BLOCK_SIZE, 1, 1 )]
 void CSMain( 
@@ -222,7 +219,7 @@ void CSMain(
 }
 
 
-
+#endif // COMPUTE
 
 
 
@@ -230,6 +227,9 @@ void CSMain(
 /*-----------------------------------------------------------------------------
 	Rendering :
 -----------------------------------------------------------------------------*/
+
+
+#ifdef DRAW
 /*
 
 struct VSOutput {
@@ -419,5 +419,7 @@ float4 PSMain( GSOutput input ) : SV_Target
 	return Texture.Sample( Sampler, input.TexCoord ) * float4(input.Color.rgb,1);
 }
 #endif
+
+#endif //DRAW
 
 

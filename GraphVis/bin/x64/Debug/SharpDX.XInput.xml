@@ -1100,7 +1100,7 @@
             <unmanaged>unsigned int XInputGetState([In] unsigned int dwUserIndex,[Out] XINPUT_STATE* pState)</unmanaged>	
             <unmanaged-short>XInputGetState</unmanaged-short>	
         </member>
-        <member name="M:SharpDX.XInput.XInput.XInputEnable(SharpDX.Bool)">
+        <member name="M:SharpDX.XInput.XInput.XInputEnable(SharpDX.Mathematics.Interop.RawBool)">
             <summary>	
             <p>Sets the reporting state of XInput.</p>	
             </summary>	
