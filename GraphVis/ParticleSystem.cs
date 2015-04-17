@@ -5,10 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
+using System.IO;
 
 using Fusion;
 using Fusion.Graphics;
 using Fusion.Mathematics;
+
+
 
 namespace GraphVis {
 
@@ -75,7 +78,6 @@ namespace GraphVis {
 		float		spinRate;
 		float		linkSize;
 
-		int					injectionCount = 0;
 		Particle3d[]		injectionBufferCPU; // = new Particle3d[MaxInjectingParticles];
 //		StructuredBuffer	injectionBuffer;
 		StructuredBuffer	simulationBufferSrc;
@@ -88,15 +90,17 @@ namespace GraphVis {
 		Link[]				linksBufferCPU;
 
 
-
-		int					linkCount;
-		int					maxLinkCount;
-
 		ConstantBuffer		paramsCB;
 		List<List<int> >	linkPtrLists;
 
 		List<Link>			linkList;
 		List<Particle3d>	ParticleList;
+
+		float maxAcc;
+		float maxVelo;
+		float timeStepFactor;
+		float elapsedTime;
+		int	progress;
 
 
 		// Particle in 3d space:
@@ -198,7 +202,7 @@ namespace GraphVis {
 				plState.BlendState		= BlendState.Additive;
 			} );
 
-			maxLinkCount		=	MaxSimulatedParticles * MaxSimulatedParticles;
+//			maxLinkCount		=	MaxSimulatedParticles * MaxSimulatedParticles;
 
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 
@@ -213,12 +217,17 @@ namespace GraphVis {
 			spinRate			=	cfg.Rotation;
 			linkSize			=	1.0f;
 
-			linkCount			=	0;
+//			linkCount			=	0;
 
 			linkList			=	new List<Link>();
 			ParticleList		=	new List<Particle3d>();
 			linkPtrLists		=	new List<List<int> >();
 			state				=	State.RUN;
+
+			maxAcc				=	0;
+			maxVelo				=	0;
+			timeStepFactor		=	1.0f;
+			progress			=	0;
 
 			base.Initialize();
 		}
@@ -265,6 +274,9 @@ namespace GraphVis {
 			//	int id = rand.Next( 0, ParticleList.Count - 1 );
 				for ( int id = 0; id < ParticleList.Count; ++id ) {
 					int ifJoins = rand.Next( 0, 2 * linkList.Count - 1 );
+
+					if ( ParticleList.Count >= N ) break;
+
 					if ( ifJoins < linkPtrLists[id].Count ) {
 						addChildren( 1, id );
 					}
@@ -272,6 +284,38 @@ namespace GraphVis {
 			}
 			setBuffers();
 
+		}
+
+
+		public void AddBinaryTree( int N = MaxInjectingParticles )
+		{
+			ParticleList.Clear();
+			linkList.Clear();
+			linkPtrLists.Clear();
+			addChain( 1 );
+			addChildren( 2, ParticleList.Count - 1 );
+
+			Queue<int> latestIndex = new Queue<int>();
+			latestIndex.Enqueue( ParticleList.Count - 1 );
+			latestIndex.Enqueue( ParticleList.Count - 2 );
+
+			while ( ParticleList.Count < N )
+			{
+				if ( latestIndex.Count <= 0 )
+				{
+					break;
+				}
+				int parentIndex = latestIndex.Peek();
+
+				if ( linkPtrLists[parentIndex].Count > 2 )
+				{
+					latestIndex.Dequeue();
+					continue;
+				}
+				addChildren(1, parentIndex);
+				latestIndex.Enqueue( ParticleList.Count - 1 );
+			}
+			setBuffers();
 		}
 
 
@@ -491,6 +535,13 @@ namespace GraphVis {
 
 				} 
 			}*/
+
+			state = State.RUN;
+			maxAcc = 0;
+			maxVelo	= 0;
+			timeStepFactor = 1;
+			elapsedTime = 0;
+			progress = 0;
 		}
 
 
@@ -503,7 +554,7 @@ namespace GraphVis {
 				injectionBufferCPU[i].TotalLifeTime = -999999;
 
 			}
-			injectionCount = 0;
+	//		injectionCount = 0;
 		}
 
 
@@ -567,6 +618,22 @@ namespace GraphVis {
 		}
 
 
+		void calcExtremeValues( Particle3d [] buffer )
+		{
+			float maxAcceleration	= 0;
+			float maxVelocity		= 0;
+			foreach ( var p in buffer )
+			{
+				float acc = p.Acceleration.Length();
+				float velo = p.Velocity.Length();
+				maxAcceleration = acc > maxAcceleration ? acc : maxAcceleration;
+				maxVelocity		= velo > maxVelocity ? velo : maxVelocity;
+			}
+
+			maxAcc = maxAcceleration;
+			maxVelo = maxVelocity;
+		}
+
 
 		/// <summary>
 		/// 
@@ -581,91 +648,178 @@ namespace GraphVis {
 	//		int	w	=	device.Viewport.Width;
 	//		int h	=	device.Viewport.Height;
 
-			Params param = new Params();
-
-			param.View			=	cam.GetViewMatrix( stereoEye );
-			param.Projection	=	cam.GetProjectionMatrix( stereoEye );
-			param.MaxParticles	=	0;
-			param.DeltaTime		=	gameTime.ElapsedSec*10;
-			param.LinkSize		=	linkSize;
 
 
-			device.ComputeShaderConstants	[0] = paramsCB;
-			device.VertexShaderConstants	[0] = paramsCB;
-			device.GeometryShaderConstants	[0] = paramsCB;
-			device.PixelShaderConstants		[0] = paramsCB;
-			
-			device.PixelShaderSamplers[0] = SamplerState.LinearWrap;
-			
-			//	Simulate : ------------------------------------------------------------------------
-			//
+			if ( simulationBufferSrc != null ) {
+				
+				
 
-			param.MaxParticles	=	injectionCount;
-			paramsCB.SetData( param );
+				Params param = new Params();
 
-			if ( state == State.RUN ) {
+				param.View			=	cam.GetViewMatrix( stereoEye );
+				param.Projection	=	cam.GetProjectionMatrix( stereoEye );
+				param.MaxParticles	=	0;
+	//			param.DeltaTime		=	gameTime.ElapsedSec*timeStepFactor;
+				param.DeltaTime		=	0.1f*timeStepFactor;
+				param.LinkSize		=	linkSize;
 
-				// calculate accelerations: ---------------------------------------------------
-				device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
-				device.ComputeShaderResources[2] = linksPtrBuffer;
-				device.ComputeShaderResources[3] = linksBuffer;
+
 				device.ComputeShaderConstants	[0] = paramsCB;
+				device.VertexShaderConstants	[0] = paramsCB;
+				device.GeometryShaderConstants	[0] = paramsCB;
+				device.PixelShaderConstants		[0] = paramsCB;
+			
+				//	Simulate : ------------------------------------------------------------------------
+				//
 
 				param.MaxParticles	=	MaxSimulatedParticles;
 				paramsCB.SetData( param );
 
-				device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)cfg.IType];
+	//			StreamWriter writer = File.AppendText( "../../../maxAccel.csv" );
 
-				device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-	//			device.ResetStates();
+				if ( state == State.RUN ) {
+					for ( int i = 0; i < 25; ++i )
+					{
 
-				// move particles: ------------------------------------------------------------
-				device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
+						param.DeltaTime = 0.1f*timeStepFactor;
+						paramsCB.SetData( param );
 
-				device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE|(int)cfg.IType];
-				device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-				device.ResetStates();
+						// calculate accelerations: ---------------------------------------------------
+						device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
+						device.ComputeShaderResources[2] = linksPtrBuffer;
+						device.ComputeShaderResources[3] = linksBuffer;
+						device.ComputeShaderConstants[0] = paramsCB;
 
-			}
-			// ------------------------------------------------------------------------------------
+						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)cfg.IType];
 
-			device.ResetStates();
-			device.SetTargets( null, device.BackbufferColor );
-			//	Render: ---------------------------------------------------------------------------
-			//
+						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
+			//			device.ResetStates();
+
+						// move particles: ------------------------------------------------------------
+						device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
+
+						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE|(int)cfg.IType];
+						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
+						device.ResetStates();
 
 
-			device.ComputeShaderConstants	[0] = paramsCB;
-			device.VertexShaderConstants	[0] = paramsCB;
-			device.GeometryShaderConstants	[0] = paramsCB;
-			device.PixelShaderConstants		[0] = paramsCB;
+
+						elapsedTime += param.DeltaTime;
+
+					
+						// ------------------------------------------------------------------------------------
+					
+
+
+						if ( injectionBufferCPU == null ) {
+							injectionBufferCPU = new Particle3d[simulationBufferSrc.GetStructureCount()];
+						}
+						simulationBufferSrc.GetData(injectionBufferCPU);
 			
-			// draw points: ------------------------------------------------------------------------
-			device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.POINT];
 
-			device.SetCSRWBuffer( 0, null );
+						float prevAcc = maxAcc;
+						if ( injectionBufferCPU.Length > 0 ) {
+							calcExtremeValues(injectionBufferCPU);
+						}
+				
+						if ( maxAcc - prevAcc > 0.01f )
+					//	if ( maxAcc / prevAcc > 1.1f )
+						{
+				//			progress = progress > 0 ? progress - 1 : 0;
+							progress = 0;
+						
+						}
+						else
+						{
+							++progress;
+						}
 
-			device.PixelShaderResources[0] = texture;
-			device.GeometryShaderResources[1] = simulationBufferSrc;
 
 
-			device.DepthStencilState = DepthStencilState.Readonly;
+						if ( progress >= 10 )
+						{
+							timeStepFactor /= 0.9f;
+							progress = 0;
+						}
+						else if ( progress == 0 )
+						{
+							if ( timeStepFactor < 1 )
+							{
+								timeStepFactor = 1;
+							}
+							else
+							{
+								timeStepFactor *= 0.9f;
+							}
+						}
 
-			device.Draw( Primitive.PointList, ParticleList.Count, 0 );
+
+						// TERMINATION CONDITION CHECK --------------------------------------------------------
+						if ( maxAcc < 0.00002f ) {
+							state = State.PAUSE;
+						}
+					}
+				}
+
+				
+
+				
+				
+//				writer.WriteLine( elapsedTime + "," + maxVelo + "," + maxAcc );
+
+				
+				
+
+
+	//			if ( maxAcc > 0.1f ) {
+			//		timeStepFactor = 0.5f / maxAcc;
+	//				timeStepFactor = 20f / maxAcc;
+	//			}
+
+
+	//			writer.Close();
+				// ------------------------------------------------------------------------------------
+
+
+				
+
+
+				device.ResetStates();
+				device.SetTargets( null, device.BackbufferColor );
+				//	Render: ---------------------------------------------------------------------------
+				//
+
+
+				device.ComputeShaderConstants	[0] = paramsCB;
+				device.VertexShaderConstants	[0] = paramsCB;
+				device.GeometryShaderConstants	[0] = paramsCB;
+				device.PixelShaderConstants		[0] = paramsCB;
+
+				device.PixelShaderSamplers		[0] = SamplerState.LinearWrap;
+			
+				// draw points: ------------------------------------------------------------------------
+				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.POINT];
+
+				device.SetCSRWBuffer( 0, null );
+
+				device.PixelShaderResources[0] = texture;
+				device.GeometryShaderResources[1] = simulationBufferSrc;
+
+				device.DepthStencilState = DepthStencilState.Readonly;
+
+				device.Draw( Primitive.PointList, ParticleList.Count, 0 );
 		
 
-			// draw lines: --------------------------------------------------------------------------
-			device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
+				// draw lines: --------------------------------------------------------------------------
+				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
 			
-			device.GeometryShaderResources[1] = simulationBufferSrc;
-			device.GeometryShaderResources[3] = linksBuffer;
-	//		device.SetGSResource( 1, linksPtrBuffer );
+				device.GeometryShaderResources[1] = simulationBufferSrc;
+				device.GeometryShaderResources[3] = linksBuffer;
 
-			device.Draw( Primitive.PointList, linkList.Count, 0 );
+				device.Draw( Primitive.PointList, linkList.Count, 0 );
 
 
-			
-
+			}
 			// --------------------------------------------------------------------------------------
 
 
@@ -682,7 +836,10 @@ namespace GraphVis {
 			debStr.Add("Press Q to pause/unpause");
 			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
-			
+			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
+			debStr.Add( Color.Aqua, "TimeStep factor = " + timeStepFactor );
+
+
 			/*
 			if ( linkList.Count > 0 && ParticleList.Count > 0 ) {
 				Link[] linksBufferData = new Link[linkList.Count];

@@ -161,14 +161,12 @@ void CSMain(
 			particleBufferSrc[id] = p;
 		}
 	}
-#endif
+#endif // INJECTION
 
 #ifdef SIMULATION
 	if (id < Params.MaxParticles) {
 		PARTICLE3D p = particleBufferSrc[ id ];
 		
-		if (p.LifeTime < p.TotalLifeTime) {
-			p.LifeTime += Params.DeltaTime;
 
 			uint numParticles	=	0;
 			uint stride			=	0;
@@ -185,12 +183,14 @@ void CSMain(
 
 			IntegrateEUL_SHARED( state, Params.MaxParticles );
 
-#endif
+#endif // EULER
+
+
 #ifdef RUNGE_KUTTA
 	
 			IntegrateEUL_SHARED( state, Params.MaxParticles );
 
-#endif
+#endif // RUNGE_KUTTA
 
 			float color	= p.Size0;
 
@@ -202,9 +202,9 @@ void CSMain(
 			p.Acceleration = state.Acceleration;
 
 			particleBufferSrc[id] = p;
-		}
 	}
-#endif
+#endif // SIMULATION
+
 #ifdef MOVE
 	if (id < Params.MaxParticles) {
 		PARTICLE3D p = particleBufferSrc[ id ];
@@ -213,10 +213,61 @@ void CSMain(
 		p.Velocity += mul( p.Acceleration, Params.DeltaTime );
 		particleBufferSrc[ id ] = p;
 	}
-#endif
+#endif // MOVE
+
+}
+
+
+
+
+// Get accelerations of particles, sort accelerations in grouphared memory
+// Write max acceleration from each thread group into the output buffer
+
+#ifdef MAX_ACCEL
+
+
+groupshared float accelSorted[BLOCK_SIZE];
+
+groupshared uint invValues	[BLOCK_SIZE];	
+groupshared uint offset		[BLOCK_SIZE*4];
+groupshared uint destinations[BLOCK_SIZE];
+groupshared uint zeros;
+
+
+
+
+[numthreads( BLOCK_SIZE, 1, 1 )]
+void CSMain( 
+	uint3 groupID			: SV_GroupID,
+	uint3 groupThreadID 	: SV_GroupThreadID, 
+	uint3 dispatchThreadID 	: SV_DispatchThreadID,
+	uint  groupIndex 		: SV_GroupIndex
+)
+{
+
+	int id = dispatchThreadID.x;
+
+	float3 accel3 = particleBufferSrc[id];
+
+	float3 accel = length( accel3 );
+
+	accelSorted[groupIndex] = accel;
+
+	// wait until accelSorted is populated
+	GroupMemoryBarrierWithGroupSync();
+
 
 
 }
+
+
+
+
+
+#endif // MAX_ACCEL
+
+
+
 
 
 #endif // COMPUTE
@@ -230,17 +281,6 @@ void CSMain(
 
 
 #ifdef DRAW
-/*
-
-struct VSOutput {
-	float4	Position		:	POSITION;
-	float4	Color0			:	COLOR0;
-
-	float	Size0			:	PSIZE;
-
-	float	TotalLifeTime	:	TEXCOORD0;
-	float	LifeTime		:	TEXCOORD1;
-};*/
 
 
 struct VSOutput {
@@ -253,23 +293,6 @@ struct GSOutput {
 	float4	Color    : COLOR0;
 };
 
-/*
-VSOutput VSMain( uint vertexID : SV_VertexID )
-{
-	PARTICLE prt = particleBufferSrc[ vertexID ];
-	VSOutput output;
-
-	output.Color0			=	prt.Color1;
-
-	output.Size0			=	prt.Size0;
-	
-	output.TotalLifeTime	=	prt.TotalLifeTime;
-	output.LifeTime			=	prt.LifeTime;
-
-	output.Position			=	float4(prt.Position, 0, 1);
-
-	return output;
-}*/
 
 
 VSOutput VSMain( uint vertexID : SV_VertexID )
@@ -362,8 +385,8 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 
 }
 
+#endif // POINT
 
-#endif
 
 #ifdef LINE
 [maxvertexcount(2)]
@@ -404,21 +427,26 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 
 }
 
-#endif
+#endif // LINE
+
+
 
 #ifdef LINE
 float4 PSMain( GSOutput input ) : SV_Target
 {
 	return float4(input.Color.rgb,1);
 }
-#endif
+#endif // LINE
+
+
 
 #ifdef POINT
 float4 PSMain( GSOutput input ) : SV_Target
 {
 	return Texture.Sample( Sampler, input.TexCoord ) * float4(input.Color.rgb,1);
 }
-#endif
+#endif // POINT
+
 
 #endif //DRAW
 

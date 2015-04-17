@@ -104,66 +104,61 @@
 <font color = "#ffff40">dcl_thread_group</font> 512, 1, 1
 <!-- id=0 --><font color = "#ffff40">ilt</font> r0.x, vThreadID.x, cb0[8].x
 <!-- id=1 --><font color = "#ffff40">if</font><font color = "#ffff40">_nz </font>r0.x
-<!-- id=2 -->  <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r0.xyz, vThreadID.x, l<font color = "#00ffff">(40)</font>, u0.xyzx
-<!-- id=3 -->  <font color = "#ffff40">lt</font> r0.y, r0.z, r0.y
-<!-- id=4 -->  <font color = "#ffff40">if</font><font color = "#ffff40">_nz </font>r0.y
-<!-- id=5 -->    <font color = "#ffff40">add</font> r0.y, r0.z, cb0[8].y
-<!-- id=6 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r1.xyzw, vThreadID.x, l<font color = "#00ffff">(0)</font>, u0.xyzw
-<!-- id=7 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r2.xy, vThreadID.x, l<font color = "#00ffff">(16)</font>, u0.xyxx
-<!-- id=8 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r0.zw, vThreadID.x, l<font color = "#00ffff">(52)</font>, u0.xxxy
-<!-- id=9 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r3.xy, vThreadID.x, l<font color = "#00ffff">(72)</font>, u0.xyxx
-<!-- id=10 -->    <font color = "#ffff40">div</font> r2.w, l<font color = "#00ffff">(1.000000, 1.000000, 1.000000, 1.000000)</font>, r3.x
-<!-- id=11 -->    <font color = "#ffff40">mov</font> r3.xzw, l<font color = "#00ffff">(0,0,0,0)</font>
-<!-- id=12 -->    <font color = "#ffff40">mov</font> r4.x, l<font color = "#00ffff">(0)</font>
-<!-- id=13 -->    <font color = "#ffff40">loop</font> 
-<!-- id=14 -->      <font color = "#ffff40">ige</font> r4.y, r4.x, r0.w
-<!-- id=15 -->      <font color = "#ffff40">breakc</font><font color = "#ffff40">_nz </font>r4.y
-<!-- id=16 -->      <font color = "#ffff40">iadd</font> r4.y, r0.z, r4.x
-<!-- id=17 -->      <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=4)(mixed,mixed,mixed,mixed) r4.y, r4.y, l<font color = "#00ffff">(0)</font>, t2.xxxx
-<!-- id=18 -->      <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=28)(mixed,mixed,mixed,mixed) r4.yzw, r4.y, l<font color = "#00ffff">(0)</font>, t3.xxyz
-<!-- id=19 -->      <font color = "#ffff40">ieq</font> r5.x, r4.y, vThreadID.x
-<!-- id=20 -->      <font color = "#ffff40">movc</font> r4.y, r5.x, r4.z, r4.y
-<!-- id=21 -->      <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r5.xyz, r4.y, l<font color = "#00ffff">(0)</font>, u0.xyzx
-<!-- id=22 -->      <font color = "#ffff40">add</font> r5.xyz, -r1.xyzx, r5.xyzx
-<!-- id=23 -->      <font color = "#ffff40">dp3</font> r4.y, r5.xyzx, r5.xyzx
-<!-- id=24 -->      <font color = "#ffff40">sqrt</font> r4.y, r4.y
-<!-- id=25 -->      <font color = "#ffff40">add</font> r4.y, r4.y, l<font color = "#00ffff">(0.100000)</font>
-<!-- id=26 -->      <font color = "#ffff40">add</font> r4.z, -r4.w, r4.y
-<!-- id=27 -->      <font color = "#ffff40">mul</font> r4.z, r4.z, l<font color = "#00ffff">(0.100000)</font>
-<!-- id=28 -->      <font color = "#ffff40">div</font> r4.y, r4.z, r4.y
-<!-- id=29 -->      <font color = "#ffff40">mad</font> r3.xzw, r4.yyyy, r5.xxyz, r3.xxzw
-<!-- id=30 -->      <font color = "#ffff40">iadd</font> r4.x, r4.x, l<font color = "#00ffff">(1)</font>
-<!-- id=31 -->    <font color = "#ffff40">endloop</font> 
-<!-- id=32 -->    <font color = "#ffff40">mul</font> r0.z, r3.y, l<font color = "#00ffff">(-10000.000000)</font>
-<!-- id=33 -->    <font color = "#ffff40">mov</font> r4.xyz, r3.xzwx
-<!-- id=34 -->    <font color = "#ffff40">mov</font> r0.w, l<font color = "#00ffff">(0)</font>
-<!-- id=35 -->    <font color = "#ffff40">loop</font> 
-<!-- id=36 -->      <font color = "#ffff40">ige</font> r3.y, r0.w, cb0[8].x
-<!-- id=37 -->      <font color = "#ffff40">breakc</font><font color = "#ffff40">_nz </font>r3.y
-<!-- id=38 -->      <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r5.xyz, r0.w, l<font color = "#00ffff">(0)</font>, u0.xyzx
-<!-- id=39 -->      <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r3.y, r0.w, l<font color = "#00ffff">(76)</font>, u0.xxxx
-<!-- id=40 -->      <font color = "#ffff40">add</font> r5.xyz, -r1.xyzx, r5.xyzx
-<!-- id=41 -->      <font color = "#ffff40">dp3</font> r4.w, r5.xyzx, r5.xyzx
-<!-- id=42 -->      <font color = "#ffff40">add</font> r4.w, r4.w, l<font color = "#00ffff">(0.100000)</font>
-<!-- id=43 -->      <font color = "#ffff40">mul</font> r5.w, r4.w, r4.w
-<!-- id=44 -->      <font color = "#ffff40">mul</font> r4.w, r4.w, r5.w
-<!-- id=45 -->      <font color = "#ffff40">mul</font> r3.y, r0.z, r3.y
-<!-- id=46 -->      <font color = "#ffff40">sqrt</font> r4.w, r4.w
-<!-- id=47 -->      <font color = "#ffff40">div</font> r3.y, r3.y, r4.w
-<!-- id=48 -->      <font color = "#ffff40">mad</font> r4.xyz, r3.yyyy, r5.xyzx, r4.xyzx
-<!-- id=49 -->      <font color = "#ffff40">iadd</font> r0.w, r0.w, l<font color = "#00ffff">(1)</font>
-<!-- id=50 -->    <font color = "#ffff40">endloop</font> 
-<!-- id=51 -->    <font color = "#ffff40">mov</font> r2.z, r1.w
-<!-- id=52 -->    <font color = "#ffff40">mul</font> r1.xyz, r2.zxyz, l<font color = "#00ffff">(1.600000, 1.600000, 1.600000, 0.000000)</font>
-<!-- id=53 -->    <font color = "#ffff40">mad</font> r1.xyz, r4.xyzx, r2.wwww, -r1.xyzx
-<!-- id=54 -->    <font color = "#ffff40">mul_sat</font> r2.x, r0.x, l<font color = "#00ffff">(0.100000)</font>
-<!-- id=55 -->    <font color = "#ffff40">mad</font> r2.yz, r2.xxxx, l<font color = "#00ffff">(0.000000, -0.500000, -0.500000, 0.000000)</font>, l<font color = "#00ffff">(0.000000, 1.000000, 1.000000, 0.000000)</font>
-<!-- id=56 -->    <font color = "#ffff40">mov</font> r2.w, l<font color = "#00ffff">(1.000000)</font>
-<!-- id=57 -->    <font color = "#ffff40">store_structured</font> u0.xyzw, vThreadID.x, l<font color = "#00ffff">(24)</font>, r2.xyzw
-<!-- id=58 -->    <font color = "#ffff40">store_structured</font> u0.x, vThreadID.x, l<font color = "#00ffff">(48)</font>, r0.y
-<!-- id=59 -->    <font color = "#ffff40">store_structured</font> u0.xyz, vThreadID.x, l<font color = "#00ffff">(60)</font>, r1.xyzx
-<!-- id=60 -->  <font color = "#ffff40">endif</font> 
-<!-- id=61 --><font color = "#ffff40">endif</font> 
-<!-- id=62 --><font color = "#ffff40">ret</font> 
-</font><font color = "#a0a0a0">// Approximately 63 instruction slots used
+<!-- id=2 -->  <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r0.x, vThreadID.x, l<font color = "#00ffff">(40)</font>, u0.xxxx
+<!-- id=3 -->  <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r1.xyzw, vThreadID.x, l<font color = "#00ffff">(0)</font>, u0.xyzw
+<!-- id=4 -->  <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r2.xy, vThreadID.x, l<font color = "#00ffff">(16)</font>, u0.xyxx
+<!-- id=5 -->  <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r0.yz, vThreadID.x, l<font color = "#00ffff">(52)</font>, u0.xxyx
+<!-- id=6 -->  <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r3.xy, vThreadID.x, l<font color = "#00ffff">(72)</font>, u0.xyxx
+<!-- id=7 -->  <font color = "#ffff40">div</font> r0.w, l<font color = "#00ffff">(1.000000, 1.000000, 1.000000, 1.000000)</font>, r3.x
+<!-- id=8 -->  <font color = "#ffff40">mov</font> r3.xzw, l<font color = "#00ffff">(0,0,0,0)</font>
+<!-- id=9 -->  <font color = "#ffff40">mov</font> r2.w, l<font color = "#00ffff">(0)</font>
+<!-- id=10 -->  <font color = "#ffff40">loop</font> 
+<!-- id=11 -->    <font color = "#ffff40">ige</font> r4.x, r2.w, r0.z
+<!-- id=12 -->    <font color = "#ffff40">breakc</font><font color = "#ffff40">_nz </font>r4.x
+<!-- id=13 -->    <font color = "#ffff40">iadd</font> r4.x, r0.y, r2.w
+<!-- id=14 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=4)(mixed,mixed,mixed,mixed) r4.x, r4.x, l<font color = "#00ffff">(0)</font>, t2.xxxx
+<!-- id=15 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=28)(mixed,mixed,mixed,mixed) r4.xyz, r4.x, l<font color = "#00ffff">(0)</font>, t3.xyzx
+<!-- id=16 -->    <font color = "#ffff40">ieq</font> r4.w, r4.x, vThreadID.x
+<!-- id=17 -->    <font color = "#ffff40">movc</font> r4.x, r4.w, r4.y, r4.x
+<!-- id=18 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r4.xyw, r4.x, l<font color = "#00ffff">(0)</font>, u0.xyxz
+<!-- id=19 -->    <font color = "#ffff40">add</font> r4.xyw, -r1.xyxz, r4.xyxw
+<!-- id=20 -->    <font color = "#ffff40">dp3</font> r5.x, r4.xywx, r4.xywx
+<!-- id=21 -->    <font color = "#ffff40">sqrt</font> r5.x, r5.x
+<!-- id=22 -->    <font color = "#ffff40">add</font> r5.x, r5.x, l<font color = "#00ffff">(0.100000)</font>
+<!-- id=23 -->    <font color = "#ffff40">add</font> r4.z, -r4.z, r5.x
+<!-- id=24 -->    <font color = "#ffff40">mul</font> r4.z, r4.z, l<font color = "#00ffff">(0.100000)</font>
+<!-- id=25 -->    <font color = "#ffff40">div</font> r4.z, r4.z, r5.x
+<!-- id=26 -->    <font color = "#ffff40">mad</font> r3.xzw, r4.zzzz, r4.xxyw, r3.xxzw
+<!-- id=27 -->    <font color = "#ffff40">iadd</font> r2.w, r2.w, l<font color = "#00ffff">(1)</font>
+<!-- id=28 -->  <font color = "#ffff40">endloop</font> 
+<!-- id=29 -->  <font color = "#ffff40">mul</font> r0.y, r3.y, l<font color = "#00ffff">(-10000.000000)</font>
+<!-- id=30 -->  <font color = "#ffff40">mov</font> r4.xyz, r3.xzwx
+<!-- id=31 -->  <font color = "#ffff40">mov</font> r0.z, l<font color = "#00ffff">(0)</font>
+<!-- id=32 -->  <font color = "#ffff40">loop</font> 
+<!-- id=33 -->    <font color = "#ffff40">ige</font> r2.w, r0.z, cb0[8].x
+<!-- id=34 -->    <font color = "#ffff40">breakc</font><font color = "#ffff40">_nz </font>r2.w
+<!-- id=35 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r5.xyz, r0.z, l<font color = "#00ffff">(0)</font>, u0.xyzx
+<!-- id=36 -->    <font color = "#ffff40">ld_structured_indexable</font>(structured_buffer, stride=80)(mixed,mixed,mixed,mixed) r2.w, r0.z, l<font color = "#00ffff">(76)</font>, u0.xxxx
+<!-- id=37 -->    <font color = "#ffff40">add</font> r5.xyz, -r1.xyzx, r5.xyzx
+<!-- id=38 -->    <font color = "#ffff40">dp3</font> r3.y, r5.xyzx, r5.xyzx
+<!-- id=39 -->    <font color = "#ffff40">add</font> r3.y, r3.y, l<font color = "#00ffff">(0.100000)</font>
+<!-- id=40 -->    <font color = "#ffff40">mul</font> r4.w, r3.y, r3.y
+<!-- id=41 -->    <font color = "#ffff40">mul</font> r3.y, r3.y, r4.w
+<!-- id=42 -->    <font color = "#ffff40">mul</font> r2.w, r0.y, r2.w
+<!-- id=43 -->    <font color = "#ffff40">sqrt</font> r3.y, r3.y
+<!-- id=44 -->    <font color = "#ffff40">div</font> r2.w, r2.w, r3.y
+<!-- id=45 -->    <font color = "#ffff40">mad</font> r4.xyz, r2.wwww, r5.xyzx, r4.xyzx
+<!-- id=46 -->    <font color = "#ffff40">iadd</font> r0.z, r0.z, l<font color = "#00ffff">(1)</font>
+<!-- id=47 -->  <font color = "#ffff40">endloop</font> 
+<!-- id=48 -->  <font color = "#ffff40">mov</font> r2.z, r1.w
+<!-- id=49 -->  <font color = "#ffff40">mul</font> r1.xyz, r2.zxyz, l<font color = "#00ffff">(1.600000, 1.600000, 1.600000, 0.000000)</font>
+<!-- id=50 -->  <font color = "#ffff40">mad</font> r0.yzw, r4.xxyz, r0.wwww, -r1.xxyz
+<!-- id=51 -->  <font color = "#ffff40">mul_sat</font> r1.x, r0.x, l<font color = "#00ffff">(0.100000)</font>
+<!-- id=52 -->  <font color = "#ffff40">mad</font> r1.yz, r1.xxxx, l<font color = "#00ffff">(0.000000, -0.500000, -0.500000, 0.000000)</font>, l<font color = "#00ffff">(0.000000, 1.000000, 1.000000, 0.000000)</font>
+<!-- id=53 -->  <font color = "#ffff40">mov</font> r1.w, l<font color = "#00ffff">(1.000000)</font>
+<!-- id=54 -->  <font color = "#ffff40">store_structured</font> u0.xyzw, vThreadID.x, l<font color = "#00ffff">(24)</font>, r1.xyzw
+<!-- id=55 -->  <font color = "#ffff40">store_structured</font> u0.xyz, vThreadID.x, l<font color = "#00ffff">(60)</font>, r0.yzwy
+<!-- id=56 --><font color = "#ffff40">endif</font> 
+<!-- id=57 --><font color = "#ffff40">ret</font> 
+</font><font color = "#a0a0a0">// Approximately 58 instruction slots used
 </font></pre>

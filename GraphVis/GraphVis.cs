@@ -151,7 +151,8 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				partSys.AddScaleFreeNetwork();
+		//		partSys.AddScaleFreeNetwork();
+				partSys.AddBinaryTree();
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);
