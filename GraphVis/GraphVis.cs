@@ -141,18 +141,22 @@ namespace GraphVis
 			
 			var partSys = GetService<ParticleSystem>();
 			
-			if (InputDevice.IsKeyDown(Keys.Z)) {
+		//	if (InputDevice.IsKeyDown(Keys.Z)) {
 		//		Vector2 target = InputDevice.MousePosition;
-				partSys.AddMaxParticles();
+		//		partSys.AddParticles();
 		//		for ( float t=0; t<=1; t+=1.0f/256) {
 		//			partSys.AddParticle( new Vector3( 0, 0, 0 ), 9999, 1, 2 );
 		//		}
-			}
+		//	}
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
 		//		partSys.AddScaleFreeNetwork();
 				partSys.AddBinaryTree();
+			}
+
+			if(InputDevice.IsKeyDown(Keys.Z)) {
+				partSys.AddGraphFromFile("../../../../articles_data/idx_edges.txt");
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);

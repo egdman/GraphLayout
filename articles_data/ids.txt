@@ -1,0 +1,1000 @@
+0	P2P searching trends: 2002-2004
+1	Particle Swarm Algorithm: Convergence and Applications
+2	Determination of voltage stability boundary values in electrical power systems by using the Chaotic Particle Swarm Optimization algorithm
+3	Fuzzy clustering image segmentation based on particle swarm optimization
+4	Multi swarms for neighbor selection in peer-to-peer overlay networks
+5	FrogSim: Distributed graph coloring in wireless ad hoc networks: An algorithm inspired by the calling behavior of Japanese tree frogs
+6	Mobile social networking: Reconnect virtual community with physical space
+7	On studying business models in mobile social networks based on two-sided market (TSM)
+8	Adaptive neighbor selection method for the P2P media streaming system
+9	Introduction to the special issue on non-english web retrieval
+10	A multi-swarm approach for neighbor selection in peer-to-peer networks
+11	MapReduce-based optimization of overlay networks using Particle Swarm Optimization
+12	Scalability analysis: Reconfiguration of overlay networks using nature-inspired algorithms
+13	Nature-inspired reconfiguration of overlay networks
+14	Elephants journey towards successful resource discovery in unstructured P2P networks
+15	Web information retrieval: Towards social information search assistants
+16	Peer-to-peer neighbor selection using single and multi-objective population-based meta-heuristics
+17	Data scheduling in data grids and data centers: A short taxonomy of problems and intelligent resolution techniques
+18	Data placement using Dewey Encoding in a hierarchical data grid
+19	Task Scheduling Using Two-Phase Variable Neighborhood Search Algorithm on Heterogeneous Computing and Grid Environments
+20	Pareto frontier for job execution and data transfer time in hybrid clouds
+21	DGridSim: A multi-model discrete-event simulator for real-time data grid systems
+22	Survey on Grid Resource Allocation Mechanisms
+23	A taxonomy of data scheduling in data grids and data centers: Problems and intelligent resolution techniques
+24	A continuous double auction method for resource allocation in computational grids
+25	Credibility-based cloud media resource allocation algorithm
+26	Auction based resource allocation in cloud computing
+27	A cooperative game model of dynamic alliance under grid environment
+28	An integrated license management and economic resource allocation model for cloud computing
+29	Market-driven continuous double auction method for service allocation in cloud computing
+30	Agent based dynamic resource allocation on federated clouds
+31	A study of a weighting scheme for information retrieval in hierarchical peer-to-peer networks
+32	Improving information retrieval effectiveness in peer-to-peer networks through query piggybacking
+33	Distributed information retrieval and automatic identification of music works in SAPIR
+34	Applying pervasive and flexible access control to distributed multimedia retrieval
+35	Optimimal resources utilization for indexing within a distributed multimedia retrieval system: An implementation for a video surveillance use case
+36	Adapting indexation to the content, context and queries characteristics in distributed multimedia systems
+37	Generic information system architecture for distributed multimedia indexation and management
+38	Towards a superimposed peer infrastructure for information access
+39	Multi-objective peer-to-peer neighbor-selection strategy using genetic algorithm
+40	Routing with temperature field in mesh overlay network
+41	Self-organizing shortcuts in an overlay network
+42	Bridging overloaded nodes in an overlay network by long distance links
+43	A particle swarm optimization algorithm for neighbor selection in peer-to-peer networks
+44	Peer selection strategy using mobile agent and trust in peer-to-peer streaming media system
+45	Two-stage model selection with parameters weighted hidden markov models and likelihood ratio for part-of-speech tagging
+46	A hybrid PSO-Viterbi algorithm for HMMs parameters weighting in Part-of-Speech tagging
+47	Improving QoS in peer-to-peer streaming media system
+48	The design of QoS mapping approach for multimedia traffic in integrated WiFi and WiMAX networks
+49	A multihop supplying partner protocol for 3D streaming systems over thin mobile devices
+50	A free-rider forecasting model based on gray system theory in P2P networks
+51	Efficient P2P-based mutual authentication protocol for RFID system security of EPC network using asymmetric encryption algorithm
+52	Convergence analysis of swarm algorithm
+53	Convergence analysis and performance of an improved gravitational search algorithm
+54	Convergence analysis of a class of computational intelligence approaches
+55	Synthesis of minimal-error control software
+56	Intelligence optimization algorithms: A survey
+57	Porn video shows, local brew, and transactional sex: HIV risk among youth in Kisumu, Kenya
+58	Factors associated with inconsistent condom use in adolescents with negative or unknown HIV status in Northwest Cameroon
+59	Conceptualizations of heterosexual anal sex and HIV risk in five east African communities
+60	Communicating about microbicides with women in mind: Tailoring messages for specific audiences
+61	Women and ARV-based HIV prevention - Challenges and opportunities
+62	The long-acting integrase inhibitor GSK744 protects macaques from repeated intravaginal SHIV challenge
+63	Ecological factors influencing HIV sexual risk and resilience among young people in rural Kenya: Implications for prevention
+64	'We keep it secret so no one should know' - A qualitative study to explore young schoolgirls attitudes and experiences with menstruation in rural Western Kenya
+65	Water, sanitation and hygiene conditions in kenyan rural schools: Are schools meeting the needs of menstruating girls?
+66	It's a girl thing: Menstruation, school attendance, spatial mobility and wider gender inequalities in Kenya
+67	Risky sexual behavior among orphan and non-orphan adolescents in Nyanza Province, Western Kenya
+68	Cultural practices and sexual risk behaviour among adolescent orphans and non-orphans: A qualitative study on perceptions from a community in western Kenya
+69	Household living arrangements and transition to sexual debut among young people in Ghana
+70	Fertility among orphans in rural malawi: Challenging common assumptions about risk and mechanisms
+71	A Mixed Methods Mapping of Church Versus Secular School Messages to Influence Sexual Decision Making as Perceived by Zimbabwean Orphan Girl Students
+72	Effectiveness of a peer-led HIV prevention intervention in secondary schools in Rwanda: Results from a non-randomized controlled trial
+73	Community embedded reproductive health interventions for adolescents in Latin America: Development and evaluation of a complex multi-centre intervention
+74	Improving adolescent sexual and reproductive health in Latin America: Reflections from an International Congress
+75	Ensuring youth's right to participation and promotion of youth leadership in the development of sexual and reproductive health policies and programs
+76	Sexual onset and contraceptive use among adolescents from poor neighbourhoods in Managua, Nicaragua
+77	Application of Intervention Mapping to develop a community-based health promotion pre-pregnancy intervention for adolescent girls in rural South Africa: PROJECT Ntshembo (Hope)
+78	The unintended consequences of sex education: An ethnography of a development intervention in Latin America
+79	Factorial validation of the attitudes toward women scale for adolescents (AWSA) in assessing sexual behaviour patterns in Bolivian and Ecuadorian adolescents
+80	A cross-sectional study on attitudes toward gender equality, sexual behavior, positive sexual experiences, and communication about sex among sexually active and non-sexually active adolescents in Bolivia and Ecuador
+81	Primary healthcare providers' views on improving sexual and reproductive healthcare for adolescents in Bolivia, Ecuador, and Nicaragua
+82	Neuronal migration on laminin in vitro
+83	Effect of laminin and type IV collagen on proliferation of Schwann cells
+84	Lis1 and doublecortin function with dynein to mediate coupling of the nucleus to the centrosome in neuronal migration
+85	Cenpj/CPAP regulates progenitor divisions and neuronal migration in the cerebral cortex downstream of Ascl1
+86	Variants in CUL4B are associated with cerebral malformations
+87	Doublecortin marks a new population of transiently amplifying muscle progenitor cells and is required for myofiber maturation during skeletal muscle regeneration
+88	Causes and consequences of gray matter heterotopia
+89	Neuronal migration and protein kinases
+90	SDCCAG8 Regulates Pericentriolar Material Recruitment and Neuronal Migration in the Developing Cortex
+91	DCX-expressing cells in the vicinity of the hypothalamic neurogenic niche: A comparative study between mouse, sheep, and human tissues
+92	Changes in hippocampal neurogenesis throughout early development
+93	Dietary and sex-specific factors regulate hypothalamic neurogenesis in young adult mice
+94	Hypothalamic subependymal niche: A novel site of the adult neurogenesis
+95	Endogenous versus exogenous markers of adult neurogenesis in canaries and other birds: Advantages and disadvantages
+96	Nuclear motility in glioma cells reveals a cell-line dependent role of various cytoskeletal components
+97	Correction: Nuclear motility in glioma cells reveals a cell-line dependent role of various cytoskeletal components (PLoS ONE (2014) 9, 4: e93431 DOI: 10.1371/journal.pone.0093431)
+98	A role for Bicaudal-D2 in radial cerebellar granule cell migration
+99	Neuronal migration and its disorders affecting the CA3 region
+100	The CA3 region of the hippocampus: How is it? What is it for? How does it do it?
+101	Microtubule Plus-End Tracking Proteins and Their Roles in Cell Division
+102	The dynamics of neuronal migration
+103	Induction of protein deletion through in utero electroporation to define deficits in neuronal migration in transgenic models
+104	Loss-of-function mutation in APC2 causes sotos syndrome features
+105	Basic mechanisms of epileptogenesis in pediatric cortical dysplasia
+106	Extracellular signals controlling neuroblast migration in the postnatal brain
+107	The netrin/RGM receptor, neogenin, controls adult neurogenesis by promoting neuroblast migration and cell cycle exit
+108	Regional effects of endocannabinoid, BDNF and FGF receptor signalling on neuroblast motility and guidance along the rostral migratory stream
+109	Novel functions of core cell cycle regulators in neuronal migration
+110	The PAR polarity complex and cerebellar granule neuron migration
+111	Control of outer radial glial stem cell mitosis in the human brain
+112	Regulation of cerebral cortex development by Rho GTPases: Insights from in vivo studies
+113	On human development: Lessons from stem cell systems
+114	The Outer Subventricular Zone and Primate-Specific Cortical Complexification
+115	Excess centrosomes disrupt endothelial cell migration via centrosome scattering
+116	Cdk5 and its substrates, Dcx and p27kip1, regulate cytoplasmic dilation formation and nuclear elongation in migrating neurons
+117	Mutations in KATNB1 cause complex cerebral malformations by disrupting asymmetrically dividing neural progenitors
+118	Katanin p80 regulates human cortical development by limiting centriole and cilia number
+119	SDF1 reduces interneuron leading process branching through dual regulation of actin and microtubules
+120	Capture of microtubule plus-ends at the actin cortex promotes axophilic neuronal migration by enhancing microtubule tension in the leading process
+121	During tangential migration, SDF1 lends the cytoskeleton a guiding hand
+122	The diverse genetic landscape of neurodevelopmental disorders
+123	Pathway-driven discovery of epilepsy genes
+124	The genetics of lissencephaly
+125	Centrosome positioning in polarized cells: Common themes and variations
+126	Localized light-induced protein dimerization in living cells using a photocaged dimerizer
+127	Recent advances in cerebellar granule cell migration
+128	Cellular commitment in the developing cerebellum
+129	Normal Cerebellar Development in S100B-Deficient Mice
+130	Erbb3-mediated regulation of bergmann glia proliferation in cerebellar lamination
+131	The role of calcium and cyclic nucleotide signaling in cerebellar granule cell migration under normal and pathological conditions
+132	Introduction: Second messengers in neural development
+133	Cortical-layer-specific effects of PACAP and tPA on interneuron migration during post-natal development of the cerebellum
+134	Developmental genetics of the Caenorhabditis elegans pharynx
+135	Four-dimensional analysis of nucleogenesis of the pontine nucleus in the hindbrain
+136	Cell migration analysis of cortical interneurons after electroporation
+137	Migration in the Cerebellum
+138	Cerebellar Patterning
+139	Development of Cerebellar Neurons and Glias Revealed by in Utero Electroporation: Golgi-Like Labeling of Cerebellar Neurons and Glias
+140	Tol2-mediated transgenesis and its application to electroporation
+141	BMP/Smad signaling and embryonic cerebellum development: Stem cell specification and heterogeneity of anterior rhombic lip
+142	Three puncture sites used for in utero electroporation show no significantly different negative impacts during gene transfer into the embryonic mouse brain
+143	Development of the cerebellum: Simple steps to make a ‘little brain’
+144	Distribution and expression of Kirre, an IgSF molecule, during postnatal development of rat cerebellum
+145	Differential maturation of GIRK2-expressing neurons in the mouse cerebellum
+146	Cbln1 downregulates the formation and function of inhibitory synapses in mouse cerebellar Purkinje cells
+147	Extension of the caenorhabditis elegans pharyngeal M1 neuron axon is regulated by multiple mechanisms
+148	Slit/Robo pathway: A promising therapeutic target for cancer
+149	Identification of a peptide inhibitor of the RPM-1·FSN-1 ubiquitin ligase complex
+150	Neuroblast migration and P2Y1 receptor mediated calcium signalling depend on 9-O-acetyl GD3 ganglioside
+151	Chemokine CXCL12 and its receptors in the developing central nervous system: Emerging themes and future perspectives
+152	[18F]DPA-714 PET imaging of AMD3100 treatment in a mouse model of stroke
+153	CXCL12 modulation of CXCR4 and CXCR7 activity in human glioblastoma stem-like cells and regulation of the tumor microenvironment
+154	The role of chemokines in hepatitis C virus-mediated liver disease
+155	The peculiarities of the SDF-1/CXCL12 system: In some cells, CXCR4 and CXCR7 sing solos, in others, they sing duets
+156	Emerging targets in pituitary adenomas: Role of the CXCL12/CXCR4-R7 system
+157	Derivation and FACS-mediated purification of PAX3+/PAX7+ skeletal muscle precursors from human pluripotent stem cells
+158	Cxcl12/Cxcr4 signaling controls the migration and process orientation of A9-A10 dopaminergic neurons
+159	Cytokines and chemokines at the crossroads of neuroinflammation, neurodegeneration, and neuropathic pain
+160	Inhibition of CXCL12 signaling attenuates the postischemic immune response and improves functional recovery after stroke
+161	Differences in CXCR7 protein expression on rat versus mouse and human splenic marginal zone B cells
+162	International union of basic and clinical pharmacology. LXXXVIII. g protein-coupled receptor list: Recommendations for new pairings with cognate Ligands
+163	Current status of chemokines in the adult CNS
+164	Spatiotemporal expression and functional implication of CXCL14 in the developing mice cerebellum
+165	CXCL14 deficiency does not impact the outcome of influenza or Escherichia coli infections in mice
+166	Expression of CXCL12 and CXCL14 during eye development in chick and mouse
+167	Culturing of cerebellar granule cells to study neuronal migration: Gradient and local perfusion assays
+168	Genome-wide search reveals the existence of a limited number of thyroid hormone receptor alpha target genes in cerebellar neurons
+169	A temporary compendium of thyroid hormone target genes in brain
+170	Action of thyroxine on the survival and neurite maintenance of cerebellar granule neurons in culture
+171	Toxicogenomic analysis of the ability of brominated flame retardants TBBPA and BDE-209 to disrupt thyroid hormone signaling in neural cells
+172	Direct and indirect consequences on gene expression of a thyroid hormone receptor alpha 1 mutation restricted to Sertoli cells
+173	Minireview: Deciphering direct and indirect influence of thyroid hormone with mouse genetics
+174	American thyroid association guide to investigating thyroid hormone economy and action in rodent and cell models
+175	Thyroid hormone-dependent development of the GABAergic pre- and post-synaptic components in the rat hippocampus
+176	Interplay between thyroxin, BDNF and GABA in injured neurons
+177	Genome-wide analysis of thyroid hormone receptors shared and specific functions in neural cells
+178	Light stimuli control neuronal migration by altering of insulin-like growth factor 1 (IGF-1) signaling
+179	Retardation of fetal dendritic development induced by gestational hyperglycemia is associated with brain insulin/IGF-I signals
+180	The compartmental restriction of cerebellar interneurons
+181	An aberrant cerebellar development in mice lacking matrix metalloproteinase-3
+182	Identification of MMP-2 as a novel enhancer of cerebellar granule cell proliferation
+183	MMP-3 contributes to nigrostriatal dopaminergic neuronal loss, BBB damage, and neuroinflammation in an MPTP mouse model of Parkinson's disease
+184	Changes in mouse cognition and hippocampal gene expression observed in a mild physical- and blast-traumatic brain injury
+185	Matrix Metalloproteinase 14 in the Zebrafish: An Eye on Retinal and Retinotectal Development
+186	Matrix metalloproteinase-3 in the central nervous system: A look on the bright side
+187	Profilin1 is required for glial cell adhesion and radial migration of cerebellar granule neurons
+188	Profilin-1 downregulation has contrasting effects on early vs late steps of breast cancer metastasis
+189	A high-content, multiplexed screen in human breast cancer cells identifies profilin-1 inducers with anti-migratory activities
+190	Origin, lineage and function of cerebellar glia
+191	Proteomic identification of profilin1 as a corepressor of estrogen receptor alpha in MCF7 breast cancer cells
+192	Transcriptional regulation of profilin during wound closure in Drosophila larvae
+193	Purkinje cell loss and motor coordination defects in profilin1 mutant mice
+194	Molecular insights on context-specific role of profilin-1 in cell migration
+195	Actin-binding Rho activating protein is expressed in the central nervous system of normal adult rats
+196	Role of the actin-binding protein profilin1 in radial migration and glial cell adhesion of granule neurons in the cerebellum
+197	Calmodulin-kinases regulate basal and estrogen stimulated medulloblastoma migration via Rac1
+198	Secreted meningeal chemokines, but not VEGFA, modulate the migratory properties of medulloblastoma cells
+199	Development of EHop-016: A small molecule inhibitor of rac
+200	Advances in molecular targets for the treatment of medulloblastomas
+201	Numb links extracellular cues to intracellular polarity machinery to promote chemotaxis
+202	Gli3 repressor controls cell fates and cell adhesion for proper establishment of neurogenic niche
+203	Neuronal signaling through endocytosis
+204	Numb-deficient satellite cells have regeneration and proliferation defects
+205	Mechanisms of cell migration in the nervous system
+206	Rbfox3-regulated alternative splicing of Numb promotes neuronal differentiation during development
+207	Numb and Alzheimers disease: The current picture
+208	Numb/Numbl-Opo Antagonism Controls Retinal Epithelium Morphogenesis by Regulating Integrin Endocytosis
+209	Sticky situations: Recent advances in control of cell adhesion during neuronal migration
+210	Harnessing the Power of the Endosome to Regulate Neural Development
+211	Endocytic trafficking of neurotrophins in neural development
+212	Intrinsic program for migration of cerebellar granule cells in vitro
+213	Featuring technique of paticular proteins for brain tissue using acoustic impedance microscope
+214	Intrinsic and extrinsic mechanisms control the termination of cortical interneuron migration
+215	Microglia Modulate Wiring of the Embryonic Forebrain
+216	Integration of GABAergic Interneurons into Cortical Cell Assemblies: Lessons from Embryos and Adults
+217	Cellular and molecular mechanisms controlling the migration of neocortical interneurons
+218	Perturbations in cortical development and neuronal network excitability arising from prenatal exposure to benzodiazepines in mice
+219	Nuclear factor I and cerebellar granule neuron development: An intrinsic-extrinsic interplay
+220	Nuclear factor one transcription factors: Divergent functions in developmental versus adult stem cell populations
+221	Lgr5 marks post-mitotic, lineage restricted cerebellar granule neurons during postnatal development
+222	Culturing mouse cerebellar granule neurons
+223	Temporal regulation of nuclear factor one occupancy by calcineurin/NFAT governs a voltage-sensitive developmental switch in late maturing neurons
+224	Diversity and complexity of roles of granule cells in the cerebellar cortex. Editorial
+225	Electric field-guided neuron migration: A novel approach in neurogenesis
+226	Neural stem cell differentiation by electrical stimulation using a cross-linked PEDOT substrate: Expanding the use of biocompatible conjugated conductive polymers for neural tissue engineering
+227	Material stiffness effects on neurite alignment to photopolymerized micropatterns
+228	Neural pathfinding on uni- and multidirectional photopolymerized micropatterns
+229	Directed migration in neural tissue engineering
+230	Effects of electromagnetic fields on Reelin and Dab1 expression in the developing cerebral cortex
+231	Real-time discrimination between proliferation and neuronal and astroglial differentiation of human neural stem cells
+232	Pulsed electromagnetic fields potentiate neurite outgrowth in the dopaminergic MN9D cell line
+233	Neural tissue engineering options for peripheral nerve regeneration
+234	Galvanotactic control of collective cell migration in epithelial monolayers
+235	Reprogramming cells and tissue patterning via bioelectrical pathways: Molecular mechanisms and biomedical opportunities
+236	Alternating current electric fields of varying frequencies: Effects on proliferation and differentiation of porcine neural progenitor cells
+237	Translation of the ecological trap concept to glioma therapy: The cancer cell trap concept
+238	Superoxide Mediates Direct Current Electric Field-Induced Directional Migration of Glioma Cells through the Activation of AKT and ERK
+239	Endogenous voltage gradients as mediators of cell-cell communication: Strategies for investigating bioelectrical signals during pattern formation
+240	Photopolymerized microfeatures for directed spiral ganglion neurite and Schwann cell growth
+241	Morphogenetic fields in embryogenesis, regeneration, and cancer: Non-local control of complex patterning
+242	Electrotaxis of oral squamous cell carcinoma cells in a multiple-electric-field chip with uniform flow field
+243	Adult subependymal neural precursors, but not differentiated cells, undergo rapid cathodal migration in the presence of direct current electric fields
+244	Expression of LPP3 in Bergmann glia is required for proper cerebellar sphingosine-1-phosphate metabolism/signaling and development
+245	A painful link between the TRPV1 channel and lysophosphatidic acid
+246	Mice with targeted inactivation of Ppap2b in endothelial and hematopoietic cells display enhanced vascular inflammation and permeability
+247	Lipid Phosphate Phosphatases: Recent Progress and Assay Methods
+248	Lipid Phosphate Phosphatases and Signaling by Lysophospholipid Receptors
+249	Lipid phosphate phosphatase 3 negatively regulates smooth muscle cell phenotypic modulation to limit intimal hyperplasia
+250	The Transporter Spns2 Is Required for Secretion of Lymph but Not Plasma Sphingosine-1-Phosphate
+251	Dicer1 and MiR-9 are required for proper Notch1 signaling and the Bergmann glial phenotype in the developing mouse cerebellum
+252	Neuron-astroglial interactions in cell-fate commitment and maturation in the central nervous system
+253	Unlike two peas in a pod: Lipid phosphate phosphatases and phosphatidate phosphatases
+254	Lack of lipid phosphate phosphatase-3 in embryonic stem cells compromises neuronal differentiation and neurite outgrowth
+255	Lipid phosphate phosphatase 3 enables efficient thymic egress
+256	Thyroid hormones and fetal neurological development
+257	QSARs on the Thyroid Hormone Effects of Polybrominated Diphenyl Ether (PBDE) Derivatives
+258	Optimal management of hypothyroidism, hypothyroxinaemia and euthyroid TPO antibody positivity preconception and in pregnancy
+259	Effects of acute exposure to the non-steroidal anti-inflammatory drug ibuprofen on the developing North American bullfrog (Rana catesbeiana) tadpole
+260	Thyroid hormone supplementation in preterm infants born before 28 weeks gestational age and neurodevelopmental outcome at age 36 months
+261	Iodothyronine Deiodinases. Emerging Clinical Crossroads.
+262	The synthetic thyroid hormone, levothyroxine, protects cholinergic neurons in the hippocampus of naturally aged mice
+263	Long-term betacarotene supplementation positively affects serum triiodothyronine concentrations around puberty onset in female goats
+264	Embryonic exposure to excess thyroid hormone causes thyrotrope cell death
+265	Iodine status during pregnancy in India and related neonatal and infant outcomes
+266	Cognitive function and quality of life in mild thyroid hormone deficiency
+267	Morpho-functional characteristics of rat fetal thyroid gland are affected by prenatal dexamethasone exposure
+268	Pregnancy outcome in hypothyroidism associated to diabetes mellitus
+269	Thyroid hormones and their nuclear receptors: New players in intestinal epithelium stem cell biology?
+270	Thyroid hormones in fetal growth and prepartum maturation
+271	Maternal thyroid and glucocorticoid hormone interactions in larval fish development, and their applications in aquaculture
+272	Hypothyroidism affects astrocyte and microglial morphology in type 2 diabetes
+273	Molecular and cell biological effects of 3,5,3'-triiodothyronine on progenitor cells of the enteric nervous system in vitro
+274	Exposure to the endocrine disruptor nonylphenol alters structure and function of thyroid gland in rats
+275	Maternal hypothyroxinemia and effects on cognitive functioning in childhood: How and why?
+276	Thyroid hormone-dependent development of early cortical networks: Temporal specificity and the contribution of trkB and mTOR pathways
+277	Long-term outcome of primary endocrine non-Hodgkin lymphomas: Does the site make the difference?
+278	Role of maternal thyroid hormones in the developing neocortex and during human evolution
+279	Follicular thyroid cancer in children and adolescents: Clinicopathologic features, long-term survival, and risk factors for recurrence
+280	Mechanism-based testing strategy using in vitro approaches for identification of thyroid hormone disrupting chemicals
+281	Cerebellar cortical neurons misplaced in the white matter due to disturbed migration during development of human brain
+282	Sequence of synaptogenesis in the fetal and neonatal cerebellar system - Part 1: Guillain-Mollaret triangle (Dentato-Rubro-Olivo-Cerebellar Circuit)
+283	Congenital glioblastoma coexisting with vascular developmental anomaly
+284	Cerebellar Purkinje cell vulnerability to prenatal nicotine exposure in sudden unexplained perinatal death
+285	Morphological and quantitative analysis of cerebellar cortical cells in Alzheimer's disease
+286	Inhibition of cerebellar granule cell turning by alcohol
+287	Alcohol and Developing Neuronal Circuits
+288	Forebrain and hindbrain development in zebrafish is sensitive to ethanol exposure involving agrin, Fgf, and sonic hedgehog function
+289	Effects of Ethanol Exposure on Nervous System Development in Zebrafish
+290	Does moderate drinking harm the fetal brain? Insights from animal models
+291	Cortical thickness in fetal alcohol syndrome and attention deficit disorder
+292	Acute administration of vinpocetine, a phosphodiesterase type 1 inhibitor, ameliorates hyperactivity in a mice model of fetal alcohol spectrum disorder
+293	Leading tip drives soma translocation via forward F-actin flow during neuronal migration
+294	DISC1 knockdown impairs the tangential migration of cortical interneurons by affecting the actin cytoskeleton
+295	Long-term potentiation at cerebellar parallel fiber-Purkinje cell synapses requires presynaptic and postsynaptic signaling cascades
+296	Epilepsy-induced motility of differentiated neurons
+297	Maternal dexamethasone exposure inhibits the gonadotropin-releasing hormone neuronal movement in the preoptic area of rat offspring
+298	The aspartic acid of Fyn at 390 is critical for neuronal migration during corticogenesis
+299	Integrative mechanisms of oriented neuronal migration in the developing brain
+300	Hindbrain Tangential Migration
+301	Calcium release-dependent actin flow in the leading process mediates axophilic migration
+302	A 3D-matrigel/microbead assay for the visualization of mechanical tractive forces at the neurite-substrate interface of cultured neurons
+303	Laminar stream of detergents for subcellular neurite damage in a microfluidic device: A simple tool for the study of neuroregeneration
+304	The effect of including the C2 insert of nonmuscle myosin II-C on neuritogenesis
+305	Expression of ezrin in subventricular zone neural stem cells and their progeny in adult and developing mice
+306	Reelin promotes microtubule dynamics in processes of developing neurons
+307	Repulsive migration of schwann cells induced by slit-2 through Ca2+-dependent RhoA-Myosin signaling
+308	Forward transport of proteins in the plasma membrane of migrating cerebellar granule cells
+309	Intrinsic Migratory Properties of Cultured Schwann Cells Based on Single-Cell Migration Assay
+310	Contact and Encirclement of Glioma Cells In Vitro Is an Intrinsic Behavior of a Clonal Human Neural Stem Cell Line
+311	Dynamics of the leading process, nucleus, and Golgi apparatus of migrating cortical interneurons in living mouse embryos
+312	POSH Localizes Activated Rac1 to Control the Formation of Cytoplasmic Dilation of the Leading Process and Neuronal Migration
+313	Brefeldin A-inhibited guanine exchange factor 2 regulates Filamin a phosphorylation and neuronal migration
+314	Trio is a key guanine nucleotide exchange factor coordinating regulation of the migration and morphogenesis of granule cells in the developing cerebellum
+315	Trio gene is required for mouse learning ability
+316	Time-lapse analysis of tangential migration in Sema6A and PlexinA2 knockouts
+317	Function and regulation of the rho guanine nucleotide exchange factor trio
+318	Finding degrees of separation: Experimental approaches for astroglial and oligodendroglial cell isolation and genetic targeting
+319	Rho guanine nucleotide exchange factors: Regulators of Rho GTPase activity in development and disease
+320	Function and regulation of the Rho guanine nucleotide exchange factor trio
+321	The diverse roles and multiple forms of focal adhesion kinase in brain
+322	Cell type-Specific signaling function of rhoa gtpase: Lessons from mouse genetargeting
+323	Rho GTPases in neurodegeneration diseases
+324	Neuronal Rho GEFs in synaptic physiology and behavior
+325	The miR-183~96~182 cluster promotes tumorigenesis in a mouse model of medulloblastoma
+326	The many faces of the guanine-nucleotide exchange factor trio
+327	Guidance for Life, Cell Death, and Colorectal Neoplasia by Netrin Dependence Receptors
+328	Echovirus 30 induced neuronal cell death through TRIO-RhoA signaling activation
+329	Genetic approaches to study glial cells in the rodent brain
+330	The rhogef trio functions in sculpting class specific dendrite morphogenesis in drosophila sensory neurons
+331	The N-terminal DH-PH domain of trio induces cell spreading and migration by regulating lamellipodia dynamics in a Rac1-dependent fashion
+332	A trio-rhoA-shroom3 pathway is required for apical constriction and epithelial invagination
+333	Signaling in migrating neurons: From molecules to networks
+334	Oligodendrocytes as regulators of neuronal networks during early postnatal development
+335	Kinesin-5, a mitotic microtubule-associated motor protein, modulates neuronal migration
+336	Targets of the nuclear factor I regulon involved in early and late development of postmitotic cerebellar granule neurons
+337	NFIB-mediated repression of the epigenetic factor Ezh2 regulates cortical development
+338	Oncolytic effects of parvovirus H-1 in medulloblastoma are associated with repression of master regulators of early neurogenesis
+339	Transcriptional Regulation of Tangential Neuronal Migration in the Vertebrate Hindbrain
+340	Heterozygosity for Nuclear Factor One X Affects Hippocampal-Dependent Behaviour in Mice
+341	Expression of nuclear factor one A and -B in the olfactory bulb
+342	OTX2 directly activates cell cycle genes and inhibits differentiation in medulloblastoma cells
+343	Rescue of the transcription factors Sp1 and NFI in human skin keratinocytes through a feeder-layer-dependent suppression of the proteasome activity
+344	Nuclear factor i genes regulate neuronal migration
+345	Cut-like homeobox 1 and nuclear factor I/B mediate ENGRAILED2 autism spectrum disorder-associated haplotype function
+346	Nuclear factor one X regulates the development of multiple cellular populations in the postnatal cerebellum
+347	Temporal control of a dendritogenesis-linked gene via REST-dependent regulation of nuclear factor I occupancy
+348	Electrical signals polarize neuronal organelles, direct neuron migration, and orient cell division
+349	Exploration of molecular pathways mediating electric field-directed schwann cell migration by RNA-seq
+350	Electrical stimulation of schwann cells promotes sustained increases in neurite outgrowth
+351	Directed Migration of Embryonic Stem Cell-derived Neural Cells In An Applied Electric Field
+352	In vitro and in vivo neuronal electrotaxis: A potential mechanism for restoration?
+353	Engineering cell alignment in vitro
+354	Electrical stimuli in the central nervous system microenvironment
+355	Decoupling polarization of the Golgi apparatus and GM1 in the plasma membrane
+356	Root apex transition zone as oscillatory zone
+357	Electric field stimulation through a substrate influences Schwann cell and extracellular matrix structure
+358	Electromagnetic interaction between environmental fields and living systems determines health and well-being
+359	Piezoelectric substrates promote neurite growth in rat spinal cord neurons
+360	Electrically guiding nerve growth and neuronal migration
+361	Molecular bioelectricity in developmental biology: New tools and recent discoveries: Control of cell behavior and pattern formation by transmembrane potential gradients
+362	Brief report: Guided migration of neural stem cells derived from human embryonic stem cells by an electric field
+363	Combining BMI stimulation and mathematical modeling for acute stroke recovery and neural repair
+364	Directed migration of human bone marrow mesenchymal stem cells in a physiological direct current electric field
+365	Neurite outgrowth is significantly increased by the simultaneous presentation of Schwann cells and moderate exogenous electric fields
+366	Microfluidic devices for studying chemotaxis and electrotaxis
+367	Vacuum soft lithography to direct neuronal polarization
+368	Current status of the use of modalities in wound care: Electrical stimulation and ultrasound therapy
+369	Wnt11 patterns a myocardial electrical gradient through regulation of the L-type Ca2+ channel
+370	Four distinct phases of basket/stellate cell migration after entering their final destination (the molecular layer) in the developing cerebellum
+371	Occupy tissue: The movement in cancer metastasis
+372	Developmental coordination of gene expression between synaptic partners during gabaergic circuit assembly in cerebellar cortex
+373	Developmental Expression Pattern of Hspb8 mRNA in the Mouse Brain: Analysis Through Online Databases
+374	Modulation of cell-cycle dynamics is required to regulate the number of cerebellar GABAergic interneurons and their rhythm of maturation
+375	Real time analysis of pontine neurons during initial stages of nucleogenesis
+376	Development of the cerebellar afferent system in the shark Scyliorhinus canicula: Insights into the basal organization of precerebellar nuclei in gnathostomes
+377	The control of precerebellar neuron migration by RNA-binding protein Csde1
+378	Leading Process Dynamics During Neuronal Migration
+379	Joubert syndrome: Brain and spinal cord malformations in genotyped cases and implications for neurodevelopmental functions of primary cilia
+380	Formation of Axon-dendrite polarity in situ: Initiation of axons from polarized and non-polarized cells
+381	Role of Neph2 in pontine nuclei formation in the developing hindbrain
+382	Should I stay or should I go? Becoming a granule cell
+383	Neuronal migration mechanisms in development and disease
+384	Random walk behavior of migrating cortical interneurons in the marginal zone: Time-lapse analysis in flat-mount cortex
+385	Clonal origins of neocortical interneurons
+386	CXCR7 prevents excessive CXCL12-mediated downregulation of CXCR4 in migrating cortical interneurons
+387	Decision making during interneuron migration in the developing cerebral cortex
+388	Cilia: Traffic directors along the road of cortical development
+389	Production and organization of neocortical interneurons
+390	Lineage-specific laminar organization of cortical GABAergic interneurons
+391	Tangential Migration: The Forebrain
+392	Postnatal transplantation of Interneuronal precursor cells decreases anxiety-like behavior in adult mice
+393	Spectral solution of delayed random walks
+394	The Neurodevelopmental Hypothesis of Schizophrenia. Convergent Clues from Epidemiology and Neuropathology
+395	Migratory pathways of GABAergic interneurons when they enter the neocortex
+396	Perceiving in Depth
+397	Neurons on the move: Migration and lamination of cortical interneurons
+398	Non-Brownian dynamics and strategy of amoeboid cell locomotion
+399	GABAergic interneuron migration and the evolution of the neocortex
+400	Persistent cortical plasticity by upregulation of chondroitin 6-sulfation
+401	Wandering neuronal migration in the postnatal vertebrate forebrain
+402	Autonomous turning of cerebellar granule cells in vitro by intrinsic programs
+403	Calcium signaling in neuronal motility: Pharmacological tools for investigating specific pathways
+404	An Instructive Role for Patterned Spontaneous Retinal Activity in Mouse Visual Map Development
+405	Vital observation and featuring techniques of functional cell-surface proteins using acoustic impedance microscope
+406	Visualization of cancer distribution for living tissues using acoustic impedance microscope
+407	Cerebellar granule cell migration and the effects of alcohol
+408	Fetal alcohol spectrum disorders and neuroimmune changes
+409	Molecular Targets of Ethanol in the Developing Brain
+410	Neurogenesis in the Cerebellum
+411	Mechanisms of ethanol-induced death of cerebellar granule cells
+412	Comparative effects of alcohol and thiamine deficiency on the developing central nervous system
+413	Ginkgolide B attenuates ethanol-induced neurotoxicity through regulating NADPH oxidases
+414	Ethanol induces a reduction in cortical thickness, neuronal density and somatic shrinkage in the cerebellar cortex of adult mice
+415	Endogenous proBDNF is a negative regulator of migration of cerebellar granule cells in neonatal mice
+416	Prenatal and postnatal ethanol experiences modulate consumption of the drug in rat pups, without impairment in the granular cell layer of the main olfactory bulb
+417	Differential expression of calbindin D28k, calretinin and parvalbumin in the cerebellum of pups of ethanol-treated female rats
+418	A Review of Synaptic Plasticity at Purkinje Neurons with a Focus on Ethanol-Induced Cerebellar Dysfunction
+419	Role of PACAP in controlling granule cell migration
+420	Neuroaxonal dystrophy associated with cerebellar dysfunctionina 5-month-old Pony of the Americas colt
+421	Paradoxical effect of ethanol on potassium channel currents and cell survival in cerebellar granule neurons
+422	Cerebellar cortical-layer-specific control of neuronal migration by pituitary adenylate cyclase-activating polypeptide
+423	Calcium signaling in neuronal motility
+424	Neural cell adhesion molecule 2 promotes the formation of filopodia and neurite branching by inducing submembrane increases in Ca2+ levels
+425	Circuit formation and function in the olfactory bulb of mice with reduced spontaneous afferent activity
+426	The role of glutamate and its receptors in the proliferation, migration, differentiation and survival of neural progenitor cells
+427	Axon targeting of the alpha 7 nicotinic receptor in developing hippocampal neurons by Gprin1 regulates growth
+428	Dysfunction of KCNK potassium channels impairs neuronal migration in the developing mouse cerebral cortex
+429	Store-operated CRAC channels regulate gene expression and proliferation in neural progenitor cells
+430	Wnt5a evokes cortical axon outgrowth and repulsive guidance by tau mediated reorganization of dynamic microtubules
+431	Endothelial remodelling and intracellular calcium machinery
+432	Spontaneous network activity and synaptic development
+433	Calcium signaling in axon guidance
+434	MACF1 regulates the migration of pyramidal neurons via microtubule dynamics and GSK-3 signaling
+435	Effects of the neurogranin variant rs12807809 on thalamocortical morphology in schizophrenia
+436	New calcium-selective smart contrast agents for magnetic resonance imaging
+437	Cell adhesion and intracellular calcium signaling in neurons
+438	A critical role for STIM1 in filopodial calcium entry and axon guidance
+439	Epidermal keratinocyte polarity and motility require Ca2+ influx through TRPV1
+440	Spatial Wavelet Analysis of Calcium Oscillations in Developing Neurons
+441	The emergence of neural activity and its role in the development of the enteric nervous system
+442	Spontaneous calcium transients in human neural progenitor cells mediated by transient receptor potential channels
+443	Calcium signals and FGF-2 induced neurite growth in cultured parasympathetic neurons: Spatial localization and mechanisms of activation
+444	Learning and memory: An emergent property of cell motility
+445	Axon Growth and Branching
+446	Binding characteristics of chondroitin sulfate proteoglycans and laminin-1, and correlative neurite outgrowth behaviors in a standard tissue culture choice assay
+447	Proteoglycans of reactive rat cortical astrocyte cultures: Abundance of N-unsubstituted glucosamine-enriched heparan sulfate
+448	The challenges of respiratory motor system recovery following cervical spinal cord injury
+449	New perspectives for investigating respiratory failure induced by cervical spinal cord injury
+450	Extracellular matrix components in peripheral nerve regeneration
+451	The Neuro-spheroid-A novel 3D in vitro model for peripheral nerve regeneration
+452	Sildenafil attenuates inflammation and oxidative stress in pelvic ganglia neurons after bilateral cavernosal nerve damage
+453	Nanocrystalline diamond surfaces for adhesion and growth of primary neurons, conflicting results and rational explanation
+454	Tissue engineering of the peripheral nervous system
+455	Time dependent integration of matrix metalloproteinases and their targeted substrates directs axonal sprouting and synaptogenesis following central nervous system injury
+456	Astrocytes specifically remove surface-adsorbed fibrinogen and locally express chondroitin sulfate proteoglycans
+457	Astrocytes alignment and reactivity on collagen hydrogels patterned with ECM proteins
+458	Pharmacological mitigation of tissue damage during brain microdialysis
+459	The role of well-defined patterned substrata on the regeneration of DRG neuron pathfinding and integrin expression dynamics using chondroitin sulfate proteoglycans
+460	Spatial gradients of chemotropic factors from immobilized patterns to guide axonal growth and regeneration
+461	Exploiting differential surface display of chondroitin sulfate variants for directing neuronal outgrowth
+462	A transparent organic transistor structure for bidirectional stimulation and recording of primary neurons
+463	Sugar glues for broken neurons
+464	IT delivery of ChABC modulates NG2 and promotes GAP-43 axonal regrowth after spinal cord injury
+465	Examination of the combined effects of chondroitinase ABC, growth factors and locomotor training following compressive spinal cord injury on neuroanatomical plasticity and kinematics
+466	Alterations of protein composition along the rostro-caudal axis after spinal cord injury: Proteomic, in vitro and in vivo analyses
+467	Spinal cord regeneration
+468	Regenerative medicine for spinal cord injury
+469	Reduced sympathetic neurite outgrowth on uterine tissue sections from rats treated with estrogen
+470	Estrogen and female reproductive tract innervation: Cellular and molecular mechanisms of autonomic neuroplasticity
+471	Effects of chemical sympathectomy on the level of reproductive hormones and mast cells during mouse early pregnancy
+472	Estrogen up-regulation of semaphorin 3F correlates with sympathetic denervation of the rat uterus
+473	Effect of estrogen and its receptors on glutamate-induced neural cell injury
+474	The influence of sub-micron inhibitory clusters on growth cone substratum attachments and CD44 expression
+475	AICD nuclear signaling and its possible contribution to Alzheimer's disease
+476	Multiprotein microcontact printing with micrometer resolution
+477	Nanoscale Techniques for Biomarker Quantification
+478	Permissive and Repulsive Cues and Signalling Pathways of Axonal Outgrowth and Regeneration
+479	A genome-wide association study combining pathway analysis for typical sporadic amyotrophic lateral sclerosis in Chinese Han populations
+480	Neurorestorative therapy for stroke
+481	Trophic factors as modulators of motor neuron physiology and survival: Implications for ALS therapy
+482	Screening of key genes associated with contused rat spinal cord with DNA microarray
+483	Rho/Rho-associated kinase pathway in glaucoma (Review)
+484	Contractile and electrical activity of neurons on exposure to colchicine
+485	Epigenetics of Neural Repair Following Spinal Cord Injury
+486	Molecular mechanisms of peripheral nerve regeneration: Emerging roles of microRNAs
+487	Conducting polymer nanomaterials for biomedical applications: Cellular interfacing and biosensing
+488	Fast, Non-Competitive and Reversible Inhibition of NMDA-Activated Currents by 2-BFI Confers Neuroprotection
+489	Collapsin response mediator protein 3 deacetylates histone H4 to mediate nuclear condensation and neuronal death
+490	Expression of netrin-1 and its receptors, deleted in colorectal cancer and uncoordinated locomotion-5 homolog B, in rat brain following focal cerebral ischemia reperfusion injury
+491	The neurorestorative benefit of GW3965 treatment of stroke in Mice
+492	Neurovascular protection conferred by 2-BFI treatment during rat cerebral ischemia
+493	VEGF-induced growth cone enhancement is diminished by inhibiting tyrosine-residue 1214 of VEGFR-2
+494	Divergent functions through alternative splicing: The Drosophila CRMP gene in pyrimidine metabolism, brain, and behavior
+495	Human axonal Survival of Motor Neuron (a-SMN) protein stimulates axon growth, cell motility, C-C motif ligand 2 (CCL2),andinsulin-like growth factor-1 (IGF1) production
+496	Niaspan increases axonal remodeling after stroke in type 1 diabetes rats
+497	Treatment of ALS utilizing a stem cell strategy
+498	Extracellular inhibitors, repellents, and semaphorin/plexin/MICAL-mediated actin filament disassembly
+499	What are the bona fide GSK3 substrates?
+500	Tissue-nonspecific alkaline phosphatase promotes axonal growth of hippocampal neurons
+501	The use of treadmill training to recover locomotor ability in patients with spinal cord injury
+502	Robust axonal growth and a blunted macrophage response are associated with impaired functional recovery after spinal cord injury in the MRL/MpJ mouse
+503	Macrophages migrate in an activation-dependent manner to chemokines involved in neuroinflammation
+504	Perivascular fibroblasts form the fibrotic scar after contusive spinal cord injury
+505	Weight-Bearing Locomotion in the Developing Opossum, Monodelphis domestica following Spinal Transection: Remodeling of Neuronal Circuits Caudal to Lesion
+506	Animal models of axon regeneration after spinal cord injury
+507	The glial scar in spinal cord injury and repair
+508	Collagen scaffolds incorporating select therapeutic agents to facilitate a reparative response in a standardized hemiresection defect in the rat spinal cord
+509	Enhanced functional recovery in MRL/MpJ mice after spinal cord dorsal hemisection
+510	Optimal location and time for neural stem cell transplantation into transected rat spinal cord
+511	ProBDNF inhibits infiltration of ED1+ macrophages after spinal cord injury
+512	Neuroinflammation in spinal cord injury: therapeutic targets for neuroprotection and regeneration
+513	Spinal cord injury research in mice: 2008 Review
+514	Multi-molecular gradients of permissive and inhibitory cues direct neurite outgrowth
+515	Microfluidic gradients reveal enhanced neurite outgrowth but impaired guidance within 3D matrices with high integrin ligand densities
+516	Local ultraviolet laser irradiation for gradients on biocompatible polymer surfaces
+517	Neural cell alignment by patterning gradients of the extracellular matrix protein laminin
+518	Quantifying cellular alignment on anisotropic biomaterial platforms
+519	Evidence for topographic guidance of dopaminergic axons by differential Netrin-1 expression in the striatum
+520	Engineering microfluidic concentration gradient generators for biological applications
+521	Investigating axonal guidance with microdevice-based approaches
+522	Microfluidic devices for cell cultivation and proliferation
+523	Comparison of sensory neuron growth cone and filopodial responses to structurally diverse aggrecan variants, in vitro
+524	Microfluidic deposition of chondroitin sulfate proteoglycan surface gradients for neural cell culture
+525	Superimposed topographic and chemical cues synergistically guide neurite outgrowth
+526	Generating different profiles of gradient concentrations inside a gel-filled chamber: Design and simulation
+527	Engineered cell culture substrates for axon guidance studies: Moving beyond proof of concept
+528	Microtissue engineered constructs with living axons for targeted nervous system reconstruction
+529	Quantification of protein incorporated into electrospun polycaprolactone tissue engineering scaffolds
+530	Gradient generating microfluidic devices for cell cultivation
+531	Neural regenerative strategies incorporating biomolecular axon guidance signals
+532	Neural tissue engineering and biohybridized microsystems for neurobiological investigation in vitro (part 1)
+533	Spatial phosphoprotein profiling reveals a compartmentalized extracellular signal-regulated kinase switch governing neurite growth and retraction
+534	A high-throughput microfluidic assay to study neurite response to growth factor gradients
+535	Large-scale analysis of neurite growth dynamics on micropatterned substrates
+536	A low resistance microfluidic system for the creation of stable concentration gradients in a defined 3D microenvironment
+537	Microfluidics For Nanoneuroscience
+538	Designing in vivo concentration gradients with discrete controlled release: A computational model
+539	Guiding neuron development with planar surface gradients of substrate cues deposited using microfluidic devices
+540	The effects of proteoglycan surface patterning on neuronal pathfinding
+541	Myelination and node of Ranvier formation on sensory neurons in a defined in vitro system
+542	Mammalian-produced chondroitinase AC mitigates axon inhibition by chondroitin sulfate proteoglycans
+543	Chondroitinase gene therapy for spinal cord injury
+544	Inhibition of repulsive guidance molecule, RGMa, increases afferent synapse formation with auditory hair cells
+545	Review: Manipulating the extracellular matrix and its role in brain and spinal cord plasticity and repair
+546	Large-scale chondroitin sulfate proteoglycan digestion with chondroitinase gene therapy leads to reduced pathology and modulates macrophage phenotype following spinal cord contusion injury
+547	Dermatan 4-O-sulfotransferase1 ablation accelerates peripheral nerve regeneration
+548	The role of peripheral nerve ECM components in the tissue engineering nerve construction
+549	Improved axonal regeneration after spinal cord injury in mice with conditional deletion of ephrin B2 under the GFAP promoter
+550	The challenges of long-distance axon regeneration in the injured CNS
+551	Corneal sulfated glycosaminoglycans and their effects on trigeminal nerve growth cone behavior in vitro: Roles for ECM in cornea innervation
+552	The roles of neuronal and glial precursors in overcoming chondroitin sulfate proteoglycan inhibition
+553	Secretion of bacterial chondroitinase ABC from bone marrow stromal cells by glycosylation site mutation: A promising approach for axon regeneration
+554	Chondroitinase activity can be transduced by a lentiviral vector in vitro and in vivo
+555	Efficient secretion of biologically active Chondroitinase ABC from mammalian cells in the absence of an N-terminal signal peptide
+556	Plasticity After Spinal Cord Injury: Relevance to Recovery and Approaches to Facilitate It
+557	Manipulating the glial scar: Chondroitinase ABC as a therapy for spinal cord injury
+558	Animals lacking link protein have attenuated perineuronal nets and persistent plasticity
+559	Neural stem cells in regenerative medicine: Bridging the gap
+560	Neurite outgrowth of neural progenitors in presence of inhibitory proteoglycans
+561	Modification of N-glycosylation sites allows secretion of bacterial chondroitinase ABC from mammalian cells
+562	Influence of aging on chondroitin sulfate proteoglycan expression and neural stem/progenitor cells in rat brain and improving effects of a herbal medicine, yokukansan
+563	Role of extracellular factors in axon regeneration in the CNS: Implications for therapy
+564	Repulsive Wnt signaling inhibits axon regeneration after CNS injury
+565	Preparation and in vitro properties of controlled release poly(lactic-co-glycolic acid) microspheres incorporating chondroitinase ABC
+566	The differential influence of colocalized and segregated dual protein signals on neurite outgrowth on surfaces
+567	Local polymer replacement for neuron patterning and in situ neurite guidance
+568	Probing relevant molecules in modulating the neurite outgrowth of hippocampal neurons on substrates of different stiffness
+569	Local pH-responsive diazoketo-functionalized photoresist for multicomponent protein patterning
+570	Tissue scaffold surface patterning for clinical applications
+571	Substrate micropatterning as a new in vitro cell culture system to study myelination
+572	Inducing alignment in astrocyte tissue constructs by surface ligands patterned on biomaterials
+573	Combined chemical and topographical guidance cues for directing cytoarchitectural polarization in primary neurons
+574	Optimization of protein patterns for neuronal cell culture applications
+575	Localized bimodal response of neurite extensions and structural proteins in dorsal-root ganglion neurons with controlled polydimethylsiloxane substrate stiffness
+576	Tissue engineering of organs: Brain tissues
+577	Multicomponent protein patterning of material surfaces
+578	Surface strategies for control of neuronal cell adhesion: A review
+579	Self-aligned Schwann cell monolayers demonstrate an inherent ability to direct neurite outgrowth
+580	The effect of alternative neuronal differentiation pathways on PC12 cell adhesion and neurite alignment to nanogratings
+581	Matrix metalloproteinases and proteoglycans in axonal regeneration
+582	Proteolytic events are relevant cellular responses during nervous system regeneration of the starfish Marthasterias glacialis
+583	Photoreceptor replacement therapy: Challenges presented by the diseased recipient retinal environment
+584	Assessment of nogo-66 receptor 1 function in vivo after spinal cord injury
+585	Changes in the connective tissue sheath of Wistar rat nerve with aging
+586	MMPs in the neuroretina and optic nerve: Modulators of glaucoma pathogenesis and repair?
+587	An assessment of current techniques for inducing axon regeneration and neurological recovery following peripheral nerve trauma
+588	A molecular mechanism of optic nerve regeneration in fish: The retinoid signaling pathway
+589	Perineuronal and perisynaptic extracellular matrix in the human spinal cord
+590	Chondroitin sulfate, a major component of the perineuronal net, elicits inward currents, cell depolarization, and calcium transients by acting on AMPA and kainate receptors of hippocampal neurons
+591	Effect of Delayed Peripheral Nerve Repair on Nerve Regeneration, Schwann Cell Function and Target Muscle Recovery
+592	Axonal growth towards Xenopus skin in vitro is mediated by matrix metalloproteinase activity
+593	Regulation of proteases after spinal cord injury
+594	Novel targets for spinal cord injury related neuropathic pain
+595	Chondroitin sulphate proteoglycans: Extracellular matrix proteins that regulate immunity of the central nervous system
+596	Evaluation of early and late effects into the acute spinal cord injury of an injectable functionalized self-assembling scaffold
+597	Trafficking and secretion of matrix metalloproteinase-2 in olfactory ensheathing glial cells: A role in cell migration?
+598	Role of Matrix Metalloproteinases and Therapeutic Benefits of Their Inhibition in Spinal Cord Injury
+599	Deafferentation-induced redistribution of MMP-2, but not of MMP-9, depends on the emergence of GAP-43 positive axons in the adult rat cochlear nucleus
+600	Differential patterns of local gene regulation in crush lesions of the rat optic and sciatic nerve: Relevance to posttraumatic regeneration
+601	Cellular repopulation of the retina
+602	Influences of retinal axons on the cultural substrate containing biotin-conjugated chondroitin sulfate in vitro
+603	Neurochemical aspects of neurotraumatic and neurodegenerative diseases
+604	Localized gene expression of axon guidance molecules in neuronal co-cultures
+605	Techniques for examining the effect of substratum-bound proteoglycans on neurite outgrowth in vitro
+606	The behavior of neuronal cells on tendon-derived collagen sheets as potential substrates for nerve regeneration
+607	Specific immobilization of biotinylated fusion proteins NGF and Sema3A utilizing a photo-cross-linkable diazirine compound for controlling neurite extension
+608	Pattern analysis and spatial distribution of neurons in culture
+609	A new three-dimensional axonal outgrowth assay for central nervous system regeneration
+610	Patterned transgene expression in multiple-channel bridges after spinal cord injury
+611	Spinal cord injury in vitro: Modelling axon growth inhibition
+612	Sensory axon targeting is increased by NGF gene therapy within the lesioned adult femoral nerve
+613	Non-viral polyplexes: Scaffold mediated delivery for gene therapy
+614	Spatially patterned gene expression for guided neurite extension
+615	Applications of quantum dots in biomedicine
+616	The proteoglycan brevican binds to fibronectin after proteolytic cleavage and promotes glioma cell motility
+617	Excimer laser channel creation in polyethersulfone hollow fibers for compartmentalized in vitro neuronal cell culture scaffolds
+618	Matrices and scaffolds for DNA delivery in tissue engineering
+619	The stop signal revised: Immature cerebellar granule neurons in the external germinal layer arrest pontine mossy fiber growth
+620	Cadherin-7 regulates mossy fiber connectivity in the cerebellum
+621	Cerebellar zonal patterning relies on purkinje cell neurotransmission
+622	Prenatal exposure to bisphenol A interferes with the development of cerebellar granule neurons in mice and chicken
+623	The Effects of Target Skeletal Muscle Cells on Dorsal Root Ganglion Neuronal Outgrowth and Migration In Vitro
+624	Reciprocal actions of ATF5 and Shh in proliferation of cerebellar granule neuron progenitor cells
+625	VEGF modulates NMDA receptors activity in cerebellar granule cells through src-family kinases before synapse formation
+626	Development of axon-target specificity of ponto-cerebellar afferents
+627	Lamina-Specific Neuronal Connections
+628	Engrailed homeobox genes regulate establishment of the cerebellar afferent circuit map
+629	Knockdown of the neuronal nitric oxide synthase gene retard the development of the cerebellar granule neurons in vitro
+630	A novel somatostatin-immunoreactive mossy fiber pathway associated with HSP25-immunoreactive Purkinje cell stripes in the mouse cerebellum
+631	Dendrites of cerebellar granule cells correctly recognize their target axons for synaptogenesis in vitro
+632	lsolation and culture of post-natal mouse cerebellar granule neuron progenitor cells and neurons
+633	Selective vulnerability of neurons in primary cultures and in neurodegenerative diseases
+634	Cerebellar granule cells transplanted in vivo can follow physiological and unusual migratory routes to integrate into the recipient cortex
+635	Differentiation and developmental origin of cerebellar granule neuron ectopia in protein O-mannose UDP-N-acetylglucosaminyl transferase 1 knockout mice
+636	Target-dependent inhibition of sympathetic neuron growth via modulation of a BMP signaling pathway
+637	A novel role of the Mad family member Mad3 in cerebellar granule neuron precursor proliferation
+638	Morphology, molecular codes, and circuitry produce the three-dimensional complexity of the cerebellum
+639	Differential effects of AMPA receptor activation on survival and neurite integrity during neuronal development
+640	NG2 upregulation in the denervated rat fascia dentata following unilateral entorhinal cortex lesion
+641	Reactive astrocytes, astrocyte intermediate filament proteins, and their role in the disease pathogenesis
+642	Isolation of the postsynaptic density: A specialization of the subsynaptic cytoskeleton
+643	Stimulation of adult oligodendrogenesis by myelin-specific T cells
+644	Axonal plasticity elicits long-term changes in oligodendroglia and myelinated fibers
+645	Differential proteoglycan expression in two spinal cord regions after dorsal root injury
+646	A method to immunolabel rodent spinal cord neurons and glia for molecular study in specific laser microdissected cells involved in neurodegenerative disorders
+647	Binge-like postnatal alcohol exposure triggers cortical gliogenesis in adolescent rats
+648	Differential regulation of chondroitin sulfate proteoglycan mRNAs in the denervated rat fascia dentata after unilateral entorhinal cortex lesion
+649	The ameboid phenotype of NG2 (+) cells in the region of apoptotic dentate granule neurons in trimethyltin intoxicated mice shares antigen properties with microglia/macrophages
+650	Axonal lesion-induced microglial proliferation and microglial cluster formation in the mouse
+651	Structural reorganization of the dentate gyrus following entorhinal denervation: species differences between rat and mouse
+652	Revisiting the astrocyte-oligodendrocyte relationship in the adult CNS
+653	Autotaxin (NPP-2) in the brain: Cell type-specific expression and regulation during development and after neurotrauma
+654	Axonal degeneration stimulates the formation of NG2+ cells and oligodendrocytes in the mouse
+655	Selective inhibition of ventral temporal but not dorsal nasal neurites from mouse retinal explants during contact with chondroitin sulphate
+656	Extracellular matrix remodeling during retinal development
+657	Subcellular profiling reveals distinct and developmentally regulated repertoire of growth cone mRNAs
+658	Axon guidance and neuronal migration research in China
+659	The growth-inhibitory protein Nogo is involved in midline routing of axons in the mouse optic chiasm
+660	Localization of Nogo and its receptor in the optic pathway of mouse embryos
+661	Role of protein kinase C in selective inhibition of mouse retinal neurites during contacts with chondroitin sulfates
+662	Effects of exogenous hyaluronan on midline crossing and axon divergence in the optic chiasm of mouse embryos
+663	Localization of hyaluronan in the optic pathway of mouse embryos
+664	Cellular and molecular tunnels surrounding the forebrain commissures of human fetuses
+665	Evolution and development of interhemispheric connections in the vertebrate forebrain
+666	The tumor suppressor Nf2 regulates corpus callosum development by inhibiting the transcriptional coactivator Yap
+667	Neural ECM in laminar organization and connectivity development in healthy and diseased human brain
+668	Clinical, genetic and imaging findings identify new causes for corpus callosum development syndromes
+669	Neuronal Migration of Guidepost Cells
+670	The combinatorial guidance activities of draxin and Tsukushi are essential for forebrain commissure formation
+671	Early fetal development of the anterior commissure
+672	Axon guidance mechanisms for establishment of callosal connections
+673	The Subcommissural Organ and the Development of the Posterior Commissure
+674	Tsukushi is required for anterior commissure formation in mouse brain
+675	The corpus callosum, the other great forebrain commissures, and the septum pellucidum: Anatomy, development, and malformation
+676	Understanding the Mechanisms of Callosal Development Through the Use of Transgenic Mouse Models
+677	Growth of the human corpus callosum: Modular and laminar morphogenetic zones
+678	Neurologic birth defects after prenatal exposure to antiepileptic drugs
+679	Agenesis and dysgenesis of the corpus callosum: Clinical, genetic and neuroimaging findings in a series of 41 patients
+680	Axons of callosal neurons bifurcate transiently at the white matter before consolidating an interhemispheric projection
+681	Neuroplasticity in human callosal dysgenesis: A diffusion tensor imaging study
+682	Commissure formation in the mammalian forebrain
+683	Transient cellular structures in developing corpus callosum of the human brain
+684	Multilineage differentiation of adipose-derived stromal cells from GFP transgenic mice
+685	Imaging, anatomical, and molecular analysis of callosal formation in the developing human fetal brain
+686	The corpus callosum as an evolutionary innovation
+687	The role of proteoglycans in Schwann cell/astrocyte interactions and in regeneration failure at PNS/CNS interfaces
+688	The therapeutic effects of human adipose-derived stem cells in a rat cervical spinal cord injury model
+689	Entrapment via synaptic-like connections between NG2 proteoglycan + cells and dystrophic axons in the lesion plays a role in regeneration failure after spinal cord injury
+690	Contributions of chondroitin sulfate proteoglycans to neurodevelopment, injury, and cancer
+691	Targeting the neural extracellular matrix in neurological disorders
+692	Axon Regeneration
+693	Combination treatment with chondroitinase ABC in spinal cord injury - Breaking the barrier
+694	Nerve regeneration restores supraspinal control of bladder function after complete spinal cord injury
+695	Schwann cell transplantation: A repair strategy for spinal cord injury?
+696	Regenerative treatment in spinal cord injury
+697	Delayed applications of L1 and chondroitinase ABC promote recovery after spinal cord injury
+698	Deoxyribozymes and bioinformatics: Complementary tools to investigate axon regeneration
+699	Survival, migration and differentiation of mouse tau-GFP embryonic stem cells transplanted into the rat auditory nerve
+700	Chondroitin sulphate proteoglycans: Key modulators of spinal cord and brain plasticity
+701	Oncomodulin affords limited regeneration to injured sensory axons in vitro and in vivo
+702	Astrocyte-schwann-cell coculture systems
+703	Injectable hydrogel materials for spinal cord regeneration: A review
+704	Extrinsic and intrinsic determinants of nerve regeneration
+705	Safety of intramedullary Schwann cell transplantation for postrehabilitation spinal cord injuries: 2-Year follow-up of 33 cases - Clinical article
+706	Schwann-spheres derived from injured peripheral nerves in adult mice - their in vitro characterization and therapeutic potential
+707	GDNF modifies reactive astrogliosis allowing robust axonal regeneration through Schwann cell-seeded guidance channels after spinal cord injury
+708	Cell adhesion molecules in gene and cell therapy approaches for nervous system repair
+709	In vivo imaging of dorsal root regeneration: Rapid immobilization and presynaptic differentiation at the CNS/PNS border
+710	Influence of central glia on spiral ganglion neuron neurite growth
+711	Modulation of Rho GTPase activity alleviates chondroitin sulfate proteoglycan-dependent inhibition of neurite extension
+712	Cytoskeleton dynamics in the retina
+713	Polymeric Biomaterials for Medical Diagnostics in the Central Nervous System
+714	Involvement of Rho-family GTPases in axon branching
+715	Alpha tocopherol treatment reduces the expression of Nogo-A and NgR in rat brain after traumatic brain injury
+716	Rho as a target to promote repair: Translation to clinical studies with cethrin
+717	Rac1 Selective Activation Improves Retina Ganglion Cell Survival and Regeneration
+718	Intra-axonal translation of RhoA promotes axon growth inhibition by CSPG
+719	Reactive astrogliosis after spinal cord injury-beneficial and detrimental effects
+720	Neural tissue engineering for neuroregeneration and biohybridized interface microsystems in vivo (part 2)
+721	The lipid sulfatide is a novel myelin-associated inhibitor of CNS axon outgrowth
+722	Taxol facilitates axon regeneration in the mature CNS
+723	Sustained delivery of activated rho GTPases and BDNF promotes axon growth in CSPG-rich regions following spinal cord injury
+724	PTEN inhibition to facilitate intrinsic regenerative outgrowth of adult peripheral axons
+725	C3 peptide enhances recovery from spinal cord injury by improved regenerative growth of descending fiber tracts
+726	The nerve regenerative microenvironment: Early behavior and partnership of axons and Schwann cells
+727	Plasticity-related gene 5 (PRG5) induces filopodia and neurite growth and impedes lysophosphatidic acid- and nogo-A-mediated axonal retraction
+728	Traumatic brain injury results in disparate regions of chondroitin sulfate proteoglycan expression that are temporally limited
+729	Schwann cell chondroitin sulfate proteoglycan inhibits dorsal root ganglion neuron neurite outgrowth and substrate specificity via a soma and not a growth cone mechanism
+730	Inactivation of glycogen synthase kinase 3 promotes axonal growth and recovery in the CNS
+731	Rho inhibition recruits DCC to the neuronal plasma membrane and enhances axon chemoattraction to netrin 1
+732	Temporal and Spatial Regulation of Chondroitin Sulfate, Radial Glial Cells, Growing Commissural Axons, and Other Hippocampal Efferents in Developing Hamsters
+733	Coexpression of high-voltage-activated ion channels Kv3.4 and Cav1.2 in pioneer axons during pathfinding in the developing rat forebrain
+734	Chondroitin sulfate acts in concert with semaphorin 3A to guide tangential migration of cortical interneurons in the ventral telencephalon
+735	Postnatal development of entorhinodentate projection of the reeler mutant mouse
+736	Formation of the entorhino-hippocampal pathway: A tracing study in vitro and in vivo
+737	Development of the commissure of the superior colliculus in the hamster
+738	Astrocyte-associated fibronectin is critical for axonal regeneration in adult white matter
+739	Deleted in Colorectal Carcinoma and Differentially Expressed Integrins Mediate the Directional Migration of Neural Precursors in the Rostral Migratory Stream
+740	Transient receptor potential channels and their role in modulating radial glial-neuronal interaction: A signaling pathway involving mGluR5
+741	Attractive action of FGF-signaling contributes to the postnatal developing hippocampus
+742	Nanofibrous scaffolds releasing a small molecule BDNF-mimetic for the re-direction of endogenous neuroblast migration in the brain
+743	A novel Bruch's membrane-mimetic electrospun substrate scaffold for human retinal pigment epithelium cells
+744	RalA promotes a direct exocyst-Par6 interaction to regulate polarity in neuronal development
+745	Exocyst-mediated membrane trafficking is required for branch outgrowth in Drosophila tracheal terminal cells
+746	Mosaic deletion of EXOC6B: Further evidence for an important role of the exocyst complex in the pathogenesis of intellectual disability
+747	Regulation of neuronal polarity
+748	Intranasally administered mesenchymal stem cells promote a regenerative niche for repair of neonatal ischemic brain injury
+749	Intranasal delivery of stem cells as therapy for central nervous system disease
+750	An effective strategy of magnetic stem cell delivery for spinal cord injury therapy
+751	Intranasal administration of human MSC for ischemic brain injury in the mouse: In vitro and in vivo neuroregenerative functions
+752	Both myosin-10 isoforms are required for radial neuronal migration in the developing cerebral cortex
+753	Heat shock factor 2 is a stress-responsive mediator of neuronal migration defects in models of fetal alcohol syndrome
+754	Myosin X and its motorless isoform differentially modulate dendritic spine development by regulating trafficking and retention of vasodilator-stimulated phosphoprotein
+755	Rac1-mediated indentation of resting neurons promotes the chain migration of new neurons in the rostral migratory stream of post-natal mouse brain
+756	Speed control for neuronal migration in the postnatal brain by Gmip-mediated local inactivation of RhoA
+757	Collective cell migration: "All for one and one for all"
+758	N-cadherin negatively regulates collective Drosophila glial migration through actin cytoskeleton remodeling
+759	New insights in the clockwork mechanism regulating lineage specification: Lessons from the Drosophila nervous system
+760	Mechanisms of cell migration in the adult brain: modelling subventricular neurogenesis
+761	The olfactory system as a puzzle: Playing with its pieces
+762	The olfactory nerve: A shortcut for influenza and other viral diseases into the central nervous system
+763	Pax6 Is essential for the maintenance and multi-lineage differentiation of neural stem cells, and for neuronal incorporation into the adult olfactory bulb
+764	Netrin 1 contributes to vascular remodeling in the subventricular zone and promotes progenitor emigration after demyelination
+765	Activation of endogenous neural stem cells for multiple sclerosis therapy
+766	Regulation of tissue morphogenesis by endothelial cell-derived signals
+767	Oligodendrocyte-encoded HIF function couples postnatal myelination and white matter angiogenesis
+768	Glial development: The crossroads of regeneration and repair in the CNS
+769	Gene expression changes consistent with neuroAIDS and impaired working memory in HIV-1 transgenic rats
+770	Netrin-1 with stem cells promote angiogenesis in limb ischemic rats
+771	Vascular regulation of adult neurogenesis under physiological and pathological conditions
+772	Early netrin-1 expression impairs central nervous system remyelination
+773	Oligodendrogenesis in the normal and pathological central nervous system
+774	Enhancement of ventricular-subventricular zone-derived neurogenesis and oligodendrogenesis by erythropoietin and its derivatives
+775	Niche derived oligodendrocyte progenitors: A source of rejuvenation or complementation for local oligodendrogenesis?
+776	Fascin regulates the migration of subventricular zone-derived neuroblasts in the postnatal brain
+777	Fascin1-Dependent Filopodia are Required for Directional Migration of a Subset of Neural Crest Cells
+778	Ontogeny of endothelin receptors in the brain, heart, and kidneys of neonatal rats
+779	Endocannabinoid signalling in neuronal migration
+780	Fascin 1 is an actin filament-bundling protein that regulates ectoplasmic specialization dynamics in the rat testis
+781	The extracellular matrix glycoprotein tenascin-R affects adult but not developmental neurogenesis in the olfactory bulb
+782	Extracellular matrix control of dendritic spine and synapse structure and plasticity in adulthood
+783	Characterization of biological pathways associated with a 1.37 Mbp genomic region protective of hypertension in Dahl S rats
+784	microRNA-125 distinguishes developmentally generated and adult-born olfactory bulb interneurons
+785	The extracellular matrix glycoprotein tenascin-R regulates neurogenesis during development and in the adult dentate gyrus of mice
+786	IGF-I redirects doublecortin-positive cell migration in the normal adult rat brain
+787	Human cerebrospinal fluid regulates proliferation and migration of stem cells through insulin-like growth factor-1
+788	Inhibition of a novel specific neuroglial integrin signaling pathway increases STAT3-mediated CNTF expression
+789	P2X7 Receptor Inhibition Increases CNTF in the Subventricular Zone, But Not Neurogenesis or Neuroprotection After Stroke in Adult Mice
+790	Mechanisms of neurogenesis in the normal and injured adult brain
+791	Lipidomic analyses identify injury-specific phospholipid changes 3 mo after traumatic brain injury
+792	Stem cells in neuroinjury and neurodegenerative disorders: Challenges and future neurotherapeutic prospects
+793	Association of age at onset in Huntington disease with functional promoter variations in NPY and NPY2R
+794	Embryonic cerebrospinal fluid activates neurogenesis of neural precursors within the subventricular zone of the adult mouse brain
+795	Adult neurogenesis and glial oncogenesis: When the process fails
+796	Age- and sex-dependent effects of early life stress on hippocampal neurogenesis
+797	Adult neuroplasticity: More than 40 years of research
+798	Communication breakdown: The impact of ageing on synapse structure
+799	Electroosmotic push-pull perfusion: Description and application to qualitative analysis of the hydrolysis of exogenous galanin in organotypic hippocampal slice cultures
+800	Waking up the sleepers: Shared transcriptional pathways in axonal regeneration and neurogenesis
+801	An RNA binding protein promotes axonal integrity in peripheral neurons by destabilizing REST
+802	Axon-soma communication in neuronal injury
+803	Spinal Cord Injury and the Neuron-Intrinsic Regeneration-Associated Gene Program
+804	Spatiotemporal Expression of Repulsive Guidance Molecules (RGMs) and Their Receptor Neogenin in the Mouse Brain
+805	Expression of Dbn1 during mouse brain development and neural stem cell differentiation
+806	A Simple Method for 3D Analysis of Immunolabeled Axonal Tracts in a Transparent Nervous System
+807	Repulsive guidance molecules (RGMs) and neogenin in bone morphogenetic protein (BMP) signaling
+808	Regulation of endogenous neural stem/progenitor cells for neural repair - Factors that promote neurogenesis and gliogenesis in the normal and damaged brain
+809	Tis21 is required for adult neurogenesis in the subventricular zone and for olfactory behavior regulating cyclins, BMP4, Hes1/5, and Ids
+810	Impact of hippocampal neuronal ablation on neurogenesis and cognition in the aged brain
+811	Lithium promotes neuronal repair and ameliorates depression-like behavior following trimethyltin-induced neuronal loss in the dentate gyrus
+812	Aging in the olfactory system
+813	Bone Marrow Mesenchymal Stromal Cells Drive Protective M2 Microglia Polarization After Brain Trauma
+814	Beneficial effect of cilostazol-mediated neuronal repair following trimethyltin-induced neuronal loss in the dentate gyrus
+815	Hes1, a Notch signaling downstream target, regulates adult hippocampal neurogenesis following traumatic brain injury
+816	Is integration and survival of newborn neurons the bottleneck for effective neural repair by endogenous neural precursor cells?
+817	The virtues of adaptability
+818	Neuroregeneration in the nucleus ambiguus after recurrent laryngeal nerve avulsion in rats
+819	Adult neural stem cells and their niche: A dynamic duo during homeostasis, regeneration, and aging
+820	Inhibition of class II histone deacetylase blocks proliferation and promotes neuronal differentiation of the embryonic rat neural progenitor cells
+821	Effects of applying trichostatin A on filtration bleb after filtering surgery in rabbits
+822	Effects of histone deacetylase inhibition on the survival, proliferationand migration of Schwann cells, as well as on the expression of neurotrophic factors and genes associated with myelination
+823	Neuroprotective effects of histone deacetylase inhibitors in brain ischemia
+824	Netrin-1 attenuates the progression of renal dysfunction by inhibiting peritubular capillary loss and hypoxia in 5/6 nephrectomized rats
+825	A mathematical model of adult subventricular neurogenesis
+826	Robustness of differentiation cascades with symmetric stem cell division
+827	Mathematical modelling of adult hippocampal neurogenesis: Effects of altered stem cell dynamics on cell counts and bromodeoxyuridine-labelled cells
+828	Neuronal cell regeneration in the olfactory bulb
+829	Time-lapse imaging of neuroblast migration in acute slices of the adult mouse forebrain
+830	Netrin-1 in the developing enteric nervous system and colorectal cancer
+831	Netrin-1 as a potential target for metastatic cancer: Focus on colorectal cancer
+832	Control of Male and Female Fertility by the Netrin Axon Guidance Genes
+833	Human height genes and cancer
+834	Interactional expression of netrin-1 and its dependence receptor UNC5B in prostate carcinoma
+835	Growth factors in synaptic function
+836	Expression of survivin and caspase 3 in oral squamous cell carcinoma and peritumoral tissue
+837	Regulation of neuronal migration and neuritogenesis by distinct surface proteases Relative contribution of plasmin and a thrombin-like protease
+838	Activators and inhibitors of the plasminogen system in Alzheimer's disease
+839	Adipokines: A link between obesity and dementia?
+840	Therapeutic benefits from nanoparticles: The potential significance of nanoscience in diseases with compromise to the blood brain barrier
+841	tPA in the central nervous system: Relations between tPA and cell surface LRPs
+842	Plasmin system of Alzheimer's disease patients: CSF analysis
+843	Genetic association of urokinase-type plasminogen activator gene rs2227564 site polymorphism with sporadic Alzheimer’s disease in the Han Chinese population
+844	Effects of urokinase-type plasminogen activator in the acquisition, expression and reinstatement of cocaine-induced conditioned-place preference
+845	Zebrafish and conditioned place preference: A translational model of drug reward
+846	Inhibition of urokinase plasminogen activator “uPA” activity alters ethanol consumption and conditioned place preference in mice
+847	Selective lentiviral-mediated suppression of microRNA124a in the hippocampus evokes antidepressants-like effects in rats
+848	The utility of the zebrafish model in conditioned place preference to assess the rewarding effects of drugs
+849	Hippocampus-specific deletion of tissue plasminogen activator "tPA" in adult mice impairs depression- and anxiety-like behaviors
+850	Involvement of nucleus accumbens dopamine D1 receptors in ethanol drinking, ethanol-induced conditioned place preference, and ethanol-induced psychomotor sensitization in mice
+851	The selective metabotropic glutamate receptor 7 allosteric agonist AMN082 prevents reinstatement of extinguished ethanol-induced conditioned place preference in mice
+852	Involvement of tissue plasminogen activator "tPA" in ethanol-induced locomotor sensitization and conditioned-place preference
+853	Regulation of MiR-124, Let-7d, and MiR-181a in the accumbens affects the expression, extinction, and reinstatement of cocaine-induced conditioned place preference
+854	Lentiviral vector-mediated gene transfer and RNA silencing technology in neuronal dysfunctions
+855	Ontogenic study of the influence of tissue plasminogen activator (t-PA) in neonatal excitotoxic brain insult and the subsequent microglia/macrophage activation
+856	Hypoxia-Ischemia or Excitotoxin-Induced Tissue Plasminogen Activator- Dependent Gelatinase Activation in Mice Neonate Brain Microvessels
+857	Effects of antenatal uteroplacental hypoperfusion on neonatal microvascularisation and excitotoxin sensitivity in mice
+858	Problems and prospects of experimental modeling of hypoxy-ischemic lesions in the central nervous system
+859	Role of tissue-plasminogen activator (t-PA) in a mouse model of neonatal white matter lesions: Interaction with plasmin inhibitors and anti-inflammatory drugs
+860	Neonatal hypoxic preconditioning involves vascular endothelial growth factor
+861	Brief update on animal models of hypoxic-ischemic encephalopathy and neonatal stroke
+862	Plasmin promotes keratinocyte migration and phagocytic-killing accompanied by suppression of cell proliferation which may facilitate re-epithelialization of wound beds
+863	Concentration of fibrin and presence of plasminogen affect proliferation, fibrinolytic activity, and morphology of human fibroblasts and keratinocytes in 3D fibrin constructs
+864	Plasmin as a proinflammatory cell activator
+865	Endocytosis of glycosylphosphatidylinositol-anchored proteins
+866	Skin microbiota: A source of disease or defence?
+867	Glycosaminoglycan: A candidate to stimulate the repair of chronic wounds
+868	The role of serine proteases and serine protease inhibitors in themigration of gonadotropin-releasing hormone neurons
+869	Characterization of proteolytic activities during intestinal regeneration of the sea cucumber, Holothuria glaberrima
+870	Protease Nexin-1 - a serpin with a possible proinvasive role in cancer
+871	Serine protease inhibitor 4-(2-aminoethyl)benzenesulfonyl fluoride hydrochloride (AEBSF) inhibits the rat embryo implantation in vivo and interferes with cell adhesion in vitro
+872	Granzyme G is expressed in the two-cell stage mouse embryo and is required for the maternal-zygotic transition
+873	Protease nexin-1 in reproductive tissues: A review
+874	Serine proteases
+875	Environmental perchlorate: Why it matters
+876	Vomeronasal versus olfactory epithelium: Is there a cellular basis for human vomeronasal perception?
+877	Live view of gonadotropin-releasing hormone containing neuron migration
+878	The amount of neurofilaments aggregated in the cell body is controlled by their increased sensitivity to trypsin-like proteases
+879	Cell imaging and morphology: Application to studies of inherited purine metabolic disorders
+880	Novel aspects of neuronal differentiation in vitro and monitoring with advanced biosensor tools
+881	Cytoprotective effect of valeriana officinalis extract on an in vitro experimental model of parkinson disease
+882	A human neuronal tissue culture model for Lesch-Nyhan disease
+883	Long-term low-intensity live cell imaging of therapeutically treated cells in cultures
+884	Altered membrane NTPase activity in Lesch-Nyhan disease fibroblasts: Comparison with HPRT knockout mice and HPRT-deficient cell lines
+885	Imaging system for visualization and numerical analysis of cancer at stomach and skin tissues
+886	Hypoxanthine-guanine phosphoribosyltransferase-deficiency produces aberrant neurite outgrowth of rodent neuroblastoma used to model the neurological disorder Lesch Nyhan syndrome
+887	Abnormal development of hypoxanthine-guanine phosphoribosyltransferase-deficient CNS neuroblastoma
+888	Thrombin promotes fibroblast proliferation during the early stages of experimental radiation pneumonitis
+889	Epidermal growth factor receptor-tyrosine kinase inhibitor (gefitinib) augments pneumonitis, but attenuates lung fibrosis in response to radiation injury in rats
+890	Thrombin promotes human lung fibroblasts to proliferate via NADPH oxidase/reactive oxygen species/extracellular regulated kinase signaling pathway
+891	Lung damage due to radiation therapy
+892	Structural and functional alterations in the rat lung following whole thoracic irradiation with moderate doses: Injury and recovery
+893	Significance of endothelial dysfunction in the pathogenesis of early and delayed radiation enteropathy
+894	The use of lung dose - Volume histograms in predicting post-radiation pneumonitis after non-conventionally fractionated radiotherapy for thoracic carcinoma
+895	Hirudin ameliorates intestinal radiation toxicity in the rat: Support for thrombin inhibition as strategy to minimize side-effects after radiation therapy and as countermeasure against radiation exposure
+896	Combinations of cytokines promote survival of mice and limit acute radiation damage in concert with amelioration of vascular damage
+897	Increased Thrombin Activity after Allergen Challenge: A Potential Link to Airway Remodeling?
+898	Role of crosslinked protein in lung injury following total body irradiation and bone marrow transplantation
+899	Inflammatory Reaction and Changes in Expression of Coagulation Proteins on Lung Endothelial Cells after Total-Body Irradiation in Mice
+900	Cytokine regulation of pulmonary fibrosis in scleroderma
+901	Increased binding and chemotactic capacities of PDGF-BB on fibroblasts in radiation pneumonitis
+902	Chemokines in synovial inflammation in rheumatoid arthritis: Basic and clinical aspects
+903	Role of CD13/aminopeptidase N in rat lymphocytic alveolitis caused by thoracic irradiation
+904	Plasminogen expression in the neonatal and adult mouse brain
+905	Plasminogen in cerebrospinal fluid originates from circulating blood
+906	New Insights into the Role of Plg-RKT in Macrophage Recruitment
+907	Neural ECM proteases in learning and synaptic plasticity
+908	Plasmin-dependent modulation of the blood-brain barrier: A major consideration during tPA-induced thrombolysis?
+909	Tissue-type plasminogen activator is an extracellular mediator of Purkinje cell damage and altered gait
+910	Tissue plasminogen activator regulates Purkinje neuron development and survival
+911	Plasminogen Activators in Ischemic Stroke
+912	Cleavage of the NR2B subunit amino terminus of N-methyl-D-aspartate (NMDA) Receptor by tissue plasminogen activator: Identification of the cleavage site and characterization of ifenprodil and glycine affinities on truncated NMDA receptor
+913	t-PA-specific modulation of a human blood-brain barrier model involves plasmin-mediated activation of the Rho kinase pathway in astrocytes
+914	Amyloid-beta levels are significantly reduced and spatial memory defects are rescued in a novel neuroserpin-deficient Alzheimer's disease transgenic mouse model
+915	Localization of plasminogen in mouse hippocampus, cerebral cortex, and hypothalamus
+916	Biphasic regulation of tissue plasminogen activator activity in ischemic rat brain and in cultured neural cells: Essential role of astrocyte-derived plasminogen activator inhibitor-1
+917	Modifications to the hemagglutinin cleavage site control the virulence of a neurotropic H1N1 influenza virus
+918	Role of plasminogen activation in neuronal organization and survival
+919	Plasminogen enhances neuritogenesis on laminin-1
+920	Matrix-dependent local retention of secretory vesicle cargo in cortical neurons
+921	Activation profiles of human kallikrein-related peptidases by proteases of the thrombostasis axis
+922	Decorin promotes robust axon growth on inhibitory CSPGs and myelin via a direct effect on neurons
+923	Efficient copackaging and cotransport yields postsynaptic colocalization of neuromodulators associated with synaptic plasticity
+924	Plasmin potentiates synaptic N-methyl-D-aspartate receptor function in hippocampal neurons through activation of protease-activated receptor-1
+925	Plasminogen gene expression is regulated by nerve growth factor
+926	Astrocytic control of synaptic NMDA receptors
+927	Neuronal overexpression of tissue-type plasminogen activator does not enhance sensory axon regeneration or locomotor recovery following dorsal hemisection of adult mouse thoracic spinal cord
+928	Three-dimensional migration of neurites is mediated by adhesion site density and affinity
+929	Matrix RGD ligand density and L1CAM-mediated Schwann cell interactions synergistically enhance neurite outgrowth
+930	Fibrin, a scaffold material for islet transplantation and pancreatic endocrine tissue engineering
+931	Polypeptide-engineered physical hydrogels designed from the coiled-coil region of cartilage oligomeric matrix protein for three-dimensional cell culture
+932	Short laminin peptide for improved neural stem cell growth
+933	Neuronal differentiation of PC12 and embryonic stem cells in two- and three-dimensional in vitro culture
+934	Living scaffolds for neuroregeneration
+935	Synergistic regulation of cerebellar Purkinje neuron development by laminin epitopes and collagen on an artificial hybrid matrix construct
+936	Scaffolds for tissue engineering of cardiac valves
+937	Fibrin-based biomaterials: Modulation of macroscopic properties through rational design at the molecular level
+938	3D Scaffolds
+939	Injectable biodegradable hydrogels: Progress and challenges
+940	Analytic study of three-dimensional single cell migration with and without proteolytic enzymes
+941	Design of three-dimensional engineered protein hydrogels for tailored control of neurite growth
+942	The impact of laminin on 3D neurite extension in collagen gels
+943	Research advancement on injured peripheral nerve regeneration by stem cells combined with electrical stimulation
+944	Generation of mechanical and biofunctional gradients in PEG diacrylate hydrogels by perfusion-based frontal photopolymerization
+945	Hydrogel design for supporting neurite outgrowth and promoting gene delivery to maximize neurite extension
+946	Defining and designing polymers and hydrogels for neural tissue engineering
+947	A hybrid nanofiber matrix to control the survival and maturation of brain neurons
+948	ATRP in the design of functional materials for biomedical applications
+949	Modifying biomaterial surfaces to optimise interactions with blood
+950	Neurite outgrowth in fibrin gels is regulated by substrate stiffness
+951	Glycoproteins and adhesion ligands: Properties and biomedical applications
+952	Electrospun conducting polymer nanofibers and electrical stimulation of nerve stem cells
+953	Laminin degradation by plasmin regulates long-term potentiation
+954	Tissue plasminogen activator modulates emotion in a social context
+955	Understanding the functions of endogenous and exogenous tissue-type plasminogen activator during stroke
+956	Altered behavior in mice with deletion of the alpha2-antiplasmin gene
+957	Recent Advances on Plasmin Inhibitors for the Treatment of Fibrinolysis-Related Disorders
+958	Inflammation-mediating proteases: Structure, function in (Patho) physiology and inhibition
+959	Neurogenesis in the circumventricular organs of adult mouse brains
+960	Fibronectin in renal diseases and peritoneal dialysis
+961	Extracellular matrix molecules, their receptors, and extracellular proteases as synaptic plasticity modulators
+962	Are amyloid-degrading enzymes viable therapeutic targets in Alzheimer's disease?
+963	Casting a net on dendritic spines: The extracellular matrix and its receptors
+964	Extracellular matrix molecules, their receptors, and secreted proteases in synaptic plasticity
+965	Zinc-triggered induction of tissue plasminogen activator by brain-derived neurotrophic factor and metalloproteinases
+966	Neuropsin-a possible modulator of synaptic plasticity
+967	Serine proteases, serine protease inhibitors, and protease-activated receptors: Roles in synaptic function and behavior
+968	Knockout of plasminogen activator inhibitor 1 gene reduces amyloid beta peptide burden in a mouse model of Alzheimer's disease
+969	Broad coverage identification of multiple proteolytic cleavage site sequences in complex high molecular weight proteins using quantitative proteomics as a complement to edman sequencing
+970	The plasmin-antiplasmin system: Structural and functional aspects
+971	Extracellular matrix molecules: Synaptic plasticity and learning
+972	The Reck tumor suppressor protein alleviates tissue damage and promotes functional recovery after transient cerebral ischemia in mice
+973	Developmental pattern of plasminogen activator activity in chick brain hemispheres
+974	Induction of morphological differentiation of neuroblastoma cells by a mitotic inhibitor: Neuritogenesis is a default pathway invoked by developmental withdrawal of neuroblasts from the mitotic cycle
+975	An antioxidant formulation that induces differentiation of neuroblastoma in culture
+976	The influence of surface protease activity on neuritogenesis and neurite retraction is dependent upon mode of neurite induction: Inhibition of thrombin-mediated surface protease activity is cruicial for neurite outgrowth but not for maintenance of existing neurites
+977	Analysis of the human tissue-type plasminogen activator gene promoter activity during embryogenesis of transgenic mice and rats
+978	Transcriptional and posttranscriptional regulation of the plasminogen activator system
+979	The human tissue plasminogen activator-Cre mouse: A new tool for targeting specifically neural crest cells and their derivatives in vivo
+980	Control elements between -9.5 and -3.0 kb in the human tissue-type plasminogen activator gene promoter direct spatial and inducible expression to the murine brain
+981	Mammary gland specific hEGF receptor transgene expression induces neoplasia and inhibits differentiation
+982	1,25-Dihydroxyvitamin D3 induction of the tissue-type plasminogen activator gene is mediated through its multihormone-responsive enhancer
+983	Characterisation of the rat tissue-type plasminogen activator gene promoter. Identification of a TAAT-containing promoter element
+984	Identification of a multihormone responsive enhancer far upstream from the human tissue-type plasminogen activator gene
+985	Radical opacity
+986	User investment and behavior policing on 4chan
+987	In defense of "slacktivism": The human rights campaign facebook logo as digital activism
+988	Mediating the Black Pete discussion on Facebook: Slacktivism, flaming wars, and deliberation
+989	New insights into online consumption communities and netnography
+990	Exploring globalization and marketing performance at the 2012 Global Marketing Conference at Seoul
+991	User unknown: 4chan, anonmity and contingency
+992	It's complicated: The social lives of networked teens
+993	Social media application in digital libraries
+994	Whispers in the dark: Analysis of an anonymous social network
+995	The dynamics of backlash online: Anonymous and the battle for WikiLeaks
+996	Is it OK to be an Anonymous?
+997	State power 2.0: Authoritarian entrenchment and political engagement worldwide
+998	"Don't feed the troll": Shutting down debate about community expectations on Reddit.com
+999	#Hashtagging hate: Using Twitter to track racism online

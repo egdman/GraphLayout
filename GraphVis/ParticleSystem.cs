@@ -77,18 +77,20 @@ namespace GraphVis {
 		float		MinParticleMass;
 		float		spinRate;
 		float		linkSize;
+		float		particleSize;
 
-		Particle3d[]		injectionBufferCPU; // = new Particle3d[MaxInjectingParticles];
-//		StructuredBuffer	injectionBuffer;
+		Particle3d[]		injectionBufferCPU;
+
 		StructuredBuffer	simulationBufferSrc;
-
 		StructuredBuffer	simulationBufferDst;
 		StructuredBuffer	linksPtrBuffer;
-		LinkId[]			linksPtrBufferCPU; //		= new int[MaxInjectingParticles];
+		StructuredBuffer	enegryBuffer;
+		LinkId[]			linksPtrBufferCPU;
 
 		StructuredBuffer	linksBuffer;
 		Link[]				linksBufferCPU;
 
+		float[]				energyBufferCPU;
 
 		ConstantBuffer		paramsCB;
 		List<List<int> >	linkPtrLists;
@@ -101,7 +103,7 @@ namespace GraphVis {
 		float timeStepFactor;
 		float elapsedTime;
 		int	progress;
-
+		float energy;
 
 		// Particle in 3d space:
 		[StructLayout(LayoutKind.Explicit)]
@@ -151,14 +153,15 @@ namespace GraphVis {
 			INJECTION		=	0x1,
 			SIMULATION		=	0x1 << 1,
 			MOVE			=	0x1 << 2,
-			EULER			=	0x1 << 3,
-			RUNGE_KUTTA		=	0x1 << 4,
+			REDUCTION		=	0x1 << 3,
+			EULER			=	0x1 << 4,
+			RUNGE_KUTTA		=	0x1 << 5,
 			// for geometry shader:
-			POINT			=	0x1 << 5,
-			LINE			=	0x1 << 6,
+			POINT			=	0x1 << 6,
+			LINE			=	0x1 << 7,
 
-			COMPUTE			=	0x1 << 7,
-			DRAW			=	0x1 << 8
+			COMPUTE			=	0x1 << 8,
+			DRAW			=	0x1 << 9
 		}
 
 		enum State {
@@ -193,31 +196,25 @@ namespace GraphVis {
 		/// </summary>
 		public override void Initialize ()
 		{
-			texture		=	Game.Content.Load<Texture2D>("particle");
-			shader		=	Game.Content.Load<Ubershader>("shaders");
+			texture		=	Game.Content.Load<Texture2D>("smaller");
+			shader		=	Game.Content.Load<Ubershader>("shaders2");
 
 			factory = new StateFactory( shader, typeof(Flags), ( plState, comb ) => 
 			{
 				plState.RasterizerState	= RasterizerState.CullNone;
 				plState.BlendState		= BlendState.Additive;
+				plState.DepthStencilState = DepthStencilState.Readonly;
+				plState.Primitive		= Primitive.PointList;
 			} );
 
-//			maxLinkCount		=	MaxSimulatedParticles * MaxSimulatedParticles;
 
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
-
-		//	injectionBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxInjectingParticles, StructuredBufferFlags.Counter );
-		//	simulationBufferSrc	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Counter );
-		//	simulationBufferDst	=	new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d), MaxSimulatedParticles, StructuredBufferFlags.Append );
-		//	linksBuffer			=	new StructuredBuffer( Game.GraphicsDevice, typeof(Link),       maxLinkCount, StructuredBufferFlags.Counter );
-		//	linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(LinkId),     maxLinkCount, StructuredBufferFlags.Counter );
 
 			MaxParticleMass		=	cfg.Max_mass;
 			MinParticleMass		=	cfg.Min_mass;
 			spinRate			=	cfg.Rotation;
 			linkSize			=	1.0f;
-
-//			linkCount			=	0;
+			particleSize		=	1.0f;
 
 			linkList			=	new List<Link>();
 			ParticleList		=	new List<Particle3d>();
@@ -269,7 +266,7 @@ namespace GraphVis {
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-			addChain(5);
+			addChain(5, true);
 			while ( ParticleList.Count < N ) {
 			//	int id = rand.Next( 0, ParticleList.Count - 1 );
 				for ( int id = 0; id < ParticleList.Count; ++id ) {
@@ -287,12 +284,51 @@ namespace GraphVis {
 		}
 
 
+
+		public void AddGraphFromFile( string path )
+		{
+			ParticleList.Clear();
+			linkList.Clear();
+			linkPtrLists.Clear();
+
+			addChain( 1000, false );
+
+			var dstrings = File.ReadAllLines(path);
+
+            if (dstrings.Length > 0)
+            {
+
+                for (int i = 0; i < dstrings.Length; i = i + 2)
+                {
+                    string citName = dstrings[i];
+
+                    string[] citations;
+                    citations = dstrings[i + 1].Split(new Char[] { '\t', ' ', ',' });
+
+                    foreach (string cit in citations)
+                    {
+                        if (cit != "")
+                        {
+
+                            addLink(int.Parse(citName), int.Parse(cit));
+
+                        }
+                    }
+
+
+                }
+            }
+
+			setBuffers();
+		}
+
+
 		public void AddBinaryTree( int N = MaxInjectingParticles )
 		{
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-			addChain( 1 );
+			addChain( 1, false );
 			addChildren( 2, ParticleList.Count - 1 );
 
 			Queue<int> latestIndex = new Queue<int>();
@@ -319,24 +355,7 @@ namespace GraphVis {
 		}
 
 
-		public void AddMaxParticles( int N = MaxInjectingParticles )
-		{
-			ParticleList.Clear();
-			linkList.Clear();
-			linkPtrLists.Clear();
-
-			addChain(N / 2);
-			int howManyMore = N - N / 2;
-			int howManyStars = 80;
-			for ( int i = 0; i < howManyStars; ++i ) {
-				long parentId = rand.NextLong( 0, N/2 - 1 );
-				addChildren( howManyMore / howManyStars, (int)parentId );
-			}
-			setBuffers();
-
-		}
-
-
+		
 		void addParticle( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
 		{
 			float ParticleMass	=	rand.NextFloat( MinParticleMass, MaxParticleMass );
@@ -411,19 +430,20 @@ namespace GraphVis {
 
 
 
-		void addChain( int N )
+		void addChain( int N, bool linked )
 		{
 			Vector3 pos = new Vector3( 0, 0, -100);
 			
 			for ( int i = 0; i < N; ++i ) {
 				
-				addParticle( pos, 9999, 5.0f, 1.0f );
+				addParticle( pos, 9999, particleSize, 1.0f );
 				pos += RadialRandomVector() * linkSize;
 		//		pos += new Vector3( 1, 0, 0 ) * linkSize;
 			}
-
-			for ( int i = 1; i < N; ++i ) {
-				addLink(i - 1, i);
+			if ( linked ) {
+				for ( int i = 1; i < N; ++i ) {
+					addLink(i - 1, i);
+				}
 			}
 
 		}
@@ -440,7 +460,7 @@ namespace GraphVis {
 			for ( int i = 0; i < howMany; ++i ) {
 				addParticle( parentPos + RadialRandomVector() * linkSize,
 					9999,
-					5.0f,
+					particleSize,
 					1.0f );
 				addLink( parentId, newParticleId );
 				++newParticleId;
@@ -505,18 +525,35 @@ namespace GraphVis {
 			if ( linksPtrBuffer != null ) {
 				linksPtrBuffer.Dispose();
 			}
-		
+
+			if ( enegryBuffer != null ) {
+					enegryBuffer.Dispose();
+			}
+			
 
 			if ( injectionBufferCPU.Length != 0 ) {
 				simulationBufferSrc	= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	injectionBufferCPU.Length, StructuredBufferFlags.Counter );
 				simulationBufferSrc.SetData(injectionBufferCPU);
+				enegryBuffer = new StructuredBuffer (
+							Game.GraphicsDevice,
+							typeof(float),
+							MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ),
+							StructuredBufferFlags.Counter );
 			}
 			if ( linksBufferCPU.Length != 0 ) {
-				linksBuffer			= new StructuredBuffer( Game.GraphicsDevice, typeof(Link),			linksBufferCPU.Length, StructuredBufferFlags.Counter );
+				linksBuffer	= new StructuredBuffer(
+							Game.GraphicsDevice,
+							typeof(Link),
+							linksBufferCPU.Length,
+							StructuredBufferFlags.Counter );
 				linksBuffer.SetData(linksBufferCPU);
 			}
 			if ( linksPtrBufferCPU.Length != 0 ) {
-				linksPtrBuffer		=	new StructuredBuffer( Game.GraphicsDevice, typeof(LinkId),		linksPtrBufferCPU.Length, StructuredBufferFlags.Counter );
+				linksPtrBuffer = new StructuredBuffer( 
+							Game.GraphicsDevice,
+							typeof(LinkId),
+							linksPtrBufferCPU.Length,
+							StructuredBufferFlags.Counter );
 				linksPtrBuffer.SetData(linksPtrBufferCPU);
 			}
 
@@ -582,6 +619,10 @@ namespace GraphVis {
 				if ( factory != null ) {
 					factory.Dispose();
 				}
+
+				if ( enegryBuffer != null ) {
+					enegryBuffer.Dispose();
+				}
 			}
 			base.Dispose( disposing );
 		}
@@ -618,7 +659,7 @@ namespace GraphVis {
 		}
 
 
-		void calcExtremeValues( Particle3d [] buffer )
+		void calcExtremeValues( Particle3d [] buffer)
 		{
 			float maxAcceleration	= 0;
 			float maxVelocity		= 0;
@@ -632,6 +673,11 @@ namespace GraphVis {
 
 			maxAcc = maxAcceleration;
 			maxVelo = maxVelocity;
+			energy = 0;
+			foreach ( var en in energyBufferCPU )
+			{
+				energy += en;
+			}
 		}
 
 
@@ -644,11 +690,6 @@ namespace GraphVis {
 		{
 			var device	=	Game.GraphicsDevice;
 			var cam = Game.GetService<Camera>();
-
-	//		int	w	=	device.Viewport.Width;
-	//		int h	=	device.Viewport.Height;
-
-
 
 			if ( simulationBufferSrc != null ) {
 				
@@ -678,7 +719,7 @@ namespace GraphVis {
 	//			StreamWriter writer = File.AppendText( "../../../maxAccel.csv" );
 
 				if ( state == State.RUN ) {
-					for ( int i = 0; i < 25; ++i )
+					for ( int i = 0; i < 50; ++i )
 					{
 
 						param.DeltaTime = 0.1f*timeStepFactor;
@@ -698,36 +739,42 @@ namespace GraphVis {
 						// move particles: ------------------------------------------------------------
 						device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
 
-						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE|(int)cfg.IType];
+						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE];
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-						device.ResetStates();
+			//			device.ResetStates();
 
+#if true
+						// calculate energies in thread blocks:
+						device.SetCSRWBuffer( 0, null );
+						device.ComputeShaderResources[1] = simulationBufferSrc;
+						device.SetCSRWBuffer( 1, enegryBuffer, MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
 
-
+						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
+						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+#endif
 						elapsedTime += param.DeltaTime;
 
 					
 						// ------------------------------------------------------------------------------------
-					
+#if true				
+						if ( energyBufferCPU == null ) {
+							energyBufferCPU = new float[enegryBuffer.GetStructureCount()];
+						}
 
+						enegryBuffer.GetData( energyBufferCPU );
 
 						if ( injectionBufferCPU == null ) {
 							injectionBufferCPU = new Particle3d[simulationBufferSrc.GetStructureCount()];
 						}
-						simulationBufferSrc.GetData(injectionBufferCPU);
 			
-
-						float prevAcc = maxAcc;
+						float prevEnergy = energy;
 						if ( injectionBufferCPU.Length > 0 ) {
 							calcExtremeValues(injectionBufferCPU);
 						}
 				
-						if ( maxAcc - prevAcc > 0.01f )
-					//	if ( maxAcc / prevAcc > 1.1f )
+						if ( energy - prevEnergy > 0.01f )
 						{
-				//			progress = progress > 0 ? progress - 1 : 0;
 							progress = 0;
-						
 						}
 						else
 						{
@@ -752,12 +799,13 @@ namespace GraphVis {
 								timeStepFactor *= 0.9f;
 							}
 						}
-
+						
 
 						// TERMINATION CONDITION CHECK --------------------------------------------------------
-						if ( maxAcc < 0.00002f ) {
-							state = State.PAUSE;
-						}
+			//			if ( energy < 0.00002f ) {
+			//				state = State.PAUSE;
+			//			}
+#endif
 					}
 				}
 
@@ -805,9 +853,9 @@ namespace GraphVis {
 				device.PixelShaderResources[0] = texture;
 				device.GeometryShaderResources[1] = simulationBufferSrc;
 
-				device.DepthStencilState = DepthStencilState.Readonly;
+			
 
-				device.Draw( Primitive.PointList, ParticleList.Count, 0 );
+				device.Draw( ParticleList.Count, 0 );
 		
 
 				// draw lines: --------------------------------------------------------------------------
@@ -816,7 +864,7 @@ namespace GraphVis {
 				device.GeometryShaderResources[1] = simulationBufferSrc;
 				device.GeometryShaderResources[3] = linksBuffer;
 
-				device.Draw( Primitive.PointList, linkList.Count, 0 );
+				device.Draw( linkList.Count, 0 );
 
 
 			}
@@ -838,6 +886,7 @@ namespace GraphVis {
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
 			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
 			debStr.Add( Color.Aqua, "TimeStep factor = " + timeStepFactor );
+			debStr.Add( Color.Aqua, "Energy = " + energy );
 
 
 			/*
