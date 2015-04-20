@@ -1,445 +1,186 @@
-
 #if 0
-$compute INJECTION|SIMULATION EULER|RUNGE_KUTTA
-$geometry
-$pixel
-$vertex
+$ubershader 0
 #endif
 
-#define BLOCK_SIZE	512
+#pragma kernel CSMain
 
+//NUM_THREADS must match the value of p in the NBodySim script
+#define NUM_THREADS 64
 
-struct PARTICLE3D {
-	float4	Position; // 3 coordinates + mass
-	float3	Velocity;
-	float4	Color0;
-	float	Size0;
-	float	TotalLifeTime;
-	float	LifeTime;
-};
+#define SHARED_MEMORY_SIZE 256
 
+float _SofteningSquared, _DeltaTime, _Damping;
+uint _NumBodies;
+float4 _GroupDim, _ThreadDim;
+StructuredBuffer<float4> _ReadPos, _ReadVel;
+RWStructuredBuffer<float4> _WritePos, _WriteVel;
 
-struct PARAMS {
-	float4x4	View;
-	float4x4	Projection;
-	int			MaxParticles;
-	float		DeltaTime;
-	float		Mass;
-};
+groupshared float4 sharedPos[SHARED_MEMORY_SIZE];
 
-cbuffer CB1 : register(b0) { 
-	PARAMS Params; 
-};
+//This code was ported to direct compute from CUDA
+//In cuda the terms for groups and threads are a bit different
+//This is what I have changed, with the CUDA terms on the left
+//Note - the direct compute terms I have used may not be the offical terms
+//threadIdx = threadID
+//blockIdx = groupID
+//blockDim = threadDim
+//gridDim = groupDim
 
-SamplerState						Sampler				: 	register(s0);
-Texture2D							Texture 			: 	register(t0);
-StructuredBuffer<PARTICLE3D>		particleBufferSrc	: 	register(t1);
-AppendStructuredBuffer<PARTICLE3D>	particleBufferDst	: 	register(u0);
+// WRAP is used to force each block to start working on a different 
+// chunk (and wrap around back to the beginning of the array) so that
+// not all multiprocessors try to read the same memory locations at once.
+// Mod without divide, works on values from 0 up to 2m
+#define WRAP(x,m) (((x)<m)?(x):(x-m))  
 
-// group shared array for body coordinates:
-groupshared float4 shPositions[BLOCK_SIZE];
+// Macros to simplify shared memory addressing
+#define SX(i) sharedPos[i+_ThreadDim.x*threadID.y]
+// This macro is only used when multithreadBodies is true (below)
+#define SX_SUM(i,j) sharedPos[i+_ThreadDim.x*j]
 
-/*-----------------------------------------------------------------------------
-	Simulation :
------------------------------------------------------------------------------*/
-
-
-struct BodyState
+float3 bodyBodyInteraction(float3 ai, float4 bi, float4 bj) 
 {
-	float3 Position;
-	float3 Velocity;
-	uint id;
-};
+    float3 r;
 
+    // r_ij  [3 FLOPS]
+    r.x = bi.x - bj.x;
+    r.y = bi.y - bj.y;
+    r.z = bi.z - bj.z;
 
-struct Derivative
-{
-	float3 dxdt;
-	float3 dvdt;
-};
+    // distSqr = dot(r_ij, r_ij) + EPS^2  [6 FLOPS]
+    float distSqr = r.x * r.x + r.y * r.y + r.z * r.z;
+    distSqr += _SofteningSquared;
 
+    // invDistCube =1/distSqr^(3/2)  [4 FLOPS (2 mul, 1 sqrt, 1 inv)]
+    float distSixth = distSqr * distSqr * distSqr;
+    float invDistCube = 1.0f / sqrt(distSixth);
+    
+    // s = m_j * invDistCube [1 FLOP]
+    float s = bj.w * invDistCube;
 
-/*
-// calculate acceleration of a body specified by state parameter
-float3 Acceleration( BodyState state, uint numParticles )
-{
+    // a_i =  a_i + s * r_ij [6 FLOPS]
+    ai.x += r.x * s;
+    ai.y += r.y * s;
+    ai.z += r.z * s;
 
-	float3 accel;
-	accel.x = 0;
-	accel.y = 0;
-	accel.z = 0;
-
-	float softenerSq = 0.1f; // softening factor squared (to remove singularities at the centers of bodies)
-
-	for ( uint i = 0; i < numParticles; ++i ) {
-		if ( i != state.id ) {
-			PARTICLE3D other = particleBufferSrc[ i ];
-
-			float3 R; // vector from this body to the other
-
-			R.x		=	other.Position.x - state.Position.x;
-			R.y		=	other.Position.y - state.Position.y;
-			R.z		=	other.Position.z - state.Position.z;
-
-			float Rsquared		=	R.x * R.x + R.y * R.y + R.z * R.z + softenerSq;
-			float Rsixth		=	Rsquared * Rsquared * Rsquared;
-			float invRCubed	=	Params.Mass / sqrt( Rsixth );
-		
-
-			accel.x	+=	invRCubed * R.x;
-			accel.y	+=	invRCubed * R.y;
-			accel.z	+=	invRCubed * R.z;
-		}
-
-	}
-
-	return accel;
-}*/
-
-
-
-float3 twoBodyAccel( in float3 bodyPos, in float4 otherBodyState )
-{
-	float3 R			= otherBodyState.xyz - bodyPos;						//  3 flops
-//	float softenerSq	= 0.1f; 
-	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;			//  6 flops
-	float Rsixth		= Rsquared * Rsquared * Rsquared;					//  2 flops
-	float invRCubed		= otherBodyState.w / sqrt( Rsixth );				//  2 flops
-	return mul( invRCubed, R );												//  3 flops
-}																			// 16 flops total
-
-
-float3 calculateTile( in float3 bodyPos, in float3 accel )
-{
-	for ( uint i = 0; i < BLOCK_SIZE; ++i ) {
-
-		accel += twoBodyAccel( bodyPos, shPositions[i] );	
-
-	}
-	return accel;
+    return ai;
 }
 
-
-float3 Acceleration_SHARED( in BodyState state, in uint threadIndex, in uint numParticles )
+// This is the "tile_calculation" function from the GPUG3 article.
+float3 gravitation(float4 pos, float3 accel, uint3 threadID)
 {
-	// level out self-interaction:
-	float3 acc = - twoBodyAccel( state.Position, particleBufferSrc[state.id].Position );
+    uint i;
 
-	uint tileNum = 0;
+    // Here we unroll the loop
+    for (i = 0; i < _ThreadDim.x; ) 
+    {
+        accel = bodyBodyInteraction(accel, SX(i), pos); i += 1;
+        accel = bodyBodyInteraction(accel, SX(i), pos); i += 1;
+        accel = bodyBodyInteraction(accel, SX(i), pos); i += 1;
+        accel = bodyBodyInteraction(accel, SX(i), pos); i += 1;
+    }
 
-	for ( uint i = 0; i < numParticles; i += BLOCK_SIZE ) {
-		uint srcIndex = tileNum * BLOCK_SIZE + threadIndex;
+    return accel;
+}
 
-		shPositions[threadIndex] = particleBufferSrc[srcIndex].Position;
-		
-		// barrier sync:
-		GroupMemoryBarrier();
+float3 computeBodyForce(float4 pos, uint3 groupID, uint3 threadID)
+{
+    float3 acc = float3(0.0, 0.0, 0.0);
+    
+    //In the GPU gems code multibodies are never used but the code is set up to use them.
+    //I have also included the code but how exactly they are to be used is unclear so its disabled here
+    bool multithreadBodies = false;
+    
+    uint p = _ThreadDim.x;
+    uint q = _ThreadDim.y;
+    uint n = _NumBodies;
 
-		acc = calculateTile( state.Position, acc );
-		// barrier sync:
-		GroupMemoryBarrier();
-		tileNum++;
-	}
+    uint start = n/q * threadID.y;
+    uint tile0 = start/(n/q);
+    uint tile = tile0;
+    uint finish = start + n/q;
+    
+    for (uint i = start; i < finish; i += p, tile++) 
+    {
+        sharedPos[threadID.x+_ThreadDim.x*threadID.y] = (multithreadBodies) ?
+        
+        _ReadPos[(WRAP(groupID.x+tile, _GroupDim.x) *_ThreadDim.y + threadID.y ) * _ThreadDim.x + threadID.x] :
+         
+        _ReadPos[WRAP(groupID.x+tile, _GroupDim.x) * _ThreadDim.x + threadID.x];
+        
+        GroupMemoryBarrierWithGroupSync();
+        // This is the "tile_calculation" function from the GPUG3 article.
+        acc = gravitation(pos, acc, threadID);
+        GroupMemoryBarrierWithGroupSync();
+    }
+    
+    // When the numBodies / thread block size is < # multiprocessors (16 on G80), the GPU is underutilized
+    // For example, with a 256 threads per block and 1024 bodies, there will only be 4 thread blocks, so the 
+    // GPU will only be 25% utilized.  To improve this, we use multiple threads per body.  We still can use 
+    // blocks of 256 threads, but they are arranged in q rows of p threads each.  Each thread processes 1/q
+    // of the forces that affect each body, and then 1/q of the threads (those with threadIdx.y==0) add up
+    // the partial sums from the other threads for that body.  To enable this, use the "--p=" and "--q=" 
+    // command line options to this example.  e.g.:
+    // "nbody.exe --n=1024 --p=64 --q=4" will use 4 threads per body and 256 threads per block. There will be
+    // n/p = 16 blocks, so a G80 GPU will be 100% utilized.
+
+    // We use a bool template parameter to specify when the number of threads per body is greater than one, 
+    // so that when it is not we don't have to execute the more complex code required!
+    if(multithreadBodies)
+    {
+        SX_SUM(threadID.x, threadID.y).x = acc.x;
+        SX_SUM(threadID.x, threadID.y).y = acc.y;
+        SX_SUM(threadID.x, threadID.y).z = acc.z;
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // Save the result in global memory for the integration step
+        if (threadID.y == 0) 
+        {
+            for (uint i = 1; i < _ThreadDim.y; i++) 
+            {
+                acc.x += SX_SUM(threadID.x,i).x;
+                acc.y += SX_SUM(threadID.x,i).y;
+                acc.z += SX_SUM(threadID.x,i).z;
+            }
+
+        }
+    }
+
 
 	return acc;
-}
-
-/*
-Derivative Evaluate( BodyState state, float dt, Derivative der, uint numParticles )
-{
-	state.Position += mul( der.dxdt, dt );
-	state.Velocity += mul( der.dvdt, dt );
-
-	Derivative output;
-	output.dxdt = state.Velocity;
-	output.dvdt = Acceleration( state, numParticles );
-
-	return output;
-}*/
-
-
-Derivative Evaluate_SHARED( BodyState state, float dt, Derivative der, uint threadIndex, uint numParticles )
-{
-	state.Position += mul( der.dxdt, dt );
-	state.Velocity += mul( der.dvdt, dt );
-
-	Derivative output;
-	output.dxdt = state.Velocity;
-	output.dvdt = Acceleration_SHARED( state, threadIndex, numParticles );
-
-	return output;
-}
-
-/*
-void IntegrateEUL( inout BodyState state, in float dt, in uint numParticles )
-{
-	float3 acc = Acceleration( state, numParticles );
-	state.Position += mul( state.Velocity, dt );
-	state.Velocity += mul( acc, dt );
-}*/
-
-
-void IntegrateEUL_SHARED( inout BodyState state, in float dt, in uint threadIndex, in uint numParticles )
-{
-	float3 acc = Acceleration_SHARED( state, threadIndex, numParticles );
-	state.Position += mul( state.Velocity, dt );
-	state.Velocity += mul( acc, dt );
-}
-
-/*
-void IntegrateRK4( inout BodyState state, in float dt, in uint numParticles )
-{
-	Derivative init;
-	init.dxdt	=	float3( 0, 0, 0 );
-	init.dvdt	=	float3( 0, 0, 0 );
-	Derivative a;
-	Derivative b;
-	Derivative c;
-	Derivative d;
-
-	a	=	Evaluate( state,   0.0f,		init,	numParticles );
-	b	=	Evaluate( state,   0.5f * dt,	a,		numParticles );
-	c	=	Evaluate( state,   0.5f * dt,	b,		numParticles );
-	d	=	Evaluate( state,   dt,			c,		numParticles );
-
-	float3 dxdt	=	1.0f / 6.0f * ( a.dxdt + 2.0f * ( b.dxdt + c.dxdt ) + d.dxdt );
-	float3 dvdt	=	1.0f / 6.0f * ( a.dvdt + 2.0f * ( b.dvdt + c.dvdt ) + d.dvdt );
-
-	state.Position	+=	mul( dxdt, dt );
-	state.Velocity	+=	mul( dvdt, dt );
-}*/
-
-
-void IntegrateRK4_SHARED( inout BodyState state, in float dt, in uint threadIndex, in uint numParticles )
-{
-	Derivative init;
-	init.dxdt	=	float3( 0, 0, 0 );
-	init.dvdt	=	float3( 0, 0, 0 );
-	Derivative a;
-	Derivative b;
-	Derivative c;
-	Derivative d;
-
-	a	=	Evaluate_SHARED( state,   0.0f,		init,		threadIndex, numParticles );
-	b	=	Evaluate_SHARED( state,   0.5f * dt,	a,		threadIndex, numParticles );
-	c	=	Evaluate_SHARED( state,   0.5f * dt,	b,		threadIndex, numParticles );
-	d	=	Evaluate_SHARED( state,   dt,			c,		threadIndex, numParticles );
-
-	float3 dxdt	=	1.0f / 6.0f * ( a.dxdt + 2.0f * ( b.dxdt + c.dxdt ) + d.dxdt );
-	float3 dvdt	=	1.0f / 6.0f * ( a.dvdt + 2.0f * ( b.dvdt + c.dvdt ) + d.dvdt );
-
-	state.Position	+=	mul( dxdt, dt );
-	state.Velocity	+=	mul( dvdt, dt );
-}
-
-
-
-[numthreads( BLOCK_SIZE, 1, 1 )]
-void CSMain( 
-	uint3 groupID			: SV_GroupID,
-	uint3 groupThreadID 	: SV_GroupThreadID, 
-	uint3 dispatchThreadID 	: SV_DispatchThreadID,
-	uint  groupIndex 		: SV_GroupIndex
-)
-{
-	int id = dispatchThreadID.x;
-
-#ifdef INJECTION
-	if (id < Params.MaxParticles) {
-		PARTICLE3D p = particleBufferSrc[ id ];
-		
-		if (p.LifeTime < p.TotalLifeTime) {
-			particleBufferDst.Append( p );
-		}
-	}
-#endif
-
-#ifdef SIMULATION
-	if (id < Params.MaxParticles) {
-		PARTICLE3D p = particleBufferSrc[ id ];
-		
-		if (p.LifeTime < p.TotalLifeTime) {
-			p.LifeTime += Params.DeltaTime;
-
-			uint numParticles	=	0;
-			uint stride			=	0;
-			particleBufferSrc.GetDimensions( numParticles, stride );
-
-
-			BodyState state;
-			state.Position	=	p.Position;
-			state.Velocity	=	p.Velocity;
-			state.id		=	id;
-#ifdef EULER
-	//		IntegrateEUL( state, Params.DeltaTime, numParticles );
-			IntegrateEUL_SHARED( state, Params.DeltaTime, groupIndex, numParticles );
-
-#endif
-#ifdef RUNGE_KUTTA
-	//		IntegrateRK4( state, Params.DeltaTime, numParticles );
-			IntegrateRK4_SHARED( state, Params.DeltaTime, groupIndex, numParticles );
-
-#endif
-
-			float accel	=	length( state.Velocity - p.Velocity ) / Params.DeltaTime;
-
-			float maxAccel = 7.0f;
-			accel = saturate( accel / maxAccel );
-
-			p.Color0	=	float4( accel, - 0.5f * accel +1.0f, - 0.5f * accel +1.0f, 1 );
-
-			p.Position.xyz	=	state.Position;
-			p.Velocity		=	state.Velocity;
-
-			particleBufferDst.Append( p );
-		}
-	}
-#endif
 
 }
 
-
-
-
-
-
-
-/*-----------------------------------------------------------------------------
-	Rendering :
------------------------------------------------------------------------------*/
-/*
-
-struct VSOutput {
-	float4	Position		:	POSITION;
-	float4	Color0			:	COLOR0;
-
-	float	Size0			:	PSIZE;
-
-	float	TotalLifeTime	:	TEXCOORD0;
-	float	LifeTime		:	TEXCOORD1;
-};*/
-
-
-struct VSOutput {
-int vertexID : TEXCOORD0;
-};
-
-struct GSOutput {
-	float4	Position : SV_Position;
-	float2	TexCoord : TEXCOORD0;
-	float4	Color    : COLOR0;
-};
-
-/*
-VSOutput VSMain( uint vertexID : SV_VertexID )
+[numthreads(NUM_THREADS,1,1)]
+void CSMain (uint3 groupID : SV_GroupID, uint3 threadID : SV_GroupThreadID)
 {
-	PARTICLE prt = particleBufferSrc[ vertexID ];
-	VSOutput output;
 
-	output.Color0			=	prt.Color1;
-
-	output.Size0			=	prt.Size0;
+	uint index = groupID.x * NUM_THREADS + threadID.x;
 	
-	output.TotalLifeTime	=	prt.TotalLifeTime;
-	output.LifeTime			=	prt.LifeTime;
-
-	output.Position			=	float4(prt.Position, 0, 1);
-
-	return output;
-}*/
-
-
-VSOutput VSMain( uint vertexID : SV_VertexID )
-{
-VSOutput output;
-output.vertexID = vertexID;
-return output;
-}
-
-
-float Ramp(float f_in, float f_out, float t) 
-{
-	float y = 1;
-	t = saturate(t);
+	float4 pos = _ReadPos[index];
+	float4 vel = _ReadVel[index];
 	
-	float k_in	=	1 / f_in;
-	float k_out	=	-1 / (1-f_out);
-	float b_out =	-k_out;	
+	float3 force = computeBodyForce(pos, groupID, threadID);
 	
-	if (t<f_in)  y = t * k_in;
-	if (t>f_out) y = t * k_out + b_out;
+	vel.xyz += force.xyz * _DeltaTime;
+    vel.xyz *= _Damping;
+ 
+    // new position = old position + velocity * deltaTime
+    pos.xyz += vel.xyz * _DeltaTime;
 	
-	
-	return y;
+	_WritePos[index] = pos;
+	_WriteVel[index] = vel;
+   
 }
 
 
 
-[maxvertexcount(6)]
-void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> outputStream )
-{
-	GSOutput p0, p1, p2, p3;
-	
-//	VSOutput prt = inputPoint[0];
-
-	PARTICLE3D prt = particleBufferSrc[ inputPoint[0].vertexID ];
-	
-	if (prt.LifeTime >= prt.TotalLifeTime ) {
-		return;
-	}
-	
-
-		float factor = saturate(prt.LifeTime / prt.TotalLifeTime);
-
-//		float sz = lerp( prt.Size0, prt.Size1, factor )/2;
-
-		float sz = prt.Size0;
-
-		float time = prt.LifeTime;
-
-		float4 color	=	prt.Color0;
-
-		float4 pos		=	float4( prt.Position.xyz, 1 );
-
-		float4 posV		=	mul( pos, Params.View );
-
-//		p0.Position = mul( float4( position + float2( sz, sz), 0, 1 ), Params.Projection );
-		p0.Position = mul( posV + float4( sz, sz, 0, 0 ) , Params.Projection );
-//		p0.Position = posP + float4( sz, sz, 0, 0 );		
-		p0.TexCoord = float2(1,1);
-		p0.Color = color;
-
-//		p1.Position = mul( float4( position + float2(-sz, sz), 0, 1 ), Params.Projection );
-		p1.Position = mul( posV + float4(-sz, sz, 0, 0 ) , Params.Projection );
-//		p1.Position = posP + float4(-sz, sz, 0, 0 );
-		p1.TexCoord = float2(0,1);
-		p1.Color = color;
-
-//		p2.Position = mul( float4( position + float2(-sz,-sz), 0, 1 ), Params.Projection );
-		p2.Position = mul( posV + float4(-sz,-sz, 0, 0 ) , Params.Projection );
-//		p2.Position = posP + float4(-sz,-sz, 0, 0 );
-		p2.TexCoord = float2(0,0);
-		p2.Color = color;
-
-//		p3.Position = mul( float4( position + float2( sz,-sz), 0, 1 ), Params.Projection );
-		p3.Position = mul( posV + float4( sz,-sz, 0, 0 ) , Params.Projection );
-//		p3.Position = posP + float4( sz,-sz, 0, 0 );
-		p3.TexCoord = float2(1,0);
-		p3.Color = color;
-
-		outputStream.Append(p0);
-		outputStream.Append(p1);
-		outputStream.Append(p2);
-		outputStream.RestartStrip();
-		outputStream.Append(p0);
-		outputStream.Append(p2);
-		outputStream.Append(p3);
-		outputStream.RestartStrip();
-}
 
 
 
-float4 PSMain( GSOutput input ) : SV_Target
-{
-	return Texture.Sample( Sampler, input.TexCoord ) * float4(input.Color.rgb,1);
-}
+
+
+
+
+
+

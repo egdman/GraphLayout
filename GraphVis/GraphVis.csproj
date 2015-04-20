@@ -60,11 +60,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\Compute.hlsl" />
     <Content Include="Content\Content.xml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\shaders.hlsl" />
     <Content Include="Content\shaders2.hlsl" />
+    <Content Include="Content\test.hlsl" />
     <Content Include="DllOVR.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

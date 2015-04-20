@@ -68,9 +68,9 @@ namespace GraphVis {
 
 		State		state;
 
-		const int	BlockSize				=	512;
+		const int	BlockSize				=	256;
 
-		const int	MaxInjectingParticles	=	1024;
+		const int	MaxInjectingParticles	=	8192;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -197,7 +197,7 @@ namespace GraphVis {
 		public override void Initialize ()
 		{
 			texture		=	Game.Content.Load<Texture2D>("smaller");
-			shader		=	Game.Content.Load<Ubershader>("shaders2");
+			shader		=	Game.Content.Load<Ubershader>("Compute");
 
 			factory = new StateFactory( shader, typeof(Flags), ( plState, comb ) => 
 			{
@@ -432,7 +432,7 @@ namespace GraphVis {
 
 		void addChain( int N, bool linked )
 		{
-			Vector3 pos = new Vector3( 0, 0, -100);
+			Vector3 pos = new Vector3( 0, 0, -2000);
 			
 			for ( int i = 0; i < N; ++i ) {
 				
@@ -719,7 +719,7 @@ namespace GraphVis {
 	//			StreamWriter writer = File.AppendText( "../../../maxAccel.csv" );
 
 				if ( state == State.RUN ) {
-					for ( int i = 0; i < 50; ++i )
+					for ( int i = 0; i < 1; ++i )
 					{
 
 						param.DeltaTime = 0.1f*timeStepFactor;
@@ -745,8 +745,8 @@ namespace GraphVis {
 
 #if true
 						// calculate energies in thread blocks:
-						device.SetCSRWBuffer( 0, null );
-						device.ComputeShaderResources[1] = simulationBufferSrc;
+						device.SetCSRWBuffer( 0, null ); // unbind from UAV
+						device.ComputeShaderResources[1] = simulationBufferSrc; // bind to SRV
 						device.SetCSRWBuffer( 1, enegryBuffer, MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
 
 						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];

@@ -106,8 +106,21 @@
     <Compression>RGB</Compression>
     <SourceFile>particle.tga</SourceFile>
   </Asset>
+  <Asset xsi:type="ImageFileTextureAsset">
+    <AssetPath>smaller.tga</AssetPath>
+    <BuildOrder>0</BuildOrder>
+    <IgnoreToolChanges>false</IgnoreToolChanges>
+    <NoMips>false</NoMips>
+    <Fast>false</Fast>
+    <ToNormal>false</ToNormal>
+    <Color>true</Color>
+    <Alpha>false</Alpha>
+    <Normal>false</Normal>
+    <Compression>RGB</Compression>
+    <SourceFile>smaller.tga</SourceFile>
+  </Asset>
   <Asset xsi:type="UbershaderAsset">
-    <AssetPath>shaders2.hlsl</AssetPath>
+    <AssetPath>test.hlsl</AssetPath>
     <BuildOrder>0</BuildOrder>
     <IgnoreToolChanges>false</IgnoreToolChanges>
     <GraphicsProfile>HiDef</GraphicsProfile>
@@ -122,21 +135,28 @@
     <DSEntryPoint>DSMain</DSEntryPoint>
     <HSEntryPoint>HSMain</HSEntryPoint>
     <CSEntryPoint>CSMain</CSEntryPoint>
-    <SourceFile>shaders2.hlsl</SourceFile>
+    <SourceFile>test.hlsl</SourceFile>
     <ShowPemutations>false</ShowPemutations>
-    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\F92C903F73403E7EE14F7EBFF1548845.html</ListingPath>
+    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\F896B223F730F30840F6325E60A3DDCB.html</ListingPath>
   </Asset>
-  <Asset xsi:type="ImageFileTextureAsset">
-    <AssetPath>smaller.tga</AssetPath>
+  <Asset xsi:type="UbershaderAsset">
+    <AssetPath>Compute.hlsl</AssetPath>
     <BuildOrder>0</BuildOrder>
     <IgnoreToolChanges>false</IgnoreToolChanges>
-    <NoMips>false</NoMips>
-    <Fast>false</Fast>
-    <ToNormal>false</ToNormal>
-    <Color>true</Color>
-    <Alpha>false</Alpha>
-    <Normal>false</Normal>
-    <Compression>RGB</Compression>
-    <SourceFile>smaller.tga</SourceFile>
+    <GraphicsProfile>HiDef</GraphicsProfile>
+    <DisableOptimization>false</DisableOptimization>
+    <OptimizationLevel>1</OptimizationLevel>
+    <AvoidFlowControl>false</AvoidFlowControl>
+    <PreferFlowControl>false</PreferFlowControl>
+    <MatrixPacking>RowMajor</MatrixPacking>
+    <PSEntryPoint>PSMain</PSEntryPoint>
+    <VSEntryPoint>VSMain</VSEntryPoint>
+    <GSEntryPoint>GSMain</GSEntryPoint>
+    <DSEntryPoint>DSMain</DSEntryPoint>
+    <HSEntryPoint>HSMain</HSEntryPoint>
+    <CSEntryPoint>CSMain</CSEntryPoint>
+    <SourceFile>Compute.hlsl</SourceFile>
+    <ShowPemutations>false</ShowPemutations>
+    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\1899D2215792452F122591D2CF41D839.html</ListingPath>
   </Asset>
 </ArrayOfAsset>
