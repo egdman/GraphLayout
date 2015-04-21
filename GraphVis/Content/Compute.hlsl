@@ -78,10 +78,10 @@ float3 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th element is charge
 
 float3 springForce( float4 pos, float4 otherPos ) // 4th element in therPos is link length
 {
-	float3 R			= (otherPos - pos).xyz;			
+	float3 R			= (otherPos - pos).xyz;
 	float Rabs			= length( R ) + 0.1f;
 	float absForce		= 0.1f * ( Rabs - otherPos.w ) / ( Rabs );
-	return mul( absForce, R*0.1 );
+	return mul( absForce, R );
 }
 
 
@@ -167,9 +167,12 @@ void CSMain(
 #endif // RUNGE_KUTTA
 
 	// add drag force:
-	force -= mul ( p.Velocity, 0.5f );
+//	force -= mul ( p.Velocity, 0.5f );
 
-	p.Acceleration = mul( force, 1/p.Mass );
+	float3 accel = mul( force, 1/p.Mass );
+	accel -= mul ( p.Velocity, 0.7f );
+
+	p.Acceleration = accel;
 	particleRWBuffer[id] = p;
 }
 
