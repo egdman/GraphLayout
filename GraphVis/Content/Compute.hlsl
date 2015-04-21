@@ -1,5 +1,5 @@
 #if 0
-$ubershader (COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA))|(DRAW POINT|LINE)
+$ubershader (COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA +LINKS))|(DRAW POINT|LINE)
 #endif
 
 
@@ -8,7 +8,7 @@ $ubershader (COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA))|(D
 struct PARAMS {
 	float4x4	View;
 	float4x4	Projection;
-	int			MaxParticles;
+	uint		MaxParticles;
 	float		DeltaTime;
 	float		LinkSize;
 };
@@ -38,8 +38,8 @@ struct LinkId {
 };
 
 struct Link {
-	int par1;
-	int par2;
+	uint par1;
+	uint par2;
 	float length;
 	float force2;
 	float3 orientation;
@@ -76,6 +76,15 @@ float3 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th element is charge
 	return mul( invRCubed, R );
 }
 
+float3 springForce( float4 pos, float4 otherPos ) // 4th element in therPos is link length
+{
+	float3 R			= (otherPos - pos).xyz;			
+	float Rabs			= length( R ) + 0.1f;
+	float absForce		= 0.1f * ( Rabs - otherPos.w ) / ( Rabs );
+	return mul( absForce, R*0.1 );
+}
+
+
 float3 tileForce( float4 position )
 {
 	float3 force = float3(0,0,0);
@@ -92,7 +101,7 @@ float3 calcRepulsionForce( float4 position, uint3 groupThreadID )
 {
 	float3 force = float3(0, 0, 0);
 	uint tile = 0;
-	for ( uint i = 0; i < Params.MaxParticles; i+= BLOCK_SIZE, tile += 1 ) 
+	for ( uint i = 0; i < Params.MaxParticles; i+= BLOCK_SIZE, tile += 1 )
 	{
 		uint srcId = tile*BLOCK_SIZE + groupThreadID.x;
 		PARTICLE3D p = particleRWBuffer[srcId];
@@ -104,6 +113,26 @@ float3 calcRepulsionForce( float4 position, uint3 groupThreadID )
 		force += tileForce( position );
 		
 		GroupMemoryBarrierWithGroupSync();
+	}
+	return force;
+}
+
+
+float3 calcLinksForce( float4 pos, uint id, uint linkListStart, uint linkCount )
+{
+	float3 force = float3( 0, 0, 0 );
+	PARTICLE3D otherP;
+	[allow_uav_condition] for ( uint i = 0; i < linkCount; ++i )
+	{
+		Link link = linksBuffer[linksPtrBuffer[linkListStart + i].id];
+		uint otherId = link.par1;
+		if ( id == otherId )
+		{
+			otherId = link.par2;
+		}
+		otherP = particleRWBuffer[otherId];
+		float4 otherPos = float4( otherP.Position, link.length );
+		force += springForce( pos, otherPos );
 	}
 	return force;
 }
@@ -122,11 +151,25 @@ void CSMain(
 	
 	PARTICLE3D p = particleRWBuffer[id];
 	float4 pos = float4 ( p.Position, p.Charge );
+	float3 force = float3( 0, 0, 0 );
 
 #ifdef EULER
-	float3 force = calcRepulsionForce( pos, groupThreadID );
-	p.Acceleration = mul( force, 1/p.Mass );
+	force = calcRepulsionForce( pos, groupThreadID );
+#ifdef LINKS
+	force += calcLinksForce ( pos, id, p.LinksPtr, p.LinksCount );
+#endif // LINKS
 #endif // EULER
+
+
+
+#ifdef RUNGE_KUTTA
+	force = float3( 0, 0, 0 ); // just a placeholder
+#endif // RUNGE_KUTTA
+
+	// add drag force:
+	force -= mul ( p.Velocity, 0.5f );
+
+	p.Acceleration = mul( force, 1/p.Mass );
 	particleRWBuffer[id] = p;
 }
 
@@ -142,7 +185,7 @@ void CSMain(
 	uint  groupIndex 		: SV_GroupIndex
 )
 {
-	int id = dispatchThreadID.x;
+	uint id = dispatchThreadID.x;
 
 	if (id < Params.MaxParticles) {
 		PARTICLE3D p = particleRWBuffer[ id ];

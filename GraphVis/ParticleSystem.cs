@@ -17,8 +17,8 @@ namespace GraphVis {
 
 	public enum IntegratorType
 	{
-		EULER			= 0x8,
-		RUNGE_KUTTA		= 0x8 << 1
+		EULER,		
+		RUNGE_KUTTA
 	}
 
 	public class ParticleConfig
@@ -70,7 +70,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	256;
 
-		const int	MaxInjectingParticles	=	8192;
+		const int	MaxInjectingParticles	=	1024;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -134,8 +134,8 @@ namespace GraphVis {
 		[StructLayout(LayoutKind.Explicit)]
 		struct Link
 		{
-			[FieldOffset( 0)] public int par1;
-			[FieldOffset( 4)] public int par2;
+			[FieldOffset( 0)] public uint par1;
+			[FieldOffset( 4)] public uint par2;
 			[FieldOffset( 8)] public float length;
 			[FieldOffset(12)] public float force2;
 			[FieldOffset(16)] public Vector3 orientation;
@@ -149,19 +149,20 @@ namespace GraphVis {
 		}
 
 		enum Flags {
-			// for compute shader:
 			INJECTION		=	0x1,
 			SIMULATION		=	0x1 << 1,
 			MOVE			=	0x1 << 2,
 			REDUCTION		=	0x1 << 3,
 			EULER			=	0x1 << 4,
 			RUNGE_KUTTA		=	0x1 << 5,
-			// for geometry shader:
+			
 			POINT			=	0x1 << 6,
 			LINE			=	0x1 << 7,
 
 			COMPUTE			=	0x1 << 8,
-			DRAW			=	0x1 << 9
+			DRAW			=	0x1 << 9,
+
+			LINKS			=	0x1 << 10
 		}
 
 		enum State {
@@ -173,7 +174,7 @@ namespace GraphVis {
 		struct Params {
 			[FieldOffset(  0)] public Matrix	View;
 			[FieldOffset( 64)] public Matrix	Projection;
-			[FieldOffset(128)] public int		MaxParticles;
+			[FieldOffset(128)] public uint		MaxParticles;
 			[FieldOffset(132)] public float		DeltaTime;
 			[FieldOffset(136)] public float		LinkSize;
 		} 
@@ -381,23 +382,15 @@ namespace GraphVis {
 		{
 			int linkNumber = linkList.Count;
 			linkList.Add( new Link{
-					par1 = end1,
-					par2 = end2,
+					par1 = (uint)end1,
+					par2 = (uint)end2,
 					length = linkSize,
 					force2 = 0,
 					orientation = Vector3.Zero
 				}
 			);
-			if ( linkPtrLists.ElementAtOrDefault(end1) == null ) {
-//				linkPtrLists[end1] = new List<int>();
-				linkPtrLists.Insert( end1, new List<int>() );
-			}
 			linkPtrLists[end1].Add(linkNumber);
 
-			if ( linkPtrLists.ElementAtOrDefault(end2) == null ) {
-				//linkPtrLists[end2] = new List<int>();
-				linkPtrLists.Insert( end1, new List<int>() );
-			}
 			linkPtrLists[end2].Add(linkNumber);
 
 
@@ -428,11 +421,18 @@ namespace GraphVis {
 			}
 		}
 
-
+		public void AddChain()
+		{
+			ParticleList.Clear();
+			linkList.Clear();
+			linkPtrLists.Clear();
+			addChain( MaxSimulatedParticles, true );
+			setBuffers();
+		}
 
 		void addChain( int N, bool linked )
 		{
-			Vector3 pos = new Vector3( 0, 0, -2000);
+			Vector3 pos = new Vector3( 0, 0, -400);
 			
 			for ( int i = 0; i < N; ++i ) {
 				
@@ -731,7 +731,7 @@ namespace GraphVis {
 						device.ComputeShaderResources[3] = linksBuffer;
 						device.ComputeShaderConstants[0] = paramsCB;
 
-						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)cfg.IType];
+						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)Flags.EULER|(int)Flags.LINKS];
 
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
 			//			device.ResetStates();
@@ -857,7 +857,7 @@ namespace GraphVis {
 
 				device.Draw( ParticleList.Count, 0 );
 		
-
+					
 				// draw lines: --------------------------------------------------------------------------
 				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
 			
@@ -865,8 +865,8 @@ namespace GraphVis {
 				device.GeometryShaderResources[3] = linksBuffer;
 
 				device.Draw( linkList.Count, 0 );
-
-
+				
+				
 			}
 			// --------------------------------------------------------------------------------------
 

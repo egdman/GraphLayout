@@ -153,6 +153,7 @@ namespace GraphVis
 			if(InputDevice.IsKeyDown(Keys.X)) {
 		//		partSys.AddScaleFreeNetwork();
 				partSys.AddBinaryTree();
+		//		partSys.AddChain();
 			}
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
