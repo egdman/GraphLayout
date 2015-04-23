@@ -211,7 +211,7 @@ void CSMain(
 
 #ifdef REDUCTION
 
-#define WARP_SIZE 32
+#define WARP_SIZE 16
 
 #if 0
 [numthreads( BLOCK_SIZE, 1, 1 )]
@@ -319,7 +319,7 @@ void CSMain(
 
 	if ( groupIndex < WARP_SIZE )
 	{
-		sh_energy[groupIndex] += sh_energy[groupIndex + 32];
+//		sh_energy[groupIndex] += sh_energy[groupIndex + 32];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 16];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 8];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 4];
