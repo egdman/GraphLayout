@@ -211,7 +211,7 @@ void CSMain(
 
 #ifdef REDUCTION
 
-#define WARP_SIZE 16
+#define WARP_SIZE 32
 
 #if 0
 [numthreads( BLOCK_SIZE, 1, 1 )]
@@ -301,14 +301,14 @@ void CSMain(
 	// load data into shared memory:
 	PARTICLE3D p1 = particleReadBuffer[ id ];
 	PARTICLE3D p2 = particleReadBuffer[ id + BLOCK_SIZE/2 ];
-	float energy1 = p1.Energy;
-	float energy2 = p2.Energy;
+	float energy1 = p1.Mass;
+	float energy2 = p2.Mass;
 
 	sh_energy[groupIndex] = energy1 + energy2;
 	GroupMemoryBarrierWithGroupSync();
 
 	// sequential addressing without bank conflicts and without divergence:
-	for ( unsigned int s = BLOCK_SIZE/4; s > WARP_SIZE; s >>= 1 ) // WAPR_SIZE is 16 for Fermi cards
+	for ( unsigned int s = BLOCK_SIZE/4; s > WARP_SIZE; s >>= 1 )
 	{
 		if ( groupIndex < s )
 		{
@@ -319,7 +319,7 @@ void CSMain(
 
 	if ( groupIndex < WARP_SIZE )
 	{
-//		sh_energy[groupIndex] += sh_energy[groupIndex + 32];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 32];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 16];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 8];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 4];
