@@ -104,30 +104,25 @@ namespace GraphVis {
 		float elapsedTime;
 		int	progress;
 		float energy;
+		uint numIterations;
 
-		// Particle in 3d space:
+	
+
 		[StructLayout(LayoutKind.Explicit)]
 			struct Particle3d {
 			[FieldOffset( 0)] public Vector3	Position;
-			[FieldOffset(12)] public Vector3	Velocity;	
-			[FieldOffset(24)] public Vector4	Color0;
-			[FieldOffset(40)] public float		Size0;
-			[FieldOffset(44)] public float		TotalLifeTime;
-			[FieldOffset(48)] public float		LifeTime;
-			[FieldOffset(52)] public int		linksPtr;
-			[FieldOffset(56)] public int		linksCount;
-			[FieldOffset(60)] public Vector3	Acceleration;
-			[FieldOffset(72)] public float		Mass;
-			[FieldOffset(76)] public float		Charge;
+			[FieldOffset(12)] public Vector3	Velocity;
+			[FieldOffset(24)] public Vector3	Force;
+			[FieldOffset(36)] public float		Energy;
+			[FieldOffset(40)] public float		Mass;
+			[FieldOffset(44)] public float		Charge;
 
-
-
-			public override string ToString ()
-			{
-				return string.Format("life time = {0}/{1}", LifeTime, TotalLifeTime );
-			}
-
+			[FieldOffset(48)] public Vector4	Color;
+			[FieldOffset(64)] public float		Size;
+			[FieldOffset(68)] public int		linksPtr;
+			[FieldOffset(72)] public int		linksCount;
 		}
+
 
 
 		// link between 2 particles:
@@ -226,6 +221,7 @@ namespace GraphVis {
 			maxVelo				=	0;
 			timeStepFactor		=	1.0f;
 			progress			=	0;
+			numIterations		=	0;
 
 			base.Initialize();
 		}
@@ -363,11 +359,9 @@ namespace GraphVis {
 			ParticleList.Add( new Particle3d {
 					Position		=	pos,
 					Velocity		=	Vector3.Zero,
-					Color0			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
-					Size0			=	size0,
-					TotalLifeTime	=	lifeTime,
-					LifeTime		=	0,
-					Acceleration	=	Vector3.Zero,
+					Color			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
+					Size			=	size0,
+					Force			=	Vector3.Zero,
 					Mass			=	ParticleMass,
 					Charge			=	0.05f
 				}
@@ -399,8 +393,8 @@ namespace GraphVis {
 			Particle3d newPrt2 = ParticleList[end2];
 			newPrt1.Mass	+= 0.7f;
 			newPrt2.Mass	+= 0.7f;
-			newPrt1.Size0	+= 0.1f;
-			newPrt2.Size0	+= 0.1f;
+			newPrt1.Size	+= 0.1f;
+			newPrt2.Size	+= 0.1f;
 			ParticleList[end1] = newPrt1;
 			ParticleList[end2] = newPrt2;
 			stretchLinks(end1);
@@ -579,21 +573,11 @@ namespace GraphVis {
 			timeStepFactor = 1;
 			elapsedTime = 0;
 			progress = 0;
+			numIterations = 0;
 		}
 
 
-		/// <summary>
-		/// Makes all particles wittingly dead
-		/// </summary>
-		void ClearParticleBuffer ()
-		{
-			for (int i=0; i<MaxInjectingParticles; i++) {
-				injectionBufferCPU[i].TotalLifeTime = -999999;
-
-			}
-	//		injectionCount = 0;
-		}
-
+	
 
 
 		/// <summary>
@@ -665,9 +649,7 @@ namespace GraphVis {
 			float maxVelocity		= 0;
 			foreach ( var p in buffer )
 			{
-				float acc = p.Acceleration.Length();
 				float velo = p.Velocity.Length();
-				maxAcceleration = acc > maxAcceleration ? acc : maxAcceleration;
 				maxVelocity		= velo > maxVelocity ? velo : maxVelocity;
 			}
 
@@ -694,7 +676,6 @@ namespace GraphVis {
 			if ( simulationBufferSrc != null ) {
 				
 				
-
 				Params param = new Params();
 
 				param.View			=	cam.GetViewMatrix( stereoEye );
@@ -716,10 +697,10 @@ namespace GraphVis {
 				param.MaxParticles	=	MaxSimulatedParticles;
 				paramsCB.SetData( param );
 
-	//			StreamWriter writer = File.AppendText( "../../../maxAccel.csv" );
+//				StreamWriter writer = File.AppendText( "../../../energyVsStepNum.csv" );
 
 				if ( state == State.RUN ) {
-					for ( int i = 0; i < 1; ++i )
+					for ( int i = 0; i < 25; ++i )
 					{
 
 						param.DeltaTime = 0.1f*timeStepFactor;
@@ -734,14 +715,12 @@ namespace GraphVis {
 						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)Flags.EULER|(int)Flags.LINKS];
 
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-			//			device.ResetStates();
 
 						// move particles: ------------------------------------------------------------
 						device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
 
 						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE];
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-			//			device.ResetStates();
 
 #if true
 						// calculate energies in thread blocks:
@@ -753,6 +732,7 @@ namespace GraphVis {
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
 #endif
 						elapsedTime += param.DeltaTime;
+						++numIterations;
 
 					
 						// ------------------------------------------------------------------------------------
@@ -781,11 +761,13 @@ namespace GraphVis {
 							++progress;
 						}
 
+						//////////////////////////////
+						float changeCoef = 0.99f;
+						//////////////////////////////
 
-
-						if ( progress >= 10 )
+						if ( progress >= 4 )
 						{
-							timeStepFactor /= 0.9f;
+							timeStepFactor /= changeCoef;
 							progress = 0;
 						}
 						else if ( progress == 0 )
@@ -796,15 +778,16 @@ namespace GraphVis {
 							}
 							else
 							{
-								timeStepFactor *= 0.9f;
+								timeStepFactor *= changeCoef;
 							}
 						}
-						
+				
 
 						// TERMINATION CONDITION CHECK --------------------------------------------------------
 			//			if ( energy < 0.00002f ) {
 			//				state = State.PAUSE;
 			//			}
+			//			writer.WriteLine( numIterations + "," + energy );
 #endif
 					}
 				}
@@ -812,8 +795,7 @@ namespace GraphVis {
 				
 
 				
-				
-//				writer.WriteLine( elapsedTime + "," + maxVelo + "," + maxAcc );
+		
 
 				
 				
@@ -825,7 +807,7 @@ namespace GraphVis {
 	//			}
 
 
-	//			writer.Close();
+//				writer.Close();
 				// ------------------------------------------------------------------------------------
 
 
@@ -887,7 +869,7 @@ namespace GraphVis {
 			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
 			debStr.Add( Color.Aqua, "TimeStep factor = " + timeStepFactor );
 			debStr.Add( Color.Aqua, "Energy = " + energy );
-
+			debStr.Add( Color.Aqua, "Iteration = " + numIterations );
 
 			/*
 			if ( linkList.Count > 0 && ParticleList.Count > 0 ) {

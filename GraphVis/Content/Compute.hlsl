@@ -18,20 +18,20 @@ cbuffer CB1 : register(b0) {
 };
 
 
-
 struct PARTICLE3D {
 	float3	Position;
 	float3	Velocity;
-	float4	Color0;
-	float	Size0;
-	float	TotalLifeTime;
-	float	LifeTime;
-	int		LinksPtr;
-	int		LinksCount;
 	float3	Acceleration;
+	float	Energy;
 	float	Mass;
 	float	Charge;
+
+	float4	Color0;
+	float	Size0;
+	int		LinksPtr;
+	int		LinksCount;
 };
+
 
 struct LinkId {
 	int id;
@@ -67,27 +67,30 @@ groupshared float sh_energy[BLOCK_SIZE];
 
 
 
-float3 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th element is charge
+float4 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th component is charge
 {
-	float3 R			= (otherPos - thisPos).xyz;			
+	float3 R			= (otherPos - thisPos).xyz;		
 	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
 	float Rsixth		= Rsquared * Rsquared * Rsquared;
-	float invRCubed		= - 10000.0f * thisPos.w * otherPos.w  / sqrt( Rsixth );
-	return mul( invRCubed, R );
+	float invRCubed		= - 10000.0f * thisPos.w * otherPos.w / sqrt( Rsixth );
+	float energy		=   10000.0f * thisPos.w * otherPos.w / sqrt( Rsquared ); 
+	return float4( mul( invRCubed, R ), energy ); // it writes energy into the 4th component
 }
 
-float3 springForce( float4 pos, float4 otherPos ) // 4th element in therPos is link length
+float4 springForce( float4 pos, float4 otherPos ) // 4th component in otherPos is link length
 {
 	float3 R			= (otherPos - pos).xyz;
 	float Rabs			= length( R ) + 0.1f;
-	float absForce		= 0.1f * ( Rabs - otherPos.w ) / ( Rabs );
-	return mul( absForce, R );
+	float deltaR		= Rabs - otherPos.w ;
+	float absForce		= 0.1f * ( deltaR ) / ( Rabs );
+	float energy		= 0.1f * 0.5f * deltaR * deltaR;
+	return float4( mul( absForce, R ), energy );
 }
 
 
-float3 tileForce( float4 position )
+float4 tileForce( float4 position )
 {
-	float3 force = float3(0,0,0);
+	float4 force = float4(0, 0, 0, 0);
 	for ( uint i = 0; i < BLOCK_SIZE; ++i )
 	{
 		float4 otherPosition = shPositions[i];
@@ -97,9 +100,9 @@ float3 tileForce( float4 position )
 }
 
 
-float3 calcRepulsionForce( float4 position, uint3 groupThreadID )
+float4 calcRepulsionForce( float4 position, uint3 groupThreadID )
 {
-	float3 force = float3(0, 0, 0);
+	float4 force = float4(0, 0, 0, 0);
 	uint tile = 0;
 	for ( uint i = 0; i < Params.MaxParticles; i+= BLOCK_SIZE, tile += 1 )
 	{
@@ -118,9 +121,9 @@ float3 calcRepulsionForce( float4 position, uint3 groupThreadID )
 }
 
 
-float3 calcLinksForce( float4 pos, uint id, uint linkListStart, uint linkCount )
+float4 calcLinksForce( float4 pos, uint id, uint linkListStart, uint linkCount )
 {
-	float3 force = float3( 0, 0, 0 );
+	float4 force = float4( 0, 0, 0, 0 );
 	PARTICLE3D otherP;
 	[allow_uav_condition] for ( uint i = 0; i < linkCount; ++i )
 	{
@@ -151,7 +154,7 @@ void CSMain(
 	
 	PARTICLE3D p = particleRWBuffer[id];
 	float4 pos = float4 ( p.Position, p.Charge );
-	float3 force = float3( 0, 0, 0 );
+	float4 force = float4( 0, 0, 0, 0 );
 
 #ifdef EULER
 	force = calcRepulsionForce( pos, groupThreadID );
@@ -163,16 +166,20 @@ void CSMain(
 
 
 #ifdef RUNGE_KUTTA
-	force = float3( 0, 0, 0 ); // just a placeholder
+	force = float4( 0, 0, 0, 0 ); // just a placeholder
 #endif // RUNGE_KUTTA
 
-	// add drag force:
-//	force -= mul ( p.Velocity, 0.5f );
+	// add potential well:
+//	force += mul( 0.00005f*length(pos.xyz), -pos.xyz );
 
-	float3 accel = mul( force, 1/p.Mass );
+	float3 accel = mul( force.xyz, 1/p.Mass );
+
+	// add drag force:
 	accel -= mul ( p.Velocity, 0.7f );
 
 	p.Acceleration = accel;
+	p.Energy = force.w;
+
 	particleRWBuffer[id] = p;
 }
 
@@ -203,6 +210,8 @@ void CSMain(
 
 
 #ifdef REDUCTION
+
+#define WARP_SIZE 16
 
 #if 0
 [numthreads( BLOCK_SIZE, 1, 1 )]
@@ -292,15 +301,14 @@ void CSMain(
 	// load data into shared memory:
 	PARTICLE3D p1 = particleReadBuffer[ id ];
 	PARTICLE3D p2 = particleReadBuffer[ id + BLOCK_SIZE/2 ];
-	float scalarAcc1 = length(p1.Acceleration);
-	float scalarAcc2 = length(p2.Acceleration);
-	scalarAcc1 *= scalarAcc1;
-	scalarAcc2 *= scalarAcc2;
-	sh_energy[groupIndex] = scalarAcc1 * p1.Mass * p1.Mass + scalarAcc2 * p2.Mass * p2.Mass;
+	float energy1 = p1.Energy;
+	float energy2 = p2.Energy;
+
+	sh_energy[groupIndex] = energy1 + energy2;
 	GroupMemoryBarrierWithGroupSync();
 
 	// sequential addressing without bank conflicts and without divergence:
-	for ( unsigned int s = BLOCK_SIZE/4; s > 32; s >>= 1 )
+	for ( unsigned int s = BLOCK_SIZE/4; s > WARP_SIZE; s >>= 1 ) // WAPR_SIZE is 16 for Fermi cards
 	{
 		if ( groupIndex < s )
 		{
@@ -309,9 +317,9 @@ void CSMain(
 		GroupMemoryBarrierWithGroupSync();
 	}
 
-	if ( groupIndex < 32 )
+	if ( groupIndex < WARP_SIZE )
 	{
-		sh_energy[groupIndex] += sh_energy[groupIndex + 32];
+//		sh_energy[groupIndex] += sh_energy[groupIndex + 32];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 16];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 8];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 4];
@@ -395,57 +403,44 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 
 	PARTICLE3D prt = particleReadBuffer[ inputPoint[0].vertexID ];
 	
-	if (prt.LifeTime >= prt.TotalLifeTime ) {
-		return;
-	}
-	
 
-		float factor = saturate(prt.LifeTime / prt.TotalLifeTime);
-
-//		float sz = lerp( prt.Size0, prt.Size1, factor )/2;
-
-		float sz = prt.Size0;
-
-		float time = prt.LifeTime;
-
-		float4 color	=	prt.Color0;
-
-		float4 pos		=	float4( prt.Position.xyz, 1 );
-
-		float4 posV		=	mul( pos, Params.View );
+	float sz = prt.Size0;
+	float4 color	=	prt.Color0;
+	float4 pos		=	float4( prt.Position.xyz, 1 );
+	float4 posV		=	mul( pos, Params.View );
 
 //		p0.Position = mul( float4( position + float2( sz, sz), 0, 1 ), Params.Projection );
-		p0.Position = mul( posV + float4( sz, sz, 0, 0 ) , Params.Projection );
+	p0.Position = mul( posV + float4( sz, sz, 0, 0 ) , Params.Projection );
 //		p0.Position = posP + float4( sz, sz, 0, 0 );		
-		p0.TexCoord = float2(1,1);
-		p0.Color = color;
+	p0.TexCoord = float2(1,1);
+	p0.Color = color;
 
 //		p1.Position = mul( float4( position + float2(-sz, sz), 0, 1 ), Params.Projection );
-		p1.Position = mul( posV + float4(-sz, sz, 0, 0 ) , Params.Projection );
+	p1.Position = mul( posV + float4(-sz, sz, 0, 0 ) , Params.Projection );
 //		p1.Position = posP + float4(-sz, sz, 0, 0 );
-		p1.TexCoord = float2(0,1);
-		p1.Color = color;
+	p1.TexCoord = float2(0,1);
+	p1.Color = color;
 
 //		p2.Position = mul( float4( position + float2(-sz,-sz), 0, 1 ), Params.Projection );
-		p2.Position = mul( posV + float4(-sz,-sz, 0, 0 ) , Params.Projection );
+	p2.Position = mul( posV + float4(-sz,-sz, 0, 0 ) , Params.Projection );
 //		p2.Position = posP + float4(-sz,-sz, 0, 0 );
-		p2.TexCoord = float2(0,0);
-		p2.Color = color;
+	p2.TexCoord = float2(0,0);
+	p2.Color = color;
 
 //		p3.Position = mul( float4( position + float2( sz,-sz), 0, 1 ), Params.Projection );
-		p3.Position = mul( posV + float4( sz,-sz, 0, 0 ) , Params.Projection );
+	p3.Position = mul( posV + float4( sz,-sz, 0, 0 ) , Params.Projection );
 //		p3.Position = posP + float4( sz,-sz, 0, 0 );
-		p3.TexCoord = float2(1,0);
-		p3.Color = color;
+	p3.TexCoord = float2(1,0);
+	p3.Color = color;
 
-		outputStream.Append(p0);
-		outputStream.Append(p1);
-		outputStream.Append(p2);
-		outputStream.RestartStrip();
-		outputStream.Append(p0);
-		outputStream.Append(p2);
-		outputStream.Append(p3);
-		outputStream.RestartStrip();
+	outputStream.Append(p0);
+	outputStream.Append(p1);
+	outputStream.Append(p2);
+	outputStream.RestartStrip();
+	outputStream.Append(p0);
+	outputStream.Append(p2);
+	outputStream.Append(p3);
+	outputStream.RestartStrip();
 
 }
 
@@ -481,8 +476,8 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 	p1.TexCoord		=	float2(0, 0);
 	p2.TexCoord		=	float2(0, 0);
 
-	p1.Color		=	end1.Color0;
-	p2.Color		=	end2.Color0;
+	p1.Color		=	float4(0.2f,0.2f,0.2f,0);
+	p2.Color		=	float4(0.2f,0.2f,0.2f,0);
 
 	outputStream.Append(p1);
 	outputStream.Append(p2);
