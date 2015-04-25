@@ -23,7 +23,7 @@ cbuffer CB1 : register(b0) {
 struct PARTICLE3D {
 	float3	Position;
 	float3	Velocity;
-	float3	Acceleration;
+	float3	Force;
 	float	Energy;
 	float	Mass;
 	float	Charge;
@@ -205,13 +205,19 @@ void CSMain(
 	// add potential well:
 //	force.xyz += mul( 0.00005f*length(pos.xyz), -pos.xyz );
 
-	float3 accel = mul( force.xyz, 1/p.Mass );
 
-	// add drag force:
-	accel -= mul ( p.Velocity, 0.7f );
+	float3 accel = force.xyz;
 
-	p.Acceleration = accel;
-	p.Energy = force.w;
+
+	p.Force		= force.xyz;
+	p.Energy	= force.w;
+
+//	float3 accel = mul( force.xyz, 1/p.Mass );
+//	add drag force:
+//	accel -= mul ( p.Velocity, 0.7f );
+//	p.Force		= accel;
+//	p.Energy	= force.w;
+
 
 	particleRWBuffer[id] = p;
 }
@@ -233,8 +239,10 @@ void CSMain(
 	if (id < Params.MaxParticles) {
 		PARTICLE3D p = particleRWBuffer[ id ];
 		
-		p.Position.xyz += mul( p.Velocity, Params.DeltaTime );
-		p.Velocity += mul( p.Acceleration, Params.DeltaTime );
+//		p.Position.xyz += mul( p.Velocity, Params.DeltaTime );
+//		p.Velocity += mul( p.Force, Params.DeltaTime );
+
+		p.Position.xyz += mul( p.Force, Params.DeltaTime );
 		particleRWBuffer[ id ] = p;
 	}
 }
@@ -259,7 +267,7 @@ void CSMain(
 
 	if (id < Params.MaxParticles) {
 		PARTICLE3D p = particleReadBuffer[ id ];
-		float scalarAcc = length(p.Acceleration);
+		float scalarAcc = length(p.Force);
 
 		scalarAcc *= scalarAcc;
 		sh_energy[groupIndex] = scalarAcc * p.Mass * p.Mass;
