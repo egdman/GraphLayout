@@ -208,8 +208,8 @@ namespace GraphVis {
 	//		MaxParticleMass		=	cfg.Max_mass;
 	//		MinParticleMass		=	cfg.Min_mass;
 
-			MaxParticleMass		=	1.0f;
-			MinParticleMass		=	1.0f;
+			MaxParticleMass		=	0.01f;
+			MinParticleMass		=	0.01f;
 
 			spinRate			=	cfg.Rotation;
 			linkSize			=	1.0f;
@@ -394,8 +394,8 @@ namespace GraphVis {
 			// modify particles masses and sizes according to number of links:
 			Particle3d newPrt1 = ParticleList[end1];
 			Particle3d newPrt2 = ParticleList[end2];
-	//		newPrt1.Mass	+= 0.7f;
-	//		newPrt2.Mass	+= 0.7f;
+			newPrt1.Mass	+= 0.7f;
+			newPrt2.Mass	+= 0.7f;
 			newPrt1.Size	+= 0.1f;
 			newPrt2.Size	+= 0.1f;
 			ParticleList[end1] = newPrt1;
@@ -765,7 +765,7 @@ namespace GraphVis {
 						}
 
 						//////////////////////////////
-						float changeCoef = 1.0f;
+						float changeCoef = 0.99f;
 						//////////////////////////////
 
 						if ( progress >= 4 )
@@ -871,7 +871,7 @@ namespace GraphVis {
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
 			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
 			debStr.Add( Color.Aqua, "TimeStep factor = " + timeStepFactor );
-			debStr.Add( Color.Aqua, "Mass = " + energy );
+			debStr.Add( Color.Aqua, "Energy = " + energy );
 			debStr.Add( Color.Aqua, "Iteration = " + numIterations );
 
 			/*

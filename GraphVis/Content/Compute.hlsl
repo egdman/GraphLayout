@@ -72,9 +72,9 @@ float4 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th component is char
 	float3 R			= (otherPos - thisPos).xyz;		
 	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
 	float Rsixth		= Rsquared * Rsquared * Rsquared;
-	float invRCubed		= - 10000.0f * thisPos.w * otherPos.w / sqrt( Rsixth );
-	float energy		=   10000.0f * thisPos.w * otherPos.w / sqrt( Rsquared ); 
-	return float4( mul( invRCubed, R ), energy ); // it writes energy into the 4th component
+	float invRCubed		= - 10000.0f * otherPos.w / sqrt( Rsixth );		// we will multiply by this particle's charge later
+	float energy		=   10000.0f * otherPos.w / sqrt( Rsquared );	// we will multiply by this particle's charge later
+	return float4( mul( invRCubed, R ), energy ); // we write energy into the 4th component
 }
 
 float4 springForce( float4 pos, float4 otherPos ) // 4th component in otherPos is link length
@@ -84,7 +84,7 @@ float4 springForce( float4 pos, float4 otherPos ) // 4th component in otherPos i
 	float deltaR		= Rabs - otherPos.w ;
 	float absForce		= 0.1f * ( deltaR ) / ( Rabs );
 	float energy		= 0.1f * 0.5f * deltaR * deltaR;
-	return float4( mul( absForce, R ), energy );
+	return float4( mul( absForce, R ), energy );  // we write energy into the 4th component
 }
 
 
@@ -157,7 +157,7 @@ void CSMain(
 	float4 force = float4( 0, 0, 0, 0 );
 
 #ifdef EULER
-	force = calcRepulsionForce( pos, groupThreadID );
+	force = mul( calcRepulsionForce( pos, groupThreadID ), pos.w ); // we multiply by this particle's charge here once
 #ifdef LINKS
 	force += calcLinksForce ( pos, id, p.LinksPtr, p.LinksCount );
 #endif // LINKS
@@ -212,6 +212,7 @@ void CSMain(
 #ifdef REDUCTION
 
 #define WARP_SIZE 16
+#define HALF_BLOCK BLOCK_SIZE/2
 
 #if 0
 [numthreads( BLOCK_SIZE, 1, 1 )]
@@ -287,7 +288,8 @@ void CSMain(
 #endif
 
 
-[numthreads( BLOCK_SIZE/2, 1, 1 )]
+
+[numthreads( HALF_BLOCK, 1, 1 )]
 void CSMain( 
 	uint3 groupID			: SV_GroupID,
 	uint3 groupThreadID 	: SV_GroupThreadID, 
@@ -300,14 +302,15 @@ void CSMain(
 
 	// load data into shared memory:
 	PARTICLE3D p1 = particleReadBuffer[ id ];
-	PARTICLE3D p2 = particleReadBuffer[ id + BLOCK_SIZE/2 ];
-	float energy1 = p1.Mass;
-	float energy2 = p2.Mass;
+	PARTICLE3D p2 = particleReadBuffer[ id + HALF_BLOCK ];
+	float energy1 = p1.Energy;
+	float energy2 = p2.Energy;
 
 	sh_energy[groupIndex] = energy1 + energy2;
 	GroupMemoryBarrierWithGroupSync();
 
-	// sequential addressing without bank conflicts and without divergence:
+#if 0
+	// partial unroll:
 	for ( unsigned int s = BLOCK_SIZE/4; s > WARP_SIZE; s >>= 1 )
 	{
 		if ( groupIndex < s )
@@ -319,13 +322,52 @@ void CSMain(
 
 	if ( groupIndex < WARP_SIZE )
 	{
-//		sh_energy[groupIndex] += sh_energy[groupIndex + 32];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 16];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 8];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 4];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 2];
 		sh_energy[groupIndex] += sh_energy[groupIndex + 1];
 	}
+#endif
+
+//#if 0
+
+	// full unroll:
+	if ( HALF_BLOCK >= 512 )
+	{
+		if ( groupIndex < 256 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 256];}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 256 )
+	{
+		if ( groupIndex < 128 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 128];}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 128 )
+	{
+		if ( groupIndex < 64 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 64];}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 64 )
+	{
+		if ( groupIndex < 32 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 32];}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( groupIndex < 16 )
+	{
+	/*	if ( BLOCK_SIZE >= 32 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex + 16]; }
+	/*	if ( BLOCK_SIZE >= 16 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  8]; }
+	/*	if ( BLOCK_SIZE >=  8 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  4]; }
+	/*	if ( BLOCK_SIZE >=  4 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  2]; }
+	/*	if ( BLOCK_SIZE >=  2 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  1]; }
+	}
+
+
+//#endif
 
 	if( groupIndex == 0 )
 	{
