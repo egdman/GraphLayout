@@ -90,7 +90,7 @@ namespace GraphVis {
 		StructuredBuffer	linksBuffer;
 		Link[]				linksBufferCPU;
 
-		float[]				energyBufferCPU;
+		Vector4[]			energyBufferCPU;
 
 		ConstantBuffer		paramsCB;
 		List<List<int> >	linkPtrLists;
@@ -104,6 +104,8 @@ namespace GraphVis {
 		float elapsedTime;
 		int	progress;
 		float energy;
+		float pTp;
+
 		uint numIterations;
 
 	
@@ -533,7 +535,7 @@ namespace GraphVis {
 				simulationBufferSrc.SetData(injectionBufferCPU);
 				enegryBuffer = new StructuredBuffer (
 							Game.GraphicsDevice,
-							typeof(float),
+							typeof(Vector4),
 							MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ),
 							StructuredBufferFlags.Counter );
 			}
@@ -659,9 +661,11 @@ namespace GraphVis {
 			maxAcc = maxAcceleration;
 			maxVelo = maxVelocity;
 			energy = 0;
+			pTp	= 0;
 			foreach ( var en in energyBufferCPU )
 			{
-				energy += en;
+				energy	+= en.X;
+				pTp		+= en.Y;
 			}
 		}
 
@@ -745,7 +749,7 @@ namespace GraphVis {
 						// ------------------------------------------------------------------------------------
 #if true				
 						if ( energyBufferCPU == null ) {
-							energyBufferCPU = new float[enegryBuffer.GetStructureCount()];
+							energyBufferCPU = new Vector4[enegryBuffer.GetStructureCount()];
 						}
 
 						enegryBuffer.GetData( energyBufferCPU );
@@ -769,7 +773,8 @@ namespace GraphVis {
 						}
 
 						//////////////////////////////
-						float changeCoef = 0.95f;
+			//			float changeCoef = 0.95f;
+						float changeCoef = 1.0f;
 						//////////////////////////////
 
 						if ( progress >= 4 )
@@ -872,6 +877,7 @@ namespace GraphVis {
 			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
 			debStr.Add( Color.Aqua, "TimeStep factor = " + timeStepFactor );
 			debStr.Add( Color.Aqua, "Energy = " + energy );
+			debStr.Add( Color.Aqua, "pTp = " + pTp );
 			debStr.Add( Color.Aqua, "Iteration = " + numIterations );
 
 			/*

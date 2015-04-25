@@ -54,7 +54,7 @@ Texture2D							Texture 			: 	register(t0);
 RWStructuredBuffer<PARTICLE3D>		particleRWBuffer	: 	register(u0);
 StructuredBuffer<PARTICLE3D>		particleReadBuffer	:	register(t1);
 
-RWStructuredBuffer<float>			energyRWBuffer		:	register(u1);
+RWStructuredBuffer<float4>			energyRWBuffer		:	register(u1);
 
 StructuredBuffer<LinkId>			linksPtrBuffer		:	register(t2);
 StructuredBuffer<Link>				linksBuffer			:	register(t3);
@@ -64,7 +64,7 @@ StructuredBuffer<Link>				linksBuffer			:	register(t3);
 #ifdef COMPUTE
 
 groupshared float4 shPositions[BLOCK_SIZE];
-groupshared float sh_energy[BLOCK_SIZE];
+groupshared float4 sh_energy[BLOCK_SIZE];
 
 
 
@@ -344,8 +344,10 @@ void CSMain(
 	PARTICLE3D p2 = particleReadBuffer[ id + HALF_BLOCK ];
 	float energy1 = p1.Energy;
 	float energy2 = p2.Energy;
+	float forceSq1 = p1.Force.x*p1.Force.x + p1.Force.y*p1.Force.y + p1.Force.z*p1.Force.z;
+	float forceSq2 = p2.Force.x*p2.Force.x + p2.Force.y*p2.Force.y + p2.Force.z*p2.Force.z;
 
-	sh_energy[groupIndex] = energy1 + energy2;
+	sh_energy[groupIndex] = float4( energy1 + energy2, forceSq1 + forceSq2, 0, 0 );
 	GroupMemoryBarrierWithGroupSync();
 
 #if 0
