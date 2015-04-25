@@ -208,8 +208,8 @@ namespace GraphVis {
 	//		MaxParticleMass		=	cfg.Max_mass;
 	//		MinParticleMass		=	cfg.Min_mass;
 
-			MaxParticleMass		=	0.01f;
-			MinParticleMass		=	0.01f;
+			MaxParticleMass		=	0.05f;
+			MinParticleMass		=	0.05f;
 
 			spinRate			=	cfg.Rotation;
 			linkSize			=	1.0f;
@@ -725,6 +725,11 @@ namespace GraphVis {
 						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE];
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
 
+						elapsedTime += param.DeltaTime;
+						++numIterations;
+
+		//			}
+
 #if true
 						// calculate energies in thread blocks:
 						device.SetCSRWBuffer( 0, null ); // unbind from UAV
@@ -734,8 +739,7 @@ namespace GraphVis {
 						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
 #endif
-						elapsedTime += param.DeltaTime;
-						++numIterations;
+						
 
 					
 						// ------------------------------------------------------------------------------------
@@ -765,7 +769,7 @@ namespace GraphVis {
 						}
 
 						//////////////////////////////
-						float changeCoef = 0.99f;
+						float changeCoef = 0.95f;
 						//////////////////////////////
 
 						if ( progress >= 4 )
@@ -792,16 +796,12 @@ namespace GraphVis {
 			//			}
 			//			writer.WriteLine( numIterations + "," + energy );
 #endif
+					
+				
 					}
+				
+	
 				}
-
-				
-
-				
-		
-
-				
-				
 
 
 	//			if ( maxAcc > 0.1f ) {

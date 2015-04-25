@@ -4,6 +4,8 @@ $ubershader (COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA +LIN
 
 
 #define BLOCK_SIZE 256
+#define WARP_SIZE 16
+#define HALF_BLOCK BLOCK_SIZE/2
 
 struct PARAMS {
 	float4x4	View;
@@ -67,37 +69,67 @@ groupshared float sh_energy[BLOCK_SIZE];
 
 
 
-float4 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th component is charge
+inline float4 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th component is charge
 {
 	float3 R			= (otherPos - thisPos).xyz;		
 	float Rsquared		= R.x * R.x + R.y * R.y + R.z * R.z + 0.1f;
 	float Rsixth		= Rsquared * Rsquared * Rsquared;
-	float invRCubed		= - 10000.0f * otherPos.w / sqrt( Rsixth );		// we will multiply by this particle's charge later
-	float energy		=   10000.0f * otherPos.w / sqrt( Rsquared );	// we will multiply by this particle's charge later
+	float invRCubed		= - otherPos.w / sqrt( Rsixth );	// we will multiply by constants later
+	float energy		=   otherPos.w / sqrt( Rsquared );	// we will multiply by constants later
 	return float4( mul( invRCubed, R ), energy ); // we write energy into the 4th component
 }
+
+
 
 float4 springForce( float4 pos, float4 otherPos ) // 4th component in otherPos is link length
 {
 	float3 R			= (otherPos - pos).xyz;
 	float Rabs			= length( R ) + 0.1f;
-	float deltaR		= Rabs - otherPos.w ;
+	float deltaR		= Rabs - otherPos.w;
 	float absForce		= 0.1f * ( deltaR ) / ( Rabs );
-	float energy		= 0.1f * 0.5f * deltaR * deltaR;
+	float energy		= 0.05f * deltaR * deltaR;
 	return float4( mul( absForce, R ), energy );  // we write energy into the 4th component
 }
 
 
-float4 tileForce( float4 position )
+float4 tileForce( float4 position, uint threadId )
 {
 	float4 force = float4(0, 0, 0, 0);
+	float4 otherPosition = float4(0, 0, 0, 0);
 	for ( uint i = 0; i < BLOCK_SIZE; ++i )
 	{
-		float4 otherPosition = shPositions[i];
+		otherPosition = shPositions[i];
 		force += pairBodyForce( position, otherPosition );
 	}
 	return force;
 }
+
+#define TEST_SIZE 16
+
+float4 tileForce2( float4 position, uint threadId )
+{
+	float4 force = float4(0, 0, 0, 0);
+	float4 otherPosition = float4(0, 0, 0, 0);
+
+	threadId = threadId % TEST_SIZE;
+	for ( uint i = 0; i < BLOCK_SIZE - TEST_SIZE; ++i )
+	{
+		otherPosition = shPositions[i + threadId];
+		force += pairBodyForce( position, otherPosition );
+	}
+	
+	for ( uint j = 0; j < TEST_SIZE; ++j )
+	{
+		uint index = j + threadId + BLOCK_SIZE - TEST_SIZE;
+		index = j >= BLOCK_SIZE ? j - BLOCK_SIZE : j;
+		otherPosition = shPositions[index];
+		force += pairBodyForce( position, otherPosition );
+	}
+	
+	return force;
+}
+
+
 
 
 float4 calcRepulsionForce( float4 position, uint3 groupThreadID )
@@ -113,8 +145,9 @@ float4 calcRepulsionForce( float4 position, uint3 groupThreadID )
 		
 		GroupMemoryBarrierWithGroupSync();
 		
-		force += tileForce( position );
-		
+		force += tileForce( position, groupThreadID.x );
+	//	force += tileForce2( position, groupThreadID.x );
+
 		GroupMemoryBarrierWithGroupSync();
 	}
 	return force;
@@ -157,7 +190,7 @@ void CSMain(
 	float4 force = float4( 0, 0, 0, 0 );
 
 #ifdef EULER
-	force = mul( calcRepulsionForce( pos, groupThreadID ), pos.w ); // we multiply by this particle's charge here once
+	force = mul( calcRepulsionForce( pos, groupThreadID ), 10000.0f * pos.w ); // we multiply by all the constants here once
 #ifdef LINKS
 	force += calcLinksForce ( pos, id, p.LinksPtr, p.LinksCount );
 #endif // LINKS
@@ -170,7 +203,7 @@ void CSMain(
 #endif // RUNGE_KUTTA
 
 	// add potential well:
-//	force += mul( 0.00005f*length(pos.xyz), -pos.xyz );
+//	force.xyz += mul( 0.00005f*length(pos.xyz), -pos.xyz );
 
 	float3 accel = mul( force.xyz, 1/p.Mass );
 
@@ -211,8 +244,6 @@ void CSMain(
 
 #ifdef REDUCTION
 
-#define WARP_SIZE 16
-#define HALF_BLOCK BLOCK_SIZE/2
 
 #if 0
 [numthreads( BLOCK_SIZE, 1, 1 )]
