@@ -344,8 +344,8 @@ void CSMain(
 	PARTICLE3D p2 = particleReadBuffer[ id + HALF_BLOCK ];
 	float energy1 = p1.Energy;
 	float energy2 = p2.Energy;
-	float forceSq1 = p1.Force.x*p1.Force.x + p1.Force.y*p1.Force.y + p1.Force.z*p1.Force.z;
-	float forceSq2 = p2.Force.x*p2.Force.x + p2.Force.y*p2.Force.y + p2.Force.z*p2.Force.z;
+	float forceSq1 = - (p1.Force.x*p1.Force.x + p1.Force.y*p1.Force.y + p1.Force.z*p1.Force.z);
+	float forceSq2 = - (p2.Force.x*p2.Force.x + p2.Force.y*p2.Force.y + p2.Force.z*p2.Force.z);
 
 	sh_energy[groupIndex] = float4( energy1 + energy2, forceSq1 + forceSq2, 0, 0 );
 	GroupMemoryBarrierWithGroupSync();

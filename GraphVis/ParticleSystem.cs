@@ -679,6 +679,8 @@ namespace GraphVis {
 		{
 			var device	=	Game.GraphicsDevice;
 			var cam = Game.GetService<Camera>();
+			float deltaEnergy = 0;
+
 
 			if ( simulationBufferSrc != null ) {
 				
@@ -707,7 +709,7 @@ namespace GraphVis {
 //				StreamWriter writer = File.AppendText( "../../../energyVsStepNum.csv" );
 
 				if ( state == State.RUN ) {
-					for ( int i = 0; i < 25; ++i )
+					for ( int i = 0; i < 10; ++i )
 					{
 
 						param.DeltaTime = 0.1f*timeStepFactor;
@@ -759,11 +761,12 @@ namespace GraphVis {
 						}
 			
 						float prevEnergy = energy;
+						
 						if ( injectionBufferCPU.Length > 0 ) {
 							calcExtremeValues(injectionBufferCPU);
 						}
-				
-						if ( energy - prevEnergy > 0.01f )
+						deltaEnergy = energy - prevEnergy;
+						if ( deltaEnergy > 0.01f )
 						{
 							progress = 0;
 						}
@@ -773,8 +776,8 @@ namespace GraphVis {
 						}
 
 						//////////////////////////////
-			//			float changeCoef = 0.95f;
-						float changeCoef = 1.0f;
+						float changeCoef = 0.95f;
+			//			float changeCoef = 1.0f;
 						//////////////////////////////
 
 						if ( progress >= 4 )
@@ -875,10 +878,11 @@ namespace GraphVis {
 			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
 			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
-			debStr.Add( Color.Aqua, "TimeStep factor = " + timeStepFactor );
-			debStr.Add( Color.Aqua, "Energy = " + energy );
-			debStr.Add( Color.Aqua, "pTp = " + pTp );
-			debStr.Add( Color.Aqua, "Iteration = " + numIterations );
+			debStr.Add( Color.Aqua, "TimeStep factor  = " + timeStepFactor );
+			debStr.Add( Color.Aqua, "Energy           = " + energy );
+			debStr.Add( Color.Aqua, "DeltaEnergy      = " + deltaEnergy );
+			debStr.Add( Color.Aqua, "pTp              = " + pTp );
+			debStr.Add( Color.Aqua, "Iteration        = " + numIterations );
 
 			/*
 			if ( linkList.Count > 0 && ParticleList.Count > 0 ) {
