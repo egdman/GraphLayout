@@ -70,7 +70,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	256;
 
-		const int	MaxInjectingParticles	=	1024;
+		const int	MaxInjectingParticles	=	4096;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -81,8 +81,8 @@ namespace GraphVis {
 
 		Particle3d[]		injectionBufferCPU;
 
-		StructuredBuffer	simulationBufferSrc;
-		StructuredBuffer	simulationBufferDst;
+		StructuredBuffer	currentStateBuffer;
+		StructuredBuffer	nextStateBuffer;
 		StructuredBuffer	linksPtrBuffer;
 		StructuredBuffer	enegryBuffer;
 		LinkId[]			linksPtrBufferCPU;
@@ -100,7 +100,7 @@ namespace GraphVis {
 
 		float maxAcc;
 		float maxVelo;
-		float timeStepFactor;
+		float stepLength;
 		float elapsedTime;
 		int	progress;
 		float energy;
@@ -224,7 +224,7 @@ namespace GraphVis {
 
 			maxAcc				=	0;
 			maxVelo				=	0;
-			timeStepFactor		=	1.0f;
+			stepLength		=	1.0f;
 			progress			=	0;
 			numIterations		=	0;
 
@@ -513,8 +513,12 @@ namespace GraphVis {
 
 		
 			
-			if ( simulationBufferSrc != null ) {
-				simulationBufferSrc.Dispose();
+			if ( currentStateBuffer != null ) {
+				currentStateBuffer.Dispose();
+			}
+
+			if ( nextStateBuffer != null ) {
+				nextStateBuffer.Dispose();
 			}
 
 			if ( linksBuffer != null ) {
@@ -526,13 +530,14 @@ namespace GraphVis {
 			}
 
 			if ( enegryBuffer != null ) {
-					enegryBuffer.Dispose();
+				enegryBuffer.Dispose();
 			}
 			
 
 			if ( injectionBufferCPU.Length != 0 ) {
-				simulationBufferSrc	= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	injectionBufferCPU.Length, StructuredBufferFlags.Counter );
-				simulationBufferSrc.SetData(injectionBufferCPU);
+				currentStateBuffer	= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	injectionBufferCPU.Length, StructuredBufferFlags.Counter );
+				nextStateBuffer		= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	injectionBufferCPU.Length, StructuredBufferFlags.Counter );
+				currentStateBuffer.SetData(injectionBufferCPU);
 				enegryBuffer = new StructuredBuffer (
 							Game.GraphicsDevice,
 							typeof(Vector4),
@@ -575,7 +580,7 @@ namespace GraphVis {
 			state = State.RUN;
 			maxAcc = 0;
 			maxVelo	= 0;
-			timeStepFactor = 1;
+			stepLength = 0.1f;
 			elapsedTime = 0;
 			progress = 0;
 			numIterations = 0;
@@ -594,8 +599,12 @@ namespace GraphVis {
 			if (disposing) {
 				paramsCB.Dispose();
 
-				if ( simulationBufferSrc != null ) {
-					simulationBufferSrc.Dispose();
+				if ( currentStateBuffer != null ) {
+					currentStateBuffer.Dispose();
+				}
+
+				if ( nextStateBuffer != null ) {
+					nextStateBuffer.Dispose();
 				}
 				if ( linksBuffer != null ) {
 					linksBuffer.Dispose();
@@ -611,6 +620,9 @@ namespace GraphVis {
 
 				if ( enegryBuffer != null ) {
 					enegryBuffer.Dispose();
+				}
+				if ( texture != null ) {
+					texture.Dispose();
 				}
 			}
 			base.Dispose( disposing );
@@ -642,9 +654,9 @@ namespace GraphVis {
 		/// </summary>
 		void SwapParticleBuffers ()
 		{
-			var temp = simulationBufferDst;
-			simulationBufferDst = simulationBufferSrc;
-			simulationBufferSrc = temp;
+			var temp = nextStateBuffer;
+			nextStateBuffer = currentStateBuffer;
+			currentStateBuffer = temp;
 		}
 
 
@@ -682,7 +694,7 @@ namespace GraphVis {
 			float deltaEnergy = 0;
 
 
-			if ( simulationBufferSrc != null ) {
+			if ( currentStateBuffer != null ) {
 				
 				
 				Params param = new Params();
@@ -691,7 +703,7 @@ namespace GraphVis {
 				param.Projection	=	cam.GetProjectionMatrix( stereoEye );
 				param.MaxParticles	=	0;
 	//			param.DeltaTime		=	gameTime.ElapsedSec*timeStepFactor;
-				param.DeltaTime		=	0.1f*timeStepFactor;
+				param.DeltaTime		=	stepLength;
 				param.LinkSize		=	linkSize;
 
 
@@ -709,14 +721,14 @@ namespace GraphVis {
 //				StreamWriter writer = File.AppendText( "../../../energyVsStepNum.csv" );
 
 				if ( state == State.RUN ) {
-					for ( int i = 0; i < 10; ++i )
+					for ( int i = 0; i < 1; ++i )
 					{
 
-						param.DeltaTime = 0.1f*timeStepFactor;
+						param.DeltaTime = stepLength;
 						paramsCB.SetData( param );
 
-						// calculate accelerations: ---------------------------------------------------
-						device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
+						// calculate forces and energies: ---------------------------------------------------
+						device.SetCSRWBuffer( 0, currentStateBuffer, MaxSimulatedParticles );
 						device.ComputeShaderResources[2] = linksPtrBuffer;
 						device.ComputeShaderResources[3] = linksBuffer;
 						device.ComputeShaderConstants[0] = paramsCB;
@@ -726,7 +738,9 @@ namespace GraphVis {
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
 
 						// move particles: ------------------------------------------------------------
-						device.SetCSRWBuffer( 0, simulationBufferSrc, MaxSimulatedParticles );
+						device.SetCSRWBuffer( 0, null );
+						device.ComputeShaderResources[1] = currentStateBuffer;
+						device.SetCSRWBuffer( 0, nextStateBuffer, MaxSimulatedParticles );
 
 						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE];
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
@@ -739,14 +753,18 @@ namespace GraphVis {
 #if true
 						// calculate energies in thread blocks:
 						device.SetCSRWBuffer( 0, null ); // unbind from UAV
-						device.ComputeShaderResources[1] = simulationBufferSrc; // bind to SRV
+						device.ComputeShaderResources[1] = nextStateBuffer; // bind to SRV
 						device.SetCSRWBuffer( 1, enegryBuffer, MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
 
 						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
 						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
 #endif
 						
-
+						// Swap buffers: ----------------------------
+						var tmp = currentStateBuffer;
+						currentStateBuffer = nextStateBuffer;
+						nextStateBuffer = tmp;
+						// ------------------------------------------
 					
 						// ------------------------------------------------------------------------------------
 #if true				
@@ -757,7 +775,7 @@ namespace GraphVis {
 						enegryBuffer.GetData( energyBufferCPU );
 
 						if ( injectionBufferCPU == null ) {
-							injectionBufferCPU = new Particle3d[simulationBufferSrc.GetStructureCount()];
+							injectionBufferCPU = new Particle3d[currentStateBuffer.GetStructureCount()];
 						}
 			
 						float prevEnergy = energy;
@@ -776,24 +794,24 @@ namespace GraphVis {
 						}
 
 						//////////////////////////////
-						float changeCoef = 0.95f;
+						float changeCoef = 0.99f;
 			//			float changeCoef = 1.0f;
 						//////////////////////////////
 
 						if ( progress >= 4 )
 						{
-							timeStepFactor /= changeCoef;
+							stepLength /= changeCoef;
 							progress = 0;
 						}
 						else if ( progress == 0 )
 						{
-							if ( timeStepFactor < 1 )
+							if ( stepLength < 0.1f )
 							{
-								timeStepFactor = 1;
+								stepLength = 0.1f;
 							}
 							else
 							{
-								timeStepFactor *= changeCoef;
+								stepLength *= changeCoef;
 							}
 						}
 				
@@ -844,7 +862,7 @@ namespace GraphVis {
 				device.SetCSRWBuffer( 0, null );
 
 				device.PixelShaderResources[0] = texture;
-				device.GeometryShaderResources[1] = simulationBufferSrc;
+				device.GeometryShaderResources[1] = currentStateBuffer;
 
 			
 
@@ -854,7 +872,7 @@ namespace GraphVis {
 				// draw lines: --------------------------------------------------------------------------
 				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
 			
-				device.GeometryShaderResources[1] = simulationBufferSrc;
+				device.GeometryShaderResources[1] = currentStateBuffer;
 				device.GeometryShaderResources[3] = linksBuffer;
 
 				device.Draw( linkList.Count, 0 );
@@ -878,11 +896,16 @@ namespace GraphVis {
 			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
 			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
-			debStr.Add( Color.Aqua, "TimeStep factor  = " + timeStepFactor );
+			debStr.Add( Color.Aqua, "TimeStep factor  = " + stepLength );
 			debStr.Add( Color.Aqua, "Energy           = " + energy );
 			debStr.Add( Color.Aqua, "DeltaEnergy      = " + deltaEnergy );
 			debStr.Add( Color.Aqua, "pTp              = " + pTp );
 			debStr.Add( Color.Aqua, "Iteration        = " + numIterations );
+			if ( deltaEnergy <= pTp * 0.1f * stepLength ) {
+				debStr.Add( Color.Aqua, "Condition #1:  TRUE" );
+			} else {
+				debStr.Add( Color.Aqua, "Condition #1:  FALSE" );
+			}
 
 			/*
 			if ( linkList.Count > 0 && ParticleList.Count > 0 ) {

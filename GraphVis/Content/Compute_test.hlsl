@@ -64,6 +64,7 @@ StructuredBuffer<Link>				linksBuffer			:	register(t3);
 #ifdef COMPUTE
 
 groupshared float4 shPositions[BLOCK_SIZE];
+//groupshared float sh_energy[4*BLOCK_SIZE];
 groupshared float4 sh_energy[BLOCK_SIZE];
 
 
@@ -237,7 +238,7 @@ void CSMain(
 	uint id = dispatchThreadID.x;
 
 	if (id < Params.MaxParticles) {
-		PARTICLE3D p = particleReadBuffer[ id ];
+		PARTICLE3D p = particleRWBuffer[ id ];
 		
 //		p.Position.xyz += mul( p.Velocity, Params.DeltaTime );
 //		p.Velocity += mul( p.Force, Params.DeltaTime );
@@ -251,6 +252,200 @@ void CSMain(
 
 
 #ifdef REDUCTION
+
+
+#if 0
+[numthreads( BLOCK_SIZE, 1, 1 )]
+void CSMain( 
+	uint3 groupID			: SV_GroupID,
+	uint3 groupThreadID 	: SV_GroupThreadID, 
+	uint3 dispatchThreadID 	: SV_DispatchThreadID,
+	uint  groupIndex 		: SV_GroupIndex
+)
+{
+	int id = dispatchThreadID.x;
+	sh_energy[groupIndex] = 0;
+
+	if (id < Params.MaxParticles) {
+		PARTICLE3D p = particleReadBuffer[ id ];
+		float scalarAcc = length(p.Force);
+
+		scalarAcc *= scalarAcc;
+		sh_energy[groupIndex] = scalarAcc * p.Mass * p.Mass;
+	}
+	GroupMemoryBarrierWithGroupSync();
+
+
+	/*
+	// with divergence ( working threads are 0, 2, 4 ... when s = 1 )
+	for ( unsigned int s = 1; s < BLOCK_SIZE; s *= 2 )
+	{
+		if ( groupIndex%(2*s) == 0 )
+		{
+			sh_energy[groupIndex] += sh_energy[groupIndex + s];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+	if( groupIndex == 0 )
+	{
+		energyRWBuffer[groupID.x] = sh_energy[0];
+	}
+	*/
+
+	/*
+	// without divergence
+	for ( unsigned int s = 1; s < BLOCK_SIZE; s *= 2 )
+	{
+		int index = 2 * s * groupIndex;
+		if ( index < BLOCK_SIZE )
+		{
+			sh_energy[index] += sh_energy[index + s];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+	if( groupIndex == 0 )
+	{
+		energyRWBuffer[groupID.x] = sh_energy[0];
+	}
+	*/
+
+	
+	// sequential addressing without bank conflicts and without divergence:
+	for ( unsigned int s = BLOCK_SIZE/2; s > 0; s >>= 1 )
+	{
+		if ( groupIndex < s )
+		{
+			sh_energy[groupIndex] += sh_energy[groupIndex + s];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+	if( groupIndex == 0 )
+	{
+		energyRWBuffer[groupID.x] = sh_energy[0];
+	}
+	
+}
+#endif
+
+
+#if 0
+[numthreads( HALF_BLOCK, 1, 1 )]
+void CSMain( 
+	uint3 groupID			: SV_GroupID,
+	uint3 groupThreadID 	: SV_GroupThreadID, 
+	uint3 dispatchThreadID 	: SV_DispatchThreadID,
+	uint  groupIndex 		: SV_GroupIndex
+)
+{
+//	int id = dispatchThreadID.x;
+	int id = groupID.x*BLOCK_SIZE + groupIndex;
+
+	// load data into shared memory:
+	PARTICLE3D p1 = particleReadBuffer[ id ];
+	PARTICLE3D p2 = particleReadBuffer[ id + HALF_BLOCK ];
+	float energy1 = p1.Energy;
+	float energy2 = p2.Energy;
+	float forceSq1 = - (p1.Force.x*p1.Force.x + p1.Force.y*p1.Force.y + p1.Force.z*p1.Force.z);
+	float forceSq2 = - (p2.Force.x*p2.Force.x + p2.Force.y*p2.Force.y + p2.Force.z*p2.Force.z);
+
+	sh_energy[groupIndex]					= energy1 + energy2;
+	sh_energy[groupIndex +   BLOCK_SIZE]	= forceSq1 + forceSq2;
+	sh_energy[groupIndex + 2*BLOCK_SIZE]	= 0;
+	sh_energy[groupIndex + 3*BLOCK_SIZE]	= 0;
+
+	GroupMemoryBarrierWithGroupSync();
+
+#if 0
+	// partial unroll:
+	for ( unsigned int s = BLOCK_SIZE/4; s > WARP_SIZE; s >>= 1 )
+	{
+		if ( groupIndex < s )
+		{
+			sh_energy[groupIndex] += sh_energy[groupIndex + s];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( groupIndex < WARP_SIZE )
+	{
+		sh_energy[groupIndex] += sh_energy[groupIndex + 16];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 8];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 4];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 2];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 1];
+	}
+#endif
+
+//#if 0
+
+	// full unroll:
+	if ( HALF_BLOCK >= 512 )
+	{
+		if ( groupIndex < 256 ) {
+			sh_energy[groupIndex]				+= sh_energy[groupIndex + 256];
+			sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 256];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 256 )
+	{
+		if ( groupIndex < 128 ) {
+			sh_energy[groupIndex]				+= sh_energy[groupIndex + 128];
+			sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 128];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 128 )
+	{
+		if ( groupIndex < 64 ) {
+			sh_energy[groupIndex]				+= sh_energy[groupIndex + 64];
+			sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 64];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 64 )
+	{
+		if ( groupIndex < 32 ) {
+			sh_energy[groupIndex]				+= sh_energy[groupIndex + 32];
+			sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 32];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( groupIndex < 16 )
+	{
+		sh_energy[groupIndex]				+= sh_energy[groupIndex + 16];
+		sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 16];
+
+		sh_energy[groupIndex]				+= sh_energy[groupIndex + 8];
+		sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 8];
+
+		sh_energy[groupIndex]				+= sh_energy[groupIndex + 4];
+		sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 4];
+
+		sh_energy[groupIndex]				+= sh_energy[groupIndex + 2];
+		sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 2];
+
+		sh_energy[groupIndex]				+= sh_energy[groupIndex + 1];
+		sh_energy[groupIndex + BLOCK_SIZE]	+= sh_energy[groupIndex + BLOCK_SIZE + 1];
+
+	}
+
+
+//#endif
+
+	if( groupIndex == 0 )
+	{
+		energyRWBuffer[groupID.x] = sh_energy[0];
+		energyRWBuffer[groupID.x + BLOCK_SIZE] = sh_energy[BLOCK_SIZE];
+	}
+
+}
+#endif
+
 
 [numthreads( HALF_BLOCK, 1, 1 )]
 void CSMain( 
@@ -273,6 +468,29 @@ void CSMain(
 
 	sh_energy[groupIndex] = float4( energy1 + energy2, forceSq1 + forceSq2, 0, 0 );
 	GroupMemoryBarrierWithGroupSync();
+
+#if 0
+	// partial unroll:
+	for ( unsigned int s = BLOCK_SIZE/4; s > WARP_SIZE; s >>= 1 )
+	{
+		if ( groupIndex < s )
+		{
+			sh_energy[groupIndex] += sh_energy[groupIndex + s];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( groupIndex < WARP_SIZE )
+	{
+		sh_energy[groupIndex] += sh_energy[groupIndex + 16];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 8];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 4];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 2];
+		sh_energy[groupIndex] += sh_energy[groupIndex + 1];
+	}
+#endif
+
+//#if 0
 
 	// full unroll:
 	if ( HALF_BLOCK >= 512 )
@@ -308,6 +526,8 @@ void CSMain(
 	/*	if ( BLOCK_SIZE >=  2 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  1]; }
 	}
 
+
+//#endif
 
 	if( groupIndex == 0 )
 	{
