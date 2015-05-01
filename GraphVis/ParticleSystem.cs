@@ -659,11 +659,13 @@ namespace GraphVis {
 			bool cond1 = false;
 			bool cond2 = false;
 
+			float chosenStepLength = 0;
+
 			// Wolfe constants:
 			float C1 = 0.4f;
 			float C2 = 0.95f;
 
-			stepLength = 0.1f;
+//			stepLength = 0.1f;
 
 			//  1. Calc descent vector pk
 			//  2. calc pk * grad(Ek)
@@ -694,39 +696,52 @@ namespace GraphVis {
 				if ( state == State.RUN ) {
 					for ( int i = 0; i < 1; ++i )
 					{
-
-						calcDescentVector( device, currentStateBuffer, param ); // calc desc vector and energies
-						
+		
 						float Ek	= 0;
 						float Ek1	= 0;
 
 						float pkGradEk	= 0;
 						float pkGradEk1	= 0;
 
-						calcTotalEnergyAndDotProduct( device, currentStateBuffer, currentStateBuffer,
-								enegryBuffer, param, out Ek, out pkGradEk );
+						cond1 = false;
+						cond2 = false;
 
-						param.StepLength = stepLength;
+						while ( !(cond1 && cond2) )
+						{
+							calcDescentVector( device, currentStateBuffer, param ); // calc desc vector and energies
+							calcTotalEnergyAndDotProduct( device, currentStateBuffer, currentStateBuffer,
+									enegryBuffer, param, out Ek, out pkGradEk );
 
-						moveVertices( device, currentStateBuffer, nextStateBuffer, param );
-						calcDescentVector( device, nextStateBuffer, param ); // calc energies
+							param.StepLength = stepLength;
 
-						calcTotalEnergyAndDotProduct( device, currentStateBuffer, nextStateBuffer,
-								enegryBuffer, param, out Ek1, out pkGradEk1 );
+							moveVertices( device, currentStateBuffer, nextStateBuffer, param );
+							calcDescentVector( device, nextStateBuffer, param ); // calc energies
 
-						// check Wolfe conditions:
-						cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk )	? true : false;
-						cond2 = ( pkGradEk1 >= C2 * pkGradEk )				? true : false;
+							calcTotalEnergyAndDotProduct( device, currentStateBuffer, nextStateBuffer,
+									enegryBuffer, param, out Ek1, out pkGradEk1 );
 
-						// swap buffers: --------------------------------------------------------------------
-						var temp = currentStateBuffer;
-						currentStateBuffer = nextStateBuffer;
-						nextStateBuffer = temp;
+							// check Wolfe conditions:
+							cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk )	? true : false;
+							cond2 = ( pkGradEk1 >= C2 * pkGradEk )				? true : false;
 
+							if (  cond1 && !cond2 ) { stepLength *= 1.5f; }
+							if ( !cond1 && !cond2 ) { stepLength *= 1.5f; }
+							if ( !cond1 &&  cond2 ) { stepLength /= 1.5f; }
+						}
 
+						if ( cond1 && cond2 )
+						{
+							// swap buffers: --------------------------------------------------------------------
+							var temp = currentStateBuffer;
+							currentStateBuffer = nextStateBuffer;
+							nextStateBuffer = temp;
+							chosenStepLength = stepLength;
+							stepLength = 0.1f;
+						}
 						energy = Ek;
 						deltaEnergy = Ek1 - Ek;
 						pGradE = pkGradEk;
+						++numIterations;
 
 //						paramsCB.SetData( param );
 
@@ -878,7 +893,7 @@ namespace GraphVis {
 			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
 			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
-			debStr.Add( Color.Aqua, "TimeStep factor  = " + stepLength );
+			debStr.Add( Color.Aqua, "Step factor  = " + chosenStepLength );
 			debStr.Add( Color.Aqua, "Energy           = " + energy );
 			debStr.Add( Color.Aqua, "DeltaEnergy      = " + deltaEnergy );
 			debStr.Add( Color.Aqua, "pTp              = " + pGradE );
