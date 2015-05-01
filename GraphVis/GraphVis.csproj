@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OrbitCamera.cs" />
     <Compile Include="GraphVis.cs" />
     <Compile Include="ParticleSystem.cs" />
     <Compile Include="Program.cs" />

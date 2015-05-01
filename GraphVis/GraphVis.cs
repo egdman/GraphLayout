@@ -35,7 +35,8 @@ namespace GraphVis
 
 			//	add here additional services :
 			AddService(new Camera(this), true, false, 9997, 9997);
-			AddService(new ParticleSystem(this), true, true, 9996, 9996);
+			AddService(new OrbitCamera(this), true, false, 9996, 9996 );
+			AddService(new ParticleSystem(this), true, true, 9995, 9995);
 
 
 			//	add here additional services :

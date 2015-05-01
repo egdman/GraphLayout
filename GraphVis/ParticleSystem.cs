@@ -61,6 +61,7 @@ namespace GraphVis {
 
 		[Config]
 		public ParticleConfig cfg{ get; set; }
+		public const float WorldRaduis = 50.0f; // in meters
 
 		Texture2D	texture;
 		Ubershader	shader;
@@ -70,7 +71,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	256;
 
-		const int	MaxInjectingParticles	=	4096;
+		const int	MaxInjectingParticles	=	1024;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -421,7 +422,7 @@ namespace GraphVis {
 
 		void addChain( int N, bool linked )
 		{
-			Vector3 pos = new Vector3( 0, 0, -400);	
+			Vector3 pos = new Vector3( 0, 0, 0);	
 			for ( int i = 0; i < N; ++i ) {			
 				addParticle( pos, 9999, particleSize, 1.0f );
 				pos += RadialRandomVector() * linkSize;
@@ -655,15 +656,15 @@ namespace GraphVis {
 		public override void Draw ( GameTime gameTime, Fusion.Graphics.StereoEye stereoEye )
 		{
 			var device	=	Game.GraphicsDevice;
-			var cam = Game.GetService<Camera>();
+			var cam = Game.GetService<OrbitCamera>();
 			bool cond1 = false;
 			bool cond2 = false;
 
 			float chosenStepLength = 0;
 
 			// Wolfe constants:
-			float C1 = 0.4f;
-			float C2 = 0.95f;
+			float C1 = 0.9f;
+			float C2 = 0.99f;
 
 //			stepLength = 0.1f;
 
@@ -694,6 +695,7 @@ namespace GraphVis {
 				param.MaxParticles	=	MaxSimulatedParticles;
 
 				if ( state == State.RUN ) {
+
 					for ( int i = 0; i < 1; ++i )
 					{
 		
@@ -721,12 +723,13 @@ namespace GraphVis {
 									enegryBuffer, param, out Ek1, out pkGradEk1 );
 
 							// check Wolfe conditions:
-							cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk )	? true : false;
-							cond2 = ( pkGradEk1 >= C2 * pkGradEk )				? true : false;
+							cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk );
+							cond2 = ( pkGradEk1 >= C2 * pkGradEk );
 
-							if (  cond1 && !cond2 ) { stepLength *= 1.5f; }
-							if ( !cond1 && !cond2 ) { stepLength *= 1.5f; }
-							if ( !cond1 &&  cond2 ) { stepLength /= 1.5f; }
+							// change step length factor:
+							if (  cond1 && !cond2 ) { stepLength *= 1.9f; }
+							if ( !cond1 && !cond2 ) { stepLength *= 1.9f; }
+							if ( !cond1 &&  cond2 ) { stepLength /= 1.9f; }
 						}
 
 						if ( cond1 && cond2 )
@@ -736,6 +739,7 @@ namespace GraphVis {
 							currentStateBuffer = nextStateBuffer;
 							nextStateBuffer = temp;
 							chosenStepLength = stepLength;
+							// Reset step length factor:
 							stepLength = 0.1f;
 						}
 						energy = Ek;
@@ -853,39 +857,14 @@ namespace GraphVis {
 //						}
 //#endif
 					}
-				
-	
 				}
-
-//				writer.Close();
-				// ------------------------------------------------------------------------------------
-				device.ResetStates();
-				device.SetTargets( null, device.BackbufferColor );
-				paramsCB.SetData(param);
-
-				//	Render: ---------------------------------------------------------------------------
-				device.ComputeShaderConstants	[0] = paramsCB;
-				device.VertexShaderConstants	[0] = paramsCB;
-				device.GeometryShaderConstants	[0] = paramsCB;
-				device.PixelShaderConstants		[0] = paramsCB;
-
-				device.PixelShaderSamplers		[0] = SamplerState.LinearWrap;
-			
-				// draw points: ------------------------------------------------------------------------
-				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.POINT];
-				device.SetCSRWBuffer( 0, null );
-				device.PixelShaderResources[0] = texture;
-				device.GeometryShaderResources[1] = currentStateBuffer;
-				device.Draw( ParticleList.Count, 0 );
-						
-				// draw lines: --------------------------------------------------------------------------
-				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
-				device.GeometryShaderResources[1] = currentStateBuffer;
-				device.GeometryShaderResources[3] = linksBuffer;
-				device.Draw( linkList.Count, 0 );		
 			}
-			// --------------------------------------------------------------------------------------
+
+
+			// Render: ------------------------------------------------------------------
+			render( device, param );
 			
+			// Debug output: ------------------------------------------------------------
 			var debStr = Game.GetService<DebugStrings>();
 
 			debStr.Add("Press Z to start simulation");
@@ -909,10 +888,42 @@ namespace GraphVis {
 				debStr.Add( Color.Aqua, "Condition #2:  FALSE" );
 			}
 
-
 			base.Draw( gameTime, stereoEye );
 		}
+
 		
+
+
+		void render( GraphicsDevice device, Params parameters )
+		{
+			// ------------------------------------------------------------------------------------
+				device.ResetStates();
+				device.SetTargets( null, device.BackbufferColor );
+				paramsCB.SetData(parameters);
+
+				//	Render: ---------------------------------------------------------------------------
+				device.ComputeShaderConstants	[0] = paramsCB;
+				device.VertexShaderConstants	[0] = paramsCB;
+				device.GeometryShaderConstants	[0] = paramsCB;
+				device.PixelShaderConstants		[0] = paramsCB;
+
+				device.PixelShaderSamplers		[0] = SamplerState.LinearWrap;
+			
+				// draw points: ------------------------------------------------------------------------
+				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.POINT];
+				device.SetCSRWBuffer( 0, null );
+				device.PixelShaderResources[0] = texture;
+				device.GeometryShaderResources[1] = currentStateBuffer;
+				device.Draw( ParticleList.Count, 0 );
+						
+				// draw lines: --------------------------------------------------------------------------
+				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
+				device.GeometryShaderResources[1] = currentStateBuffer;
+				device.GeometryShaderResources[3] = linksBuffer;
+				device.Draw( linkList.Count, 0 );		
+		}
+
+
 
 		/// <summary>
 		/// This function calculates two values:
