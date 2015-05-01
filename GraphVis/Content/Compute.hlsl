@@ -266,14 +266,22 @@ void CSMain(
 	int id = groupID.x*BLOCK_SIZE + groupIndex;
 
 	// load data into shared memory:
-	PARTICLE3D p1 = particleReadBuffer[ id ];
-	PARTICLE3D p2 = particleReadBuffer[ id + HALF_BLOCK ];
-	float energy1 = p1.Energy;
-	float energy2 = p2.Energy;
-	float forceSq1 = - (p1.Force.x*p1.Force.x + p1.Force.y*p1.Force.y + p1.Force.z*p1.Force.z);
-	float forceSq2 = - (p2.Force.x*p2.Force.x + p2.Force.y*p2.Force.y + p2.Force.z*p2.Force.z);
+	PARTICLE3D p1curr = particleReadBuffer[ id ];
+	PARTICLE3D p2curr = particleReadBuffer[ id + HALF_BLOCK ];
 
-	sh_energy[groupIndex] = float4( energy1 + energy2, forceSq1 + forceSq2, 0, 0 );
+	PARTICLE3D p1next = particleReadBuffer2[ id ];
+	PARTICLE3D p2next = particleReadBuffer2[ id + HALF_BLOCK ];
+
+	float energy1 = p1next.Energy;
+	float energy2 = p2next.Energy;
+
+	float dotPr1 = - (p1curr.Force.x*p1next.Force.x + p1curr.Force.y*p1next.Force.y + p1curr.Force.z*p1next.Force.z);
+	float dotPr2 = - (p2curr.Force.x*p2next.Force.x + p2curr.Force.y*p2next.Force.y + p2curr.Force.z*p2next.Force.z);
+
+	//float forceSq1 = - (p1.Force.x*p1.Force.x + p1.Force.y*p1.Force.y + p1.Force.z*p1.Force.z);
+	//float forceSq2 = - (p2.Force.x*p2.Force.x + p2.Force.y*p2.Force.y + p2.Force.z*p2.Force.z);
+
+	sh_energy[groupIndex] = float4( energy1 + energy2, dotPr1 + dotPr2, 0, 0 );
 	GroupMemoryBarrierWithGroupSync();
 
 	// full unroll:

@@ -104,6 +104,7 @@ namespace GraphVis {
 		float elapsedTime;
 		int	progress;
 		float energy;
+		float deltaEnergy;
 		float pGradE;
 
 		uint numIterations;
@@ -172,7 +173,7 @@ namespace GraphVis {
 			[FieldOffset(  0)] public Matrix	View;
 			[FieldOffset( 64)] public Matrix	Projection;
 			[FieldOffset(128)] public uint		MaxParticles;
-			[FieldOffset(132)] public float		DeltaTime;
+			[FieldOffset(132)] public float		StepLength;
 			[FieldOffset(136)] public float		LinkSize;
 		} 
 
@@ -223,13 +224,13 @@ namespace GraphVis {
 
 			maxAcc				=	0;
 			maxVelo				=	0;
-			stepLength		=	1.0f;
+			stepLength			=	1.0f;
 			progress			=	0;
 			numIterations		=	0;
+			
 
 			base.Initialize();
 		}
-
 
 
 		public void Pause()
@@ -655,9 +656,16 @@ namespace GraphVis {
 		{
 			var device	=	Game.GraphicsDevice;
 			var cam = Game.GetService<Camera>();
-			float deltaEnergy = 0;
+			bool cond1 = false;
+			bool cond2 = false;
 
-			//  1. Calc desc dir pk
+			// Wolfe constants:
+			float C1 = 0.4f;
+			float C2 = 0.95f;
+
+			stepLength = 0.1f;
+
+			//  1. Calc descent vector pk
 			//  2. calc pk * grad(Ek)
 			//  3. calc Ek
 			//  4. try move with some step factor
@@ -671,132 +679,148 @@ namespace GraphVis {
 			// 12. GOTO 1
 			// 
 
+			Params param = new Params();
 
+			param.View			=	cam.GetViewMatrix( stereoEye );
+			param.Projection	=	cam.GetProjectionMatrix( stereoEye );
+			param.MaxParticles	=	0;
+
+			param.LinkSize		=	linkSize;
 
 			if ( currentStateBuffer != null ) {
-				
-				
-				Params param = new Params();
-
-				param.View			=	cam.GetViewMatrix( stereoEye );
-				param.Projection	=	cam.GetProjectionMatrix( stereoEye );
-				param.MaxParticles	=	0;
-	//			param.DeltaTime		=	gameTime.ElapsedSec*timeStepFactor;
-				param.DeltaTime		=	stepLength;
-				param.LinkSize		=	linkSize;
-
-
-				device.ComputeShaderConstants	[0] = paramsCB;
-				device.VertexShaderConstants	[0] = paramsCB;
-				device.GeometryShaderConstants	[0] = paramsCB;
-				device.PixelShaderConstants		[0] = paramsCB;
-			
-				//	Simulate : ------------------------------------------------------------------------
-				//
-
+						
 				param.MaxParticles	=	MaxSimulatedParticles;
-				paramsCB.SetData( param );
-
-//				StreamWriter writer = File.AppendText( "../../../energyVsStepNum.csv" );
 
 				if ( state == State.RUN ) {
 					for ( int i = 0; i < 1; ++i )
 					{
 
-						param.DeltaTime = stepLength;
-						paramsCB.SetData( param );
-
-						// calculate forces and energies: ---------------------------------------------------
-						device.SetCSRWBuffer( 0, currentStateBuffer, MaxSimulatedParticles );
-						device.ComputeShaderResources[2] = linksPtrBuffer;
-						device.ComputeShaderResources[3] = linksBuffer;
-						device.ComputeShaderConstants[0] = paramsCB;
-
-						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)Flags.EULER|(int)Flags.LINKS];
-
-						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-
-						// move particles: ------------------------------------------------------------
-						device.SetCSRWBuffer( 0, null );
-						device.ComputeShaderResources[1] = currentStateBuffer;
-						device.SetCSRWBuffer( 0, nextStateBuffer, MaxSimulatedParticles );
-
-						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE];
-						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-
-						elapsedTime += param.DeltaTime;
-						++numIterations;
-
-		//			}
-
-#if true
-						// calculate energies in thread blocks:
-						device.SetCSRWBuffer( 0, null ); // unbind from UAV
-						device.ComputeShaderResources[1] = nextStateBuffer; // bind to SRV
-						device.SetCSRWBuffer( 1, enegryBuffer, MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
-
-						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
-						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
-#endif
+						calcDescentVector( device, currentStateBuffer, param ); // calc desc vector and energies
 						
-						// Swap buffers: ----------------------------
-						var tmp = currentStateBuffer;
+						float Ek	= 0;
+						float Ek1	= 0;
+
+						float pkGradEk	= 0;
+						float pkGradEk1	= 0;
+
+						calcTotalEnergyAndDotProduct( device, currentStateBuffer, currentStateBuffer,
+								enegryBuffer, param, out Ek, out pkGradEk );
+
+						param.StepLength = stepLength;
+
+						moveVertices( device, currentStateBuffer, nextStateBuffer, param );
+						calcDescentVector( device, nextStateBuffer, param ); // calc energies
+
+						calcTotalEnergyAndDotProduct( device, currentStateBuffer, nextStateBuffer,
+								enegryBuffer, param, out Ek1, out pkGradEk1 );
+
+						// check Wolfe conditions:
+						cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk )	? true : false;
+						cond2 = ( pkGradEk1 >= C2 * pkGradEk )				? true : false;
+
+						// swap buffers: --------------------------------------------------------------------
+						var temp = currentStateBuffer;
 						currentStateBuffer = nextStateBuffer;
-						nextStateBuffer = tmp;
-						// ------------------------------------------
+						nextStateBuffer = temp;
+
+
+						energy = Ek;
+						deltaEnergy = Ek1 - Ek;
+						pGradE = pkGradEk;
+
+//						paramsCB.SetData( param );
+
+//						// calculate forces and energies: ---------------------------------------------------
+//						device.SetCSRWBuffer( 0, currentStateBuffer, MaxSimulatedParticles );
+//						device.ComputeShaderResources[2] = linksPtrBuffer;
+//						device.ComputeShaderResources[3] = linksBuffer;
+//						device.ComputeShaderConstants[0] = paramsCB;
+
+//						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)Flags.EULER|(int)Flags.LINKS];
+
+//						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
+
+//						// move particles: ------------------------------------------------------------
+//						device.SetCSRWBuffer( 0, null );
+//						device.ComputeShaderResources[1] = currentStateBuffer;
+//						device.SetCSRWBuffer( 0, nextStateBuffer, MaxSimulatedParticles );
+
+//						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE];
+//						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
+
+//						elapsedTime += param.StepLength;
+//						++numIterations;
+
+//		//			}
+
+//#if true
+//						// calculate energies in thread blocks:
+//						device.SetCSRWBuffer( 0, null ); // unbind from UAV
+//						device.ComputeShaderResources[1] = nextStateBuffer; // bind to SRV
+//						device.SetCSRWBuffer( 1, enegryBuffer, MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+
+//						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
+//						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+//#endif
+						
+//						// Swap buffers: ----------------------------
+//						var tmp = currentStateBuffer;
+//						currentStateBuffer = nextStateBuffer;
+//						nextStateBuffer = tmp;
+//						// ------------------------------------------
 					
-						//////////////////////////////
-						float stepChangeCoef = 0.9f;
-			//			float stepChangeCoef = 1.0f;
-						//////////////////////////////
+//						//////////////////////////////
+//						float stepChangeCoef = 0.9f;
+//			//			float stepChangeCoef = 1.0f;
+//						//////////////////////////////
 
 				
-						if ( energyBufferCPU == null ) {
-							energyBufferCPU = new Vector4[enegryBuffer.GetStructureCount()];
-						}
+//						if ( energyBufferCPU == null ) {
+//							energyBufferCPU = new Vector4[enegryBuffer.GetStructureCount()];
+//						}
 
-						enegryBuffer.GetData( energyBufferCPU );
+//						enegryBuffer.GetData( energyBufferCPU );
 
-						if ( injectionBufferCPU == null ) {
-							injectionBufferCPU = new Particle3d[currentStateBuffer.GetStructureCount()];
-						}
+//						if ( injectionBufferCPU == null ) {
+//							injectionBufferCPU = new Particle3d[currentStateBuffer.GetStructureCount()];
+//						}
 			
-						float prevEnergy = energy;
+//						float prevEnergy = energy;
 						
-						if ( injectionBufferCPU.Length > 0 ) {
-							calcExtremeValues(injectionBufferCPU);
-						}
+//						if ( injectionBufferCPU.Length > 0 ) {
+//							calcExtremeValues(injectionBufferCPU);
+//						}
 
-						deltaEnergy = energy - prevEnergy;
+//						deltaEnergy = energy - prevEnergy;
 
 
-						// ------------------------------------------------------------------------------------
-#if true
-						if ( deltaEnergy > 0.01f )
-						{
-							progress = 0;
-						}
-						else
-						{
-							++progress;
-						}
+//						// ------------------------------------------------------------------------------------
+//#if true
+//						if ( deltaEnergy > 0.01f )
+//						{
+//							progress = 0;
+//						}
+//						else
+//						{
+//							++progress;
+//						}
 
-						if ( progress >= 4 )
-						{
-							stepLength /= stepChangeCoef;
-							progress = 0;
-						}
-						else if ( progress == 0 )
-						{
-							if ( stepLength < 0.1f )
-							{
-								stepLength = 0.1f;
-							}
-							else
-							{
-								stepLength *= stepChangeCoef;
-							}
-						}
+//						if ( progress >= 4 )
+//						{
+//							stepLength /= stepChangeCoef;
+//							progress = 0;
+//						}
+//						else if ( progress == 0 )
+//						{
+//							if ( stepLength < 0.1f )
+//							{
+//								stepLength = 0.1f;
+//							}
+//							else
+//							{
+//								stepLength *= stepChangeCoef;
+//							}
+//						}
 
 				
 						// TERMINATION CONDITION CHECK --------------------------------------------------------
@@ -804,32 +828,27 @@ namespace GraphVis {
 			//				state = State.PAUSE;
 			//			}
 			//			writer.WriteLine( numIterations + "," + energy );
-#endif
-#if true			
-						if ( deltaEnergy <= pGradE * 0.001f * stepLength ) {
-							stepLength /= stepChangeCoef;
-						}
-						else {
-							stepLength *= stepChangeCoef;
-						}
-#endif
+//#endif
+//#if true			
+//						if ( deltaEnergy <= pGradE * 0.001f * stepLength ) {
+//							stepLength /= stepChangeCoef;
+//						}
+//						else {
+//							stepLength *= stepChangeCoef;
+//						}
+//#endif
 					}
 				
 	
 				}
 
-
-	//			if ( maxAcc > 0.1f ) {
-			//		timeStepFactor = 0.5f / maxAcc;
-	//				timeStepFactor = 20f / maxAcc;
-	//			}
-
 //				writer.Close();
 				// ------------------------------------------------------------------------------------
 				device.ResetStates();
 				device.SetTargets( null, device.BackbufferColor );
+				paramsCB.SetData(param);
+
 				//	Render: ---------------------------------------------------------------------------
-				//
 				device.ComputeShaderConstants	[0] = paramsCB;
 				device.VertexShaderConstants	[0] = paramsCB;
 				device.GeometryShaderConstants	[0] = paramsCB;
@@ -864,11 +883,17 @@ namespace GraphVis {
 			debStr.Add( Color.Aqua, "DeltaEnergy      = " + deltaEnergy );
 			debStr.Add( Color.Aqua, "pTp              = " + pGradE );
 			debStr.Add( Color.Aqua, "Iteration        = " + numIterations );
-			if ( deltaEnergy <= pGradE * 0.99f * stepLength ) {
+			if ( cond1 ) {
 				debStr.Add( Color.Aqua, "Condition #1:  TRUE" );	
 			} else {
 				debStr.Add( Color.Aqua, "Condition #1:  FALSE" );
 			}
+			if ( cond2 ) {
+				debStr.Add( Color.Aqua, "Condition #2:  TRUE" );	
+			} else {
+				debStr.Add( Color.Aqua, "Condition #2:  FALSE" );
+			}
+
 
 			base.Draw( gameTime, stereoEye );
 		}
@@ -956,6 +981,7 @@ namespace GraphVis {
 				energy	+= value.X;
 				pTgradE	+= value.Y;
 			}
+			energy /= 2; // because each pair is counted 2 times
 		}
 
 

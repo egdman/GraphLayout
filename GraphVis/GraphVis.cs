@@ -110,6 +110,11 @@ namespace GraphVis
 			{
 				Exit();
 			}
+			if ( e.Key == Keys.P )
+			{
+				var ps = GetService<ParticleSystem>();
+				ps.Pause();
+			}
 		}
 
 
