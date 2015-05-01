@@ -104,7 +104,7 @@ namespace GraphVis {
 		float elapsedTime;
 		int	progress;
 		float energy;
-		float pTp;
+		float pGradE;
 
 		uint numIterations;
 
@@ -205,7 +205,6 @@ namespace GraphVis {
 				plState.Primitive		= Primitive.PointList;
 			} );
 
-
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 	//		MaxParticleMass		=	cfg.Max_mass;
 	//		MinParticleMass		=	cfg.Min_mass;
@@ -282,7 +281,6 @@ namespace GraphVis {
 				}
 			}
 			setBuffers();
-
 		}
 
 
@@ -292,18 +290,13 @@ namespace GraphVis {
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-
 			addChain( 1000, false );
-
 			var dstrings = File.ReadAllLines(path);
-
             if (dstrings.Length > 0)
             {
-
                 for (int i = 0; i < dstrings.Length; i = i + 2)
                 {
                     string citName = dstrings[i];
-
                     string[] citations;
                     citations = dstrings[i + 1].Split(new Char[] { '\t', ' ', ',' });
 
@@ -311,16 +304,11 @@ namespace GraphVis {
                     {
                         if (cit != "")
                         {
-
                             addLink(int.Parse(citName), int.Parse(cit));
-
                         }
                     }
-
-
                 }
             }
-
 			setBuffers();
 		}
 
@@ -392,7 +380,6 @@ namespace GraphVis {
 
 			linkPtrLists[end2].Add(linkNumber);
 
-
 			// modify particles masses and sizes according to number of links:
 			Particle3d newPrt1 = ParticleList[end1];
 			Particle3d newPrt2 = ParticleList[end2];
@@ -420,6 +407,8 @@ namespace GraphVis {
 			}
 		}
 
+
+
 		public void AddChain()
 		{
 			ParticleList.Clear();
@@ -431,20 +420,16 @@ namespace GraphVis {
 
 		void addChain( int N, bool linked )
 		{
-			Vector3 pos = new Vector3( 0, 0, -400);
-			
-			for ( int i = 0; i < N; ++i ) {
-				
+			Vector3 pos = new Vector3( 0, 0, -400);	
+			for ( int i = 0; i < N; ++i ) {			
 				addParticle( pos, 9999, particleSize, 1.0f );
 				pos += RadialRandomVector() * linkSize;
-		//		pos += new Vector3( 1, 0, 0 ) * linkSize;
 			}
 			if ( linked ) {
 				for ( int i = 1; i < N; ++i ) {
 					addLink(i - 1, i);
 				}
 			}
-
 		}
 
 
@@ -510,9 +495,7 @@ namespace GraphVis {
 				injectionBufferCPU[iter].linksCount = blockSize;
 				++iter;
 			}
-
 		
-			
 			if ( currentStateBuffer != null ) {
 				currentStateBuffer.Dispose();
 			}
@@ -560,22 +543,6 @@ namespace GraphVis {
 							StructuredBufferFlags.Counter );
 				linksPtrBuffer.SetData(linksPtrBufferCPU);
 			}
-
-			/*
-			for ( int i = 0; i < ParticleList.Count; ++i ) {
-				var p = injectionBufferCPU[i];
-				Console.WriteLine( "particle #" + i + ":" );
-				for ( int lNum = 0; lNum < p.linksCount; ++lNum ) {
-					Particle3d end1 =  injectionBufferCPU[linksBufferCPU[linksPtrBufferCPU[p.linksPtr + lNum ].id].par1];
-					Particle3d end2 =  injectionBufferCPU[linksBufferCPU[linksPtrBufferCPU[p.linksPtr + lNum ].id].par2];
-					Console.WriteLine( "	link #" + lNum + ":" );
-			//		Console.WriteLine( "	end1:" +end1.Position.X + ", " + end1.Position.Y + ", " + end1.Position.Z);
-			//		Console.WriteLine( "	end2:" +end2.Position.X + ", " + end2.Position.Y + ", " + end2.Position.Z);
-					Console.WriteLine( "		" + linksBufferCPU[linksPtrBufferCPU[p.linksPtr + lNum ].id].par1 + ", " +
-					+linksBufferCPU[linksPtrBufferCPU[p.linksPtr + lNum ].id].par2);
-
-				} 
-			}*/
 
 			state = State.RUN;
 			maxAcc = 0;
@@ -646,9 +613,6 @@ namespace GraphVis {
 		//	ds.Add( Color.Yellow, "Particle array length: {0}", injectionBufferCPU == null ? "null" : injectionBufferCPU.Length.ToString() );
 		}
 
-
-
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -673,11 +637,11 @@ namespace GraphVis {
 			maxAcc = maxAcceleration;
 			maxVelo = maxVelocity;
 			energy = 0;
-			pTp	= 0;
+			pGradE	= 0;
 			foreach ( var en in energyBufferCPU )
 			{
 				energy	+= en.X;
-				pTp		+= en.Y;
+				pGradE	+= en.Y;
 			}
 		}
 
@@ -692,6 +656,21 @@ namespace GraphVis {
 			var device	=	Game.GraphicsDevice;
 			var cam = Game.GetService<Camera>();
 			float deltaEnergy = 0;
+
+			//  1. Calc desc dir pk
+			//  2. calc pk * grad(Ek)
+			//  3. calc Ek
+			//  4. try move with some step factor
+			//  5. calc pk * grad(Ek+1)
+ 			//  6. calc Ek+1
+			//  7. check Wolfe conditions
+			//  8. if both are OK GOTO 11
+			//  9. modify step factor
+			// 10. GOTO 4
+			// 11. swap try buffer with current buffer
+			// 12. GOTO 1
+			// 
+
 
 
 			if ( currentStateBuffer != null ) {
@@ -766,8 +745,12 @@ namespace GraphVis {
 						nextStateBuffer = tmp;
 						// ------------------------------------------
 					
-						// ------------------------------------------------------------------------------------
-#if true				
+						//////////////////////////////
+						float stepChangeCoef = 0.9f;
+			//			float stepChangeCoef = 1.0f;
+						//////////////////////////////
+
+				
 						if ( energyBufferCPU == null ) {
 							energyBufferCPU = new Vector4[enegryBuffer.GetStructureCount()];
 						}
@@ -783,7 +766,12 @@ namespace GraphVis {
 						if ( injectionBufferCPU.Length > 0 ) {
 							calcExtremeValues(injectionBufferCPU);
 						}
+
 						deltaEnergy = energy - prevEnergy;
+
+
+						// ------------------------------------------------------------------------------------
+#if true
 						if ( deltaEnergy > 0.01f )
 						{
 							progress = 0;
@@ -793,14 +781,9 @@ namespace GraphVis {
 							++progress;
 						}
 
-						//////////////////////////////
-						float changeCoef = 0.99f;
-			//			float changeCoef = 1.0f;
-						//////////////////////////////
-
 						if ( progress >= 4 )
 						{
-							stepLength /= changeCoef;
+							stepLength /= stepChangeCoef;
 							progress = 0;
 						}
 						else if ( progress == 0 )
@@ -811,19 +794,25 @@ namespace GraphVis {
 							}
 							else
 							{
-								stepLength *= changeCoef;
+								stepLength *= stepChangeCoef;
 							}
 						}
-				
 
+				
 						// TERMINATION CONDITION CHECK --------------------------------------------------------
 			//			if ( energy < 0.00002f ) {
 			//				state = State.PAUSE;
 			//			}
 			//			writer.WriteLine( numIterations + "," + energy );
 #endif
-					
-				
+#if true			
+						if ( deltaEnergy <= pGradE * 0.001f * stepLength ) {
+							stepLength /= stepChangeCoef;
+						}
+						else {
+							stepLength *= stepChangeCoef;
+						}
+#endif
 					}
 				
 	
@@ -835,20 +824,12 @@ namespace GraphVis {
 	//				timeStepFactor = 20f / maxAcc;
 	//			}
 
-
 //				writer.Close();
 				// ------------------------------------------------------------------------------------
-
-
-				
-
-
 				device.ResetStates();
 				device.SetTargets( null, device.BackbufferColor );
 				//	Render: ---------------------------------------------------------------------------
 				//
-
-
 				device.ComputeShaderConstants	[0] = paramsCB;
 				device.VertexShaderConstants	[0] = paramsCB;
 				device.GeometryShaderConstants	[0] = paramsCB;
@@ -858,36 +839,18 @@ namespace GraphVis {
 			
 				// draw points: ------------------------------------------------------------------------
 				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.POINT];
-
 				device.SetCSRWBuffer( 0, null );
-
 				device.PixelShaderResources[0] = texture;
 				device.GeometryShaderResources[1] = currentStateBuffer;
-
-			
-
 				device.Draw( ParticleList.Count, 0 );
-		
-					
+						
 				// draw lines: --------------------------------------------------------------------------
 				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
-			
 				device.GeometryShaderResources[1] = currentStateBuffer;
 				device.GeometryShaderResources[3] = linksBuffer;
-
-				device.Draw( linkList.Count, 0 );
-				
-				
+				device.Draw( linkList.Count, 0 );		
 			}
 			// --------------------------------------------------------------------------------------
-
-
-
-			/*var testSrc = new Particle[MaxSimulatedParticles];
-			var testDst = new Particle[MaxSimulatedParticles];
-
-			simulationBufferSrc.GetData( testSrc );
-			simulationBufferDst.GetData( testDst );*/
 			
 			var debStr = Game.GetService<DebugStrings>();
 
@@ -899,55 +862,102 @@ namespace GraphVis {
 			debStr.Add( Color.Aqua, "TimeStep factor  = " + stepLength );
 			debStr.Add( Color.Aqua, "Energy           = " + energy );
 			debStr.Add( Color.Aqua, "DeltaEnergy      = " + deltaEnergy );
-			debStr.Add( Color.Aqua, "pTp              = " + pTp );
+			debStr.Add( Color.Aqua, "pTp              = " + pGradE );
 			debStr.Add( Color.Aqua, "Iteration        = " + numIterations );
-			if ( deltaEnergy <= pTp * 0.1f * stepLength ) {
-				debStr.Add( Color.Aqua, "Condition #1:  TRUE" );
+			if ( deltaEnergy <= pGradE * 0.99f * stepLength ) {
+				debStr.Add( Color.Aqua, "Condition #1:  TRUE" );	
 			} else {
 				debStr.Add( Color.Aqua, "Condition #1:  FALSE" );
 			}
 
-			/*
-			if ( linkList.Count > 0 && ParticleList.Count > 0 ) {
-				Link[] linksBufferData = new Link[linkList.Count];
-				linksBuffer.GetData( linksBufferData );
-
-				Particle3d[] particleBufferData = new Particle3d[ParticleList.Count];
-				simulationBufferSrc.GetData( particleBufferData );
-			
-				LinkId[] linksPtrBufferData = new LinkId[2 * linkList.Count];
-				linksPtrBuffer.GetData(linksPtrBufferData);
-
-				for ( int i = 0; i < linkList.Count; ++i )
-				{
-					Link l = linksBufferData[i];
-				
-		//			debStr.Add( "link #" + i + ": end1 = " +  
-		//				particleBufferData[l.par1].Position.X + ", " + 
-		//				particleBufferData[l.par1].Position.Y + ", " +
-		//				particleBufferData[l.par1].Position.Z + ", end2 = " +
-		//				particleBufferData[l.par2].Position.X + ", " +
-		//				particleBufferData[l.par2].Position.Y + ", " +
-		//				particleBufferData[l.par2].Position.Z + ", " );
-					debStr.Add( "link #" + i + ": end1 = " + l.par1 + ", end2 = " + l.par2 );
-
-				}
-
-				for ( int i = 0; i < ParticleList.Count; ++i )
-				{
-					Particle3d p = particleBufferData[i];
-					debStr.Add( "Particle #" + i + ": " );
-					for ( int j = 0; j < p.linksCount; ++j )
-					{
-						Link lk = linksBufferData[linksPtrBufferData[p.linksPtr + j].id];
-						debStr.Add("  link #" + j + ": end1 = " + lk.par1 + ", " + lk.par2 );
-					}
-				}
-
-			}
-			 */
 			base.Draw( gameTime, stereoEye );
 		}
+		
+
+		/// <summary>
+		/// This function calculates two values:
+		/// 1. Energy E for every vertex				(N floats)
+		/// 2. Descent vector which equals -grad(E)		(3*N floats)
+		/// Values are overwritten into the same buffer
+		/// </summary>
+		/// <param name="device"></param>
+		/// <param name="rwVertexBuffer"></param>
+		/// <param name="parameters"></param>
+		void calcDescentVector( GraphicsDevice device, StructuredBuffer rwVertexBuffer, Params parameters )
+		{
+			paramsCB.SetData( parameters );
+			device.ComputeShaderConstants[0] = paramsCB;
+			device.SetCSRWBuffer( 0, rwVertexBuffer, MaxSimulatedParticles );
+			device.ComputeShaderResources[2] = linksPtrBuffer;
+			device.ComputeShaderResources[3] = linksBuffer;
+			device.PipelineState = factory[(int)(Flags.COMPUTE|Flags.SIMULATION|Flags.EULER|Flags.LINKS)];
+			device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+			device.ResetStates();
+		}
+
+
+
+		/// <summary>
+		/// This function takes vertices from the source buffer and moves them by
+		/// descent vector times stepLength (Pk*stepLength).
+		/// Then it writes them into the destination buffer with new positions.
+		/// This function does not change data in the source buffer.
+		/// </summary>
+		/// <param name="device"></param>
+		/// <param name="srcVertexBuffer"></param>
+		/// <param name="dstVertexBuffer"></param>
+		/// <param name="parameters"></param>
+		void moveVertices( GraphicsDevice device, StructuredBuffer srcVertexBuffer,
+							StructuredBuffer dstVertexBuffer, Params parameters )
+		{
+			paramsCB.SetData( parameters );
+			device.ComputeShaderConstants[0] = paramsCB;
+			device.ComputeShaderResources[1] = srcVertexBuffer;
+			device.SetCSRWBuffer( 0, dstVertexBuffer, MaxSimulatedParticles );
+			device.PipelineState = factory[(int)(Flags.COMPUTE|Flags.MOVE)];
+			device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+			device.ResetStates();
+		}
+
+
+
+		/// <summary>
+		/// This function calculates the following values:
+		/// 1. Total energy at (k+1)th iteration (from nextStateBuffer).
+		/// 2. Dot product of kth descent vector and (k+1)th energy gradient (which equals minus (k+1)th descent vector)
+		/// </summary>
+		/// <param name="device"></param>
+		/// <param name="currentStateBuffer"></param>
+		/// <param name="nextStateBuffer"></param>
+		/// <param name="outputValues"></param>
+		/// <param name="parameters"></param>
+		/// <param name="energy"></param>
+		/// <param name="pTgradE"></param>
+		void calcTotalEnergyAndDotProduct( GraphicsDevice device, StructuredBuffer currentStateBuffer,
+			StructuredBuffer nextStateBuffer, StructuredBuffer outputValues, Params parameters,
+			out float energy, out float pTgradE )
+		{
+			// preform reduction on GPU:
+			paramsCB.SetData( parameters );
+			device.ComputeShaderConstants[0] = paramsCB;
+			device.ComputeShaderResources[1] = currentStateBuffer;
+			device.ComputeShaderResources[4] = nextStateBuffer;
+			device.SetCSRWBuffer( 1, outputValues, MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+			device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
+			device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+
+			// perform final summation:
+			Vector4[] valueBufferCPU = new Vector4[outputValues.GetStructureCount()];
+			outputValues.GetData( valueBufferCPU );
+			energy	= 0;
+			pTgradE	= 0;
+			foreach( var value in valueBufferCPU )
+			{
+				energy	+= value.X;
+				pTgradE	+= value.Y;
+			}
+		}
+
 
 	}
 }

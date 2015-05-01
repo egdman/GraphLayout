@@ -52,7 +52,9 @@ SamplerState						Sampler				: 	register(s0);
 Texture2D							Texture 			: 	register(t0);
 
 RWStructuredBuffer<PARTICLE3D>		particleRWBuffer	: 	register(u0);
+
 StructuredBuffer<PARTICLE3D>		particleReadBuffer	:	register(t1);
+StructuredBuffer<PARTICLE3D>		particleReadBuffer2	:	register(t4);
 
 RWStructuredBuffer<float4>			energyRWBuffer		:	register(u1);
 
