@@ -61,7 +61,7 @@ namespace GraphVis {
 
 		[Config]
 		public ParticleConfig cfg{ get; set; }
-		public const float WorldRaduis = 50.0f; // in meters
+		public const float WorldRaduis = 50.0f;
 
 		Texture2D	texture;
 		Ubershader	shader;
@@ -71,7 +71,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	256;
 
-		const int	MaxInjectingParticles	=	1024;
+		const int	MaxInjectingParticles	=	4096;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -663,7 +663,7 @@ namespace GraphVis {
 			float chosenStepLength = 0;
 
 			// Wolfe constants:
-			float C1 = 0.9f;
+			float C1 = 0.1f;
 			float C2 = 0.99f;
 
 //			stepLength = 0.1f;
@@ -698,7 +698,6 @@ namespace GraphVis {
 
 					for ( int i = 0; i < 1; ++i )
 					{
-		
 						float Ek	= 0;
 						float Ek1	= 0;
 
@@ -707,6 +706,9 @@ namespace GraphVis {
 
 						cond1 = false;
 						cond2 = false;
+
+						int tries = 1;
+						float changeFactor = 0.1f;
 
 						while ( !(cond1 && cond2) )
 						{
@@ -725,11 +727,30 @@ namespace GraphVis {
 							// check Wolfe conditions:
 							cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk );
 							cond2 = ( pkGradEk1 >= C2 * pkGradEk );
+							
+							if ( tries > 10 )
+							{
+								// Debug output:
+						//		if ( Ek1 - Ek != 0 ) {
+								Console.WriteLine( "step = " + stepLength + " " + 
+									"cond#1 = " + (cond1 ? "TRUE" : "FALSE") + " " +
+									"cond#2 = " + (cond2 ? "TRUE" : "FALSE") + " " +
+									"deltaE = " + (Ek1 - Ek)
+									);
+						//		}
+
+								changeFactor *= 1.0f;
+							}
 
 							// change step length factor:
-							if (  cond1 && !cond2 ) { stepLength *= 1.9f; }
-							if ( !cond1 && !cond2 ) { stepLength *= 1.9f; }
-							if ( !cond1 &&  cond2 ) { stepLength /= 1.9f; }
+							if (  cond1 && !cond2 )					{ stepLength *= (1.0f + changeFactor); }
+							if ( !cond1 && !cond2 )					{ stepLength *= (1.0f + changeFactor); }
+
+							if ( !cond1 &&  cond2 && Ek1  < Ek )	{ stepLength /= (1.0f + changeFactor); }
+							if ( !cond1 &&  cond2 && Ek1 >= Ek )	{ stepLength /= (1.0f + changeFactor); }
+							
+							++tries;
+							++numIterations;
 						}
 
 						if ( cond1 && cond2 )
@@ -740,12 +761,13 @@ namespace GraphVis {
 							nextStateBuffer = temp;
 							chosenStepLength = stepLength;
 							// Reset step length factor:
-							stepLength = 0.1f;
+					//		stepLength = 0.1f;
+					//		stepLength = 10.0f;
 						}
 						energy = Ek;
 						deltaEnergy = Ek1 - Ek;
 						pGradE = pkGradEk;
-						++numIterations;
+						
 
 //						paramsCB.SetData( param );
 

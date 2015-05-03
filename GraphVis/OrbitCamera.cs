@@ -79,7 +79,7 @@ namespace GraphVis
 			var ds		= Game.GetService<DebugStrings>();
 
 			angularVelocity	= 0.25f;
-			upDownVelocity	= 0.0007f	* altitude;
+			upDownVelocity	= 0.0007f * altitude;
 
 			if ( Game.InputDevice.IsKeyDown( Keys.LeftShift ) ) {
 				angularVelocity *= 3;
@@ -87,10 +87,7 @@ namespace GraphVis
 			}
 
 			latVelocity = angularVelocity;
-
-			float cos = (float)Math.Cos( latitude * PI180 );
-			lonVelocity = ( cos >= 0.001f ? angularVelocity / cos : angularVelocity / 0.001f );
-
+			lonVelocity = angularVelocity;
 
 			if ( Game.InputDevice.IsKeyDown( Keys.W ) ) {
 				latitude += latVelocity * gameTime.Elapsed.Milliseconds;

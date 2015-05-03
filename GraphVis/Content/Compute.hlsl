@@ -207,9 +207,7 @@ void CSMain(
 	// add potential well:
 //	force.xyz += mul( 0.00005f*length(pos.xyz), -pos.xyz );
 
-
-	float3 accel = force.xyz;
-
+//	float3 accel = force.xyz;
 
 	p.Force		= force.xyz;
 	p.Energy	= force.w;
