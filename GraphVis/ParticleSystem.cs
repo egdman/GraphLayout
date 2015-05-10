@@ -781,7 +781,7 @@ namespace GraphVis {
 					//		cond2 = true;
 
 
-							if ( tries > 3 )
+							if ( tries > 4 )
 							{
 								// Debug output:
 						//		if ( Ek1 - Ek != 0 ) {
