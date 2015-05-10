@@ -10,6 +10,7 @@ using System.IO;
 using Fusion;
 using Fusion.Graphics;
 using Fusion.Mathematics;
+using Fusion.Input;
 
 
 
@@ -71,7 +72,7 @@ namespace GraphVis {
 
 		const int	BlockSize				=	256;
 
-		const int	MaxInjectingParticles	=	4096;
+		const int	MaxInjectingParticles	=	2048;
 		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
 
 		float		MaxParticleMass;
@@ -80,6 +81,8 @@ namespace GraphVis {
 		float		linkSize;
 		float		particleSize;
 
+
+		Queue<int>			commandQueue;
 		Particle3d[]		injectionBufferCPU;
 
 		StructuredBuffer	currentStateBuffer;
@@ -215,13 +218,15 @@ namespace GraphVis {
 			MinParticleMass		=	0.05f;
 
 			spinRate			=	cfg.Rotation;
-			linkSize			=	1.0f;
+			linkSize			=	100.0f;
 			particleSize		=	1.0f;
 
 			linkList			=	new List<Link>();
 			ParticleList		=	new List<Particle3d>();
 			linkPtrLists		=	new List<List<int> >();
-			state				=	State.RUN;
+
+			commandQueue		=	new Queue<int>();
+			state				=	State.PAUSE;
 
 			maxAcc				=	0;
 			maxVelo				=	0;
@@ -229,6 +234,7 @@ namespace GraphVis {
 			progress			=	0;
 			numIterations		=	0;
 			
+			Game.InputDevice.KeyDown += keyboardHandler;
 
 			base.Initialize();
 		}
@@ -245,7 +251,17 @@ namespace GraphVis {
 		}
 
 
-
+		void keyboardHandler(object sender, Fusion.Input.InputDevice.KeyEventArgs e)
+		{
+			if ( e.Key == Keys.OemPlus )
+			{
+				commandQueue.Enqueue(1);
+			}
+			if ( e.Key == Keys.OemMinus )
+			{
+				commandQueue.Enqueue(-1);
+			}
+		}
 		/// <summary>
 		/// Returns random radial vector
 		/// </summary>
@@ -373,7 +389,7 @@ namespace GraphVis {
 			linkList.Add( new Link{
 					par1 = (uint)end1,
 					par2 = (uint)end2,
-					length = linkSize,
+					length = 1.0f,
 					force2 = 0,
 					orientation = Vector3.Zero
 				}
@@ -546,10 +562,10 @@ namespace GraphVis {
 				linksPtrBuffer.SetData(linksPtrBufferCPU);
 			}
 
-			state = State.RUN;
+			state = State.PAUSE;
 			maxAcc = 0;
 			maxVelo	= 0;
-			stepLength = 0.1f;
+			stepLength = 10.0f;
 			elapsedTime = 0;
 			progress = 0;
 			numIterations = 0;
@@ -660,10 +676,23 @@ namespace GraphVis {
 			bool cond1 = false;
 			bool cond2 = false;
 
+	//		float energyThreshold = 0.003f;
+			float energyThreshold = 0.0f;
+
+			
+			int lastCommand = 0;
+			if ( commandQueue.Count > 0 )
+			{
+				lastCommand = commandQueue.Dequeue();
+			}
+			
 			float chosenStepLength = 0;
 
 			// Wolfe constants:
-			float C1 = 0.1f;
+	//		float C1 = 0.1f;
+	//		float C2 = 0.99f;
+
+			float C1 = 0.3f;
 			float C2 = 0.99f;
 
 //			stepLength = 0.1f;
@@ -707,8 +736,17 @@ namespace GraphVis {
 						cond1 = false;
 						cond2 = false;
 
-						int tries = 1;
+						int tries = 0;
 						float changeFactor = 0.1f;
+
+						if ( lastCommand > 0 )
+						{
+							stepLength *= (1.0f + changeFactor);
+						}
+						if ( lastCommand < 0 )
+						{
+							stepLength /= (1.0f + changeFactor);
+						}
 
 						while ( !(cond1 && cond2) )
 						{
@@ -724,11 +762,26 @@ namespace GraphVis {
 							calcTotalEnergyAndDotProduct( device, currentStateBuffer, nextStateBuffer,
 									enegryBuffer, param, out Ek1, out pkGradEk1 );
 
+
+							if ( Math.Abs( Ek1 - Ek ) < energyThreshold )
+							{
+								state = State.PAUSE;
+								break;
+							}
+
+
+
 							// check Wolfe conditions:
 							cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk );
 							cond2 = ( pkGradEk1 >= C2 * pkGradEk );
 							
-							if ( tries > 10 )
+
+							// FOR TESTING: //
+					//		cond1 = true;
+					//		cond2 = true;
+
+
+							if ( tries > 3 )
 							{
 								// Debug output:
 						//		if ( Ek1 - Ek != 0 ) {
@@ -738,8 +791,6 @@ namespace GraphVis {
 									"deltaE = " + (Ek1 - Ek)
 									);
 						//		}
-
-								changeFactor *= 1.0f;
 							}
 
 							// change step length factor:
@@ -753,131 +804,20 @@ namespace GraphVis {
 							++numIterations;
 						}
 
-						if ( cond1 && cond2 )
-						{
-							// swap buffers: --------------------------------------------------------------------
-							var temp = currentStateBuffer;
-							currentStateBuffer = nextStateBuffer;
-							nextStateBuffer = temp;
-							chosenStepLength = stepLength;
-							// Reset step length factor:
-					//		stepLength = 0.1f;
-					//		stepLength = 10.0f;
-						}
+				
+						// swap buffers: --------------------------------------------------------------------
+						var temp = currentStateBuffer;
+						currentStateBuffer = nextStateBuffer;
+						nextStateBuffer = temp;
+						chosenStepLength = stepLength;
+						// Reset step length factor:
+				//		stepLength = 1.0f;
+				//		stepLength = 10.0f;
+						
 						energy = Ek;
 						deltaEnergy = Ek1 - Ek;
 						pGradE = pkGradEk;
-						
-
-//						paramsCB.SetData( param );
-
-//						// calculate forces and energies: ---------------------------------------------------
-//						device.SetCSRWBuffer( 0, currentStateBuffer, MaxSimulatedParticles );
-//						device.ComputeShaderResources[2] = linksPtrBuffer;
-//						device.ComputeShaderResources[3] = linksBuffer;
-//						device.ComputeShaderConstants[0] = paramsCB;
-
-//						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.SIMULATION|(int)Flags.EULER|(int)Flags.LINKS];
-
-//						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-
-//						// move particles: ------------------------------------------------------------
-//						device.SetCSRWBuffer( 0, null );
-//						device.ComputeShaderResources[1] = currentStateBuffer;
-//						device.SetCSRWBuffer( 0, nextStateBuffer, MaxSimulatedParticles );
-
-//						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.MOVE];
-//						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );//*/
-
-//						elapsedTime += param.StepLength;
-//						++numIterations;
-
-//		//			}
-
-//#if true
-//						// calculate energies in thread blocks:
-//						device.SetCSRWBuffer( 0, null ); // unbind from UAV
-//						device.ComputeShaderResources[1] = nextStateBuffer; // bind to SRV
-//						device.SetCSRWBuffer( 1, enegryBuffer, MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
-
-//						device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
-//						device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
-//#endif
-						
-//						// Swap buffers: ----------------------------
-//						var tmp = currentStateBuffer;
-//						currentStateBuffer = nextStateBuffer;
-//						nextStateBuffer = tmp;
-//						// ------------------------------------------
 					
-//						//////////////////////////////
-//						float stepChangeCoef = 0.9f;
-//			//			float stepChangeCoef = 1.0f;
-//						//////////////////////////////
-
-				
-//						if ( energyBufferCPU == null ) {
-//							energyBufferCPU = new Vector4[enegryBuffer.GetStructureCount()];
-//						}
-
-//						enegryBuffer.GetData( energyBufferCPU );
-
-//						if ( injectionBufferCPU == null ) {
-//							injectionBufferCPU = new Particle3d[currentStateBuffer.GetStructureCount()];
-//						}
-			
-//						float prevEnergy = energy;
-						
-//						if ( injectionBufferCPU.Length > 0 ) {
-//							calcExtremeValues(injectionBufferCPU);
-//						}
-
-//						deltaEnergy = energy - prevEnergy;
-
-
-//						// ------------------------------------------------------------------------------------
-//#if true
-//						if ( deltaEnergy > 0.01f )
-//						{
-//							progress = 0;
-//						}
-//						else
-//						{
-//							++progress;
-//						}
-
-//						if ( progress >= 4 )
-//						{
-//							stepLength /= stepChangeCoef;
-//							progress = 0;
-//						}
-//						else if ( progress == 0 )
-//						{
-//							if ( stepLength < 0.1f )
-//							{
-//								stepLength = 0.1f;
-//							}
-//							else
-//							{
-//								stepLength *= stepChangeCoef;
-//							}
-//						}
-
-				
-						// TERMINATION CONDITION CHECK --------------------------------------------------------
-			//			if ( energy < 0.00002f ) {
-			//				state = State.PAUSE;
-			//			}
-			//			writer.WriteLine( numIterations + "," + energy );
-//#endif
-//#if true			
-//						if ( deltaEnergy <= pGradE * 0.001f * stepLength ) {
-//							stepLength /= stepChangeCoef;
-//						}
-//						else {
-//							stepLength *= stepChangeCoef;
-//						}
-//#endif
 					}
 				}
 			}

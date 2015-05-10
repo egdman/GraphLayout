@@ -1,6 +1,6 @@
 #binary folder
-NederlandTraffic/bin
-NederlandTraffic/obj
+GraphVis/bin
+GraphVis/obj
 
 *.asset
 *.tar
