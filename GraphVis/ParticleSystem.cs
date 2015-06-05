@@ -136,11 +136,16 @@ namespace GraphVis {
 		[StructLayout(LayoutKind.Explicit)]
 		struct Link
 		{
-			[FieldOffset( 0)] public uint par1;
-			[FieldOffset( 4)] public uint par2;
-			[FieldOffset( 8)] public float length;
-			[FieldOffset(12)] public float force2;
-			[FieldOffset(16)] public Vector3 orientation;
+			[FieldOffset(0)]
+			public uint par1;
+			[FieldOffset(4)]
+			public uint par2;
+			[FieldOffset(8)]
+			public float length;
+			[FieldOffset(12)]
+			public float force2;
+			[FieldOffset(16)]
+			public Vector3 orientation;
 		}
 
 
@@ -308,26 +313,9 @@ namespace GraphVis {
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-			addChain( 1000, false );
-			var dstrings = File.ReadAllLines(path);
-            if (dstrings.Length > 0)
-            {
-                for (int i = 0; i < dstrings.Length; i = i + 2)
-                {
-                    string citName = dstrings[i];
-                    string[] citations;
-                    citations = dstrings[i + 1].Split(new Char[] { '\t', ' ', ',' });
-
-                    foreach (string cit in citations)
-                    {
-                        if (cit != "")
-                        {
-                            addLink(int.Parse(citName), int.Parse(cit));
-                        }
-                    }
-                }
-            }
-			setBuffers();
+			CitationGraph<int> graph = new CitationGraph<int>();
+			graph.ReadFromFile( path );
+			setBuffers( graph );
 		}
 
 
@@ -336,32 +324,9 @@ namespace GraphVis {
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-			addChain( 1, false );
-			addChildren( 2, ParticleList.Count - 1 );
-
-			Queue<int> latestIndex = new Queue<int>();
-			latestIndex.Enqueue( ParticleList.Count - 1 );
-			latestIndex.Enqueue( ParticleList.Count - 2 );
-
-			while ( ParticleList.Count < N )
-			{
-				if ( latestIndex.Count <= 0 )
-				{
-					break;
-				}
-				int parentIndex = latestIndex.Peek();
-
-				if ( linkPtrLists[parentIndex].Count > 2 )
-				{
-					latestIndex.Dequeue();
-					continue;
-				}
-				addChildren(1, parentIndex);
-				latestIndex.Enqueue( ParticleList.Count - 1 );
-			}
-			setBuffers();
+			Graph<int> graph = Graph<int>.MakeBinaryTree( N );
+			setBuffers( graph );
 		}
-
 
 		
 		void addParticle( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
@@ -478,6 +443,17 @@ namespace GraphVis {
 				sum += ls.Count;
 			}
 			return sum;
+		}
+
+
+		void setBuffers(Graph<int> graph)
+		{
+			addChain( graph.NodeCount, false );
+			foreach (var e in graph.Edges)
+			{
+				addLink( e.End1, e.End2 );
+			}
+			setBuffers();
 		}
 
 
@@ -697,6 +673,8 @@ namespace GraphVis {
 
 //			stepLength = 0.1f;
 
+			// Algorithm outline:
+			//
 			//  1. Calc descent vector pk
 			//  2. calc pk * grad(Ek)
 			//  3. calc Ek
@@ -858,12 +836,10 @@ namespace GraphVis {
 
 		void render( GraphicsDevice device, Params parameters )
 		{
-			// ------------------------------------------------------------------------------------
 				device.ResetStates();
 				device.SetTargets( null, device.BackbufferColor );
 				paramsCB.SetData(parameters);
 
-				//	Render: ---------------------------------------------------------------------------
 				device.ComputeShaderConstants	[0] = paramsCB;
 				device.VertexShaderConstants	[0] = paramsCB;
 				device.GeometryShaderConstants	[0] = paramsCB;
@@ -878,7 +854,7 @@ namespace GraphVis {
 				device.GeometryShaderResources[1] = currentStateBuffer;
 				device.Draw( ParticleList.Count, 0 );
 						
-				// draw lines: --------------------------------------------------------------------------
+				// draw lines: -------------------------------------------------------------------------
 				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
 				device.GeometryShaderResources[1] = currentStateBuffer;
 				device.GeometryShaderResources[3] = linksBuffer;

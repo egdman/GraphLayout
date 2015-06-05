@@ -51,6 +51,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CitationGraph.cs" />
+    <Compile Include="GraphFromFile.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="OrbitCamera.cs" />
     <Compile Include="GraphVis.cs" />
