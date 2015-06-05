@@ -156,7 +156,7 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<int> graph = Graph<int>.MakeBinaryTree( 2048 );
+				Graph<int> graph = Graph<int>.MakeBinaryTree( 4096 );
 				partSys.AddGraph(graph);
 			}
 

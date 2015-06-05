@@ -29,7 +29,7 @@ namespace GraphVis {
 		State		state;
 
 		const int	BlockSize				=	256;
-		const int	MaxSimulatedParticles	=	2048;
+		const int	MaxSimulatedParticles	=	4096;
 
 		float		particleMass;
 		float		linkSize;
@@ -361,6 +361,8 @@ namespace GraphVis {
 			maxAcc = 0;
 			stepLength = 10.0f;
 			numIterations = 0;
+
+			initCalculations();
 		}
 
 
@@ -505,10 +507,10 @@ namespace GraphVis {
 
 					for ( int i = 0; i < 1; ++i )
 					{
-						float Ek	= 0;
+						float Ek	= energy;
 						float Ek1	= 0;
 
-						float pkGradEk	= 0;
+						float pkGradEk	= pGradE;
 						float pkGradEk1	= 0;
 
 						cond1 = false;
@@ -528,7 +530,9 @@ namespace GraphVis {
 
 						while ( !(cond1 && cond2) )
 						{
-							calcDescentVector( device, currentStateBuffer, param ); // calc desc vector and energies
+							// already calculated on the previous iteration:
+			//				calcDescentVector( device, currentStateBuffer, param ); // calc desc vector and energies
+
 							calcTotalEnergyAndDotProduct( device, currentStateBuffer, currentStateBuffer,
 									enegryBuffer, param, out Ek, out pkGradEk );
 
@@ -595,9 +599,9 @@ namespace GraphVis {
 				//		stepLength = 1.0f;
 				//		stepLength = 10.0f;
 						
-						energy = Ek;
+						energy = Ek1;
 						deltaEnergy = Ek1 - Ek;
-						pGradE = pkGradEk;
+						pGradE = pkGradEk1;
 					
 					}
 				}
@@ -659,6 +663,21 @@ namespace GraphVis {
 				device.GeometryShaderResources[1] = currentStateBuffer;
 				device.GeometryShaderResources[3] = linksBuffer;
 				device.Draw( linkList.Count, 0 );		
+		}
+
+
+		/// <summary>
+		/// This function performss the first iteration of calculations
+		/// </summary>
+		void initCalculations()
+		{
+			Params param = new Params();
+			param.MaxParticles = MaxSimulatedParticles;
+
+			var device = Game.GraphicsDevice;
+			calcDescentVector(device, currentStateBuffer, param); // calc desc vector and energies
+			calcTotalEnergyAndDotProduct(device, currentStateBuffer, currentStateBuffer,
+					enegryBuffer, param, out energy, out pGradE);
 		}
 
 
