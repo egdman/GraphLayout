@@ -223,7 +223,7 @@ namespace GraphVis {
 			MinParticleMass		=	0.05f;
 
 			spinRate			=	cfg.Rotation;
-			linkSize			=	100.0f;
+			linkSize			=	10.0f;
 			particleSize		=	1.0f;
 
 			linkList			=	new List<Link>();
@@ -403,7 +403,7 @@ namespace GraphVis {
 
 		void addChain( int N, bool linked )
 		{
-			Vector3 pos = new Vector3( 0, 0, 0);	
+			Vector3 pos = new Vector3( 0, 0, -400);	
 			for ( int i = 0; i < N; ++i ) {			
 				addParticle( pos, 9999, particleSize, 1.0f );
 				pos += RadialRandomVector() * linkSize;
@@ -648,7 +648,8 @@ namespace GraphVis {
 		public override void Draw ( GameTime gameTime, Fusion.Graphics.StereoEye stereoEye )
 		{
 			var device	=	Game.GraphicsDevice;
-			var cam = Game.GetService<OrbitCamera>();
+	//		var cam = Game.GetService<OrbitCamera>();
+			var cam = Game.GetService<Camera>();
 			bool cond1 = false;
 			bool cond2 = false;
 

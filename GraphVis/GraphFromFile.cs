@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GraphVis.Content
+namespace GraphVis
 {
 	public abstract class GraphFromFile<Node> : Graph<Node> where Node : new()
 	{
