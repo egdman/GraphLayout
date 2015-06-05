@@ -153,7 +153,7 @@ namespace GraphVis {
 
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 			particleMass		=	0.05f;
-			linkSize			=	10.0f;
+			linkSize			=	100.0f;
 			particleSize		=	1.0f;
 
 			linkList			=	new List<Link>();
@@ -271,10 +271,11 @@ namespace GraphVis {
 
 		void addNodes(int N)
 		{
+			var zeroV = new Vector3( 0, 0, -400 );
 			for (int i = 0; i < N; ++i)
 			{
 				addParticle(
-					RadialRandomVector() * linkSize, 9999,
+					zeroV + RadialRandomVector() * linkSize, 9999,
 					particleSize, 1.0f );
 			}
 		}
@@ -510,7 +511,7 @@ namespace GraphVis {
 						float Ek	= energy;
 						float Ek1	= 0;
 
-						float pkGradEk	= pGradE;
+						float pkGradEk	= 0;
 						float pkGradEk1	= 0;
 
 						cond1 = false;
@@ -528,14 +529,11 @@ namespace GraphVis {
 							stepLength /= (1.0f + changeFactor);
 						}
 
+
+						calcTotalEnergyAndDotProduct(device, currentStateBuffer, currentStateBuffer,
+								enegryBuffer, param, out Ek, out pkGradEk);
 						while ( !(cond1 && cond2) )
 						{
-							// already calculated on the previous iteration:
-			//				calcDescentVector( device, currentStateBuffer, param ); // calc desc vector and energies
-
-							calcTotalEnergyAndDotProduct( device, currentStateBuffer, currentStateBuffer,
-									enegryBuffer, param, out Ek, out pkGradEk );
-
 							param.StepLength = stepLength;
 
 							moveVertices( device, currentStateBuffer, nextStateBuffer, param );
@@ -543,14 +541,6 @@ namespace GraphVis {
 
 							calcTotalEnergyAndDotProduct( device, currentStateBuffer, nextStateBuffer,
 									enegryBuffer, param, out Ek1, out pkGradEk1 );
-
-
-							if ( Math.Abs( Ek1 - Ek ) < energyThreshold )
-							{
-								state = State.PAUSE;
-								break;
-							}
-
 
 
 							// check Wolfe conditions:
@@ -566,13 +556,11 @@ namespace GraphVis {
 							if ( tries > 4 )
 							{
 								// Debug output:
-						//		if ( Ek1 - Ek != 0 ) {
 								Console.WriteLine( "step = " + stepLength + " " + 
 									"cond#1 = " + (cond1 ? "TRUE" : "FALSE") + " " +
 									"cond#2 = " + (cond2 ? "TRUE" : "FALSE") + " " +
 									"deltaE = " + (Ek1 - Ek)
 									);
-						//		}
 							}
 
 							// change step length factor:
@@ -586,7 +574,7 @@ namespace GraphVis {
 							++numIterations;
 
 							// Temporary way to prevent freeze:
-							if ( tries > 99 ) break;
+							if ( tries > 10 ) break;
 						}
 
 				
@@ -601,7 +589,13 @@ namespace GraphVis {
 						
 						energy = Ek1;
 						deltaEnergy = Ek1 - Ek;
-						pGradE = pkGradEk1;
+						pGradE = pkGradEk;
+						if (Math.Abs(deltaEnergy) < energyThreshold)
+						{
+							state = State.PAUSE;
+							break;
+						}
+
 					
 					}
 				}
