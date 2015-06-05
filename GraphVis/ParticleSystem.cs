@@ -12,53 +12,12 @@ using Fusion.Graphics;
 using Fusion.Mathematics;
 using Fusion.Input;
 
-
-
 namespace GraphVis {
-
-	public enum IntegratorType
-	{
-		EULER,		
-		RUNGE_KUTTA
-	}
-
 	public class ParticleConfig
 	{
-		
-		float maxParticleMass;
-		float minParticleMass;
-		float rotation;
-		IntegratorType iType;
-
-		[Category("Particle mass")]
-		[Description("Largest particle mass")]
-		public float Max_mass { get{ return  maxParticleMass; } set{ maxParticleMass = value; } }
-
-		[Category("Particle mass")]
-		[Description("Smallest particle mass")]
-		public float Min_mass { get{ return  minParticleMass; } set{ minParticleMass = value; } }
-
-		[Category("Integrator type")]
-		[Description("Integrator type")]
-		public IntegratorType IType{ get{ return iType; } set{ iType = value; } }
-
-		[Category("Initial rotation")]
-		[Description("Rate of initial rotation")]
-		public float Rotation { get{ return  rotation; } set{ rotation = value; } }
-
-		public ParticleConfig()
-		{
-			minParticleMass	= 0.5f;
-			maxParticleMass	= 0.5f;
-			rotation		= 2.6f;
-			iType			= IntegratorType.RUNGE_KUTTA; 
-		}
 	}
 
-
-
 	public class ParticleSystem : GameService {
-
 
 		[Config]
 		public ParticleConfig cfg{ get; set; }
@@ -67,53 +26,36 @@ namespace GraphVis {
 		Texture2D	texture;
 		Ubershader	shader;
 		StateFactory factory;
-
 		State		state;
 
 		const int	BlockSize				=	256;
+		const int	MaxSimulatedParticles	=	2048;
 
-		const int	MaxInjectingParticles	=	2048;
-		const int	MaxSimulatedParticles	=	MaxInjectingParticles;
-
-		float		MaxParticleMass;
-		float		MinParticleMass;
-		float		spinRate;
+		float		particleMass;
 		float		linkSize;
 		float		particleSize;
-
-
-		Queue<int>			commandQueue;
-		Particle3d[]		injectionBufferCPU;
 
 		StructuredBuffer	currentStateBuffer;
 		StructuredBuffer	nextStateBuffer;
 		StructuredBuffer	linksPtrBuffer;
 		StructuredBuffer	enegryBuffer;
-		LinkId[]			linksPtrBufferCPU;
-
 		StructuredBuffer	linksBuffer;
-		Link[]				linksBufferCPU;
-
-		Vector4[]			energyBufferCPU;
-
 		ConstantBuffer		paramsCB;
+		Particle3d[]		particleBufferCPU;
+		LinkId[]			linksPtrBufferCPU;
+		Link[]				linksBufferCPU;
 		List<List<int> >	linkPtrLists;
-
 		List<Link>			linkList;
 		List<Particle3d>	ParticleList;
+		Queue<int>			commandQueue;
+		Random rand = new Random();
 
-		float maxAcc;
-		float maxVelo;
-		float stepLength;
-		float elapsedTime;
-		int	progress;
-		float energy;
-		float deltaEnergy;
-		float pGradE;
-
-		uint numIterations;
-
-	
+		float	maxAcc;
+		float	stepLength;
+		float	energy;
+		float	deltaEnergy;
+		float	pGradE;
+		uint	numIterations;
 
 		[StructLayout(LayoutKind.Explicit)]
 			struct Particle3d {
@@ -129,8 +71,6 @@ namespace GraphVis {
 			[FieldOffset(68)] public int		linksPtr;
 			[FieldOffset(72)] public int		linksCount;
 		}
-
-
 
 		// link between 2 particles:
 		[StructLayout(LayoutKind.Explicit)]
@@ -186,9 +126,6 @@ namespace GraphVis {
 			[FieldOffset(136)] public float		LinkSize;
 		} 
 
-		Random rand = new Random();
-
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -197,7 +134,6 @@ namespace GraphVis {
 		{
 			cfg = new ParticleConfig();
 		}
-
 
 		/// <summary>
 		/// 
@@ -216,29 +152,18 @@ namespace GraphVis {
 			} );
 
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
-	//		MaxParticleMass		=	cfg.Max_mass;
-	//		MinParticleMass		=	cfg.Min_mass;
-
-			MaxParticleMass		=	0.05f;
-			MinParticleMass		=	0.05f;
-
-			spinRate			=	cfg.Rotation;
+			particleMass		=	0.05f;
 			linkSize			=	10.0f;
 			particleSize		=	1.0f;
 
 			linkList			=	new List<Link>();
 			ParticleList		=	new List<Particle3d>();
 			linkPtrLists		=	new List<List<int> >();
-
 			commandQueue		=	new Queue<int>();
 			state				=	State.PAUSE;
-
 			maxAcc				=	0;
-			maxVelo				=	0;
 			stepLength			=	1.0f;
-			progress			=	0;
-			numIterations		=	0;
-			
+			numIterations		=	0;		
 			Game.InputDevice.KeyDown += keyboardHandler;
 
 			base.Initialize();
@@ -247,12 +172,8 @@ namespace GraphVis {
 
 		public void Pause()
 		{
-			if ( state == State.RUN ) {
-				state = State.PAUSE;
-			}
-			else {
-				state = State.RUN;
-			}
+			if ( state == State.RUN ) {	state = State.PAUSE; }
+			else { state = State.RUN; }
 		}
 
 
@@ -277,74 +198,31 @@ namespace GraphVis {
 			do {
 				r	=	rand.NextVector3( -Vector3.One, Vector3.One );
 			} while ( r.Length() > 1 );
-
 			r.Normalize();
-
 			return r;
 		}
 
-
-
-		public void AddScaleFreeNetwork( int N = MaxInjectingParticles )
+		public void AddGraph(Graph<int> graph)
 		{
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-			addChain(5, true);
-			while ( ParticleList.Count < N ) {
-			//	int id = rand.Next( 0, ParticleList.Count - 1 );
-				for ( int id = 0; id < ParticleList.Count; ++id ) {
-					int ifJoins = rand.Next( 0, 2 * linkList.Count - 1 );
-
-					if ( ParticleList.Count >= N ) break;
-
-					if ( ifJoins < linkPtrLists[id].Count ) {
-						addChildren( 1, id );
-					}
-				}
-			}
-			setBuffers();
-		}
-
-
-
-		public void AddGraphFromFile( string path )
-		{
-			ParticleList.Clear();
-			linkList.Clear();
-			linkPtrLists.Clear();
-			CitationGraph<int> graph = new CitationGraph<int>();
-			graph.ReadFromFile( path );
 			setBuffers( graph );
 		}
-
-
-		public void AddBinaryTree( int N = MaxInjectingParticles )
-		{
-			ParticleList.Clear();
-			linkList.Clear();
-			linkPtrLists.Clear();
-			Graph<int> graph = Graph<int>.MakeBinaryTree( N );
-			setBuffers( graph );
-		}
-
 		
 		void addParticle( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
 		{
-			float ParticleMass	=	rand.NextFloat( MinParticleMass, MaxParticleMass );
 			ParticleList.Add( new Particle3d {
 					Position		=	pos,
 					Velocity		=	Vector3.Zero,
 					Color			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
 					Size			=	size0,
 					Force			=	Vector3.Zero,
-					Mass			=	ParticleMass,
+					Mass			=	particleMass,
 					Charge			=	0.05f
 				}
 			);
 			linkPtrLists.Add( new List<int>() );
-
-
 		}
 
 
@@ -391,15 +269,16 @@ namespace GraphVis {
 		}
 
 
-
-		public void AddChain()
+		void addNodes(int N)
 		{
-			ParticleList.Clear();
-			linkList.Clear();
-			linkPtrLists.Clear();
-			addChain( MaxSimulatedParticles, true );
-			setBuffers();
+			for (int i = 0; i < N; ++i)
+			{
+				addParticle(
+					RadialRandomVector() * linkSize, 9999,
+					particleSize, 1.0f );
+			}
 		}
+
 
 		void addChain( int N, bool linked )
 		{
@@ -416,39 +295,9 @@ namespace GraphVis {
 		}
 
 
-
-		void addChildren( int howMany, int parentId )
-		{
-			Vector3 parentPos = new Vector3( ParticleList[parentId].Position.X,
-							ParticleList[parentId].Position.Y,
-							ParticleList[parentId].Position.Z );
-
-			int newParticleId = ParticleList.Count;
-			for ( int i = 0; i < howMany; ++i ) {
-				addParticle( parentPos + RadialRandomVector() * linkSize,
-					9999,
-					particleSize,
-					1.0f );
-				addLink( parentId, newParticleId );
-				++newParticleId;
-			}
-
-		}
-
-
-		int countSumOfDegrees()
-		{
-			int sum = 0;
-			foreach ( var ls in linkPtrLists ) {
-				sum += ls.Count;
-			}
-			return sum;
-		}
-
-
 		void setBuffers(Graph<int> graph)
 		{
-			addChain( graph.NodeCount, false );
+			addNodes( graph.NodeCount );
 			foreach (var e in graph.Edges)
 			{
 				addLink( e.End1, e.End2 );
@@ -459,26 +308,15 @@ namespace GraphVis {
 
 		void setBuffers()
 		{
-			injectionBufferCPU = new Particle3d[ParticleList.Count];
-			int iter = 0;
-			foreach( var p in ParticleList ) {
-				injectionBufferCPU[iter] = p;
-				++iter;
-			}
-			linksBufferCPU = new Link[linkList.Count];
-			iter = 0;
-			foreach ( var l in linkList ) {
-				linksBufferCPU[iter] = l;
-				++iter;
-			}
-
+			particleBufferCPU = ParticleList.ToArray();
+			linksBufferCPU = linkList.ToArray();
 			linksPtrBufferCPU = new LinkId[linkList.Count * 2];
-			iter = 0;
+			int iter = 0;
 			int lpIter = 0;
 			foreach( var ptrList in linkPtrLists ) {
 
 				int blockSize = 0;
-				injectionBufferCPU[iter].linksPtr = lpIter;
+				particleBufferCPU[iter].linksPtr = lpIter;
 				if (ptrList != null) {
 					foreach ( var linkPtr in ptrList ) {
 						linksPtrBufferCPU[lpIter] = new LinkId {id = linkPtr};
@@ -486,35 +324,16 @@ namespace GraphVis {
 						++blockSize;
 					}
 				}
-				injectionBufferCPU[iter].linksCount = blockSize;
+				particleBufferCPU[iter].linksCount = blockSize;
 				++iter;
 			}
 		
-			if ( currentStateBuffer != null ) {
-				currentStateBuffer.Dispose();
-			}
-
-			if ( nextStateBuffer != null ) {
-				nextStateBuffer.Dispose();
-			}
-
-			if ( linksBuffer != null ) {
-				linksBuffer.Dispose();
-			}
-
-			if ( linksPtrBuffer != null ) {
-				linksPtrBuffer.Dispose();
-			}
-
-			if ( enegryBuffer != null ) {
-				enegryBuffer.Dispose();
-			}
+			disposeOfBuffers();
 			
-
-			if ( injectionBufferCPU.Length != 0 ) {
-				currentStateBuffer	= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	injectionBufferCPU.Length, StructuredBufferFlags.Counter );
-				nextStateBuffer		= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	injectionBufferCPU.Length, StructuredBufferFlags.Counter );
-				currentStateBuffer.SetData(injectionBufferCPU);
+			if ( particleBufferCPU.Length != 0 ) {
+				currentStateBuffer	= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	particleBufferCPU.Length, StructuredBufferFlags.Counter );
+				nextStateBuffer		= new StructuredBuffer( Game.GraphicsDevice, typeof(Particle3d),	particleBufferCPU.Length, StructuredBufferFlags.Counter );
+				currentStateBuffer.SetData(particleBufferCPU);
 				enegryBuffer = new StructuredBuffer (
 							Game.GraphicsDevice,
 							typeof(Vector4),
@@ -540,17 +359,12 @@ namespace GraphVis {
 
 			state = State.PAUSE;
 			maxAcc = 0;
-			maxVelo	= 0;
 			stepLength = 10.0f;
-			elapsedTime = 0;
-			progress = 0;
 			numIterations = 0;
 		}
 
 
 	
-
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -559,29 +373,10 @@ namespace GraphVis {
 		{
 			if (disposing) {
 				paramsCB.Dispose();
-
-				if ( currentStateBuffer != null ) {
-					currentStateBuffer.Dispose();
-				}
-
-				if ( nextStateBuffer != null ) {
-					nextStateBuffer.Dispose();
-				}
-				if ( linksBuffer != null ) {
-					linksBuffer.Dispose();
-				}
-
-				if ( linksPtrBuffer != null ) {
-					linksPtrBuffer.Dispose();
-				}
-
+				disposeOfBuffers();
 				if ( factory != null ) {
 					factory.Dispose();
-				}
-
-				if ( enegryBuffer != null ) {
-					enegryBuffer.Dispose();
-				}
+				}	
 				if ( texture != null ) {
 					texture.Dispose();
 				}
@@ -589,7 +384,33 @@ namespace GraphVis {
 			base.Dispose( disposing );
 		}
 
+		void disposeOfBuffers()
+		{
+			if (currentStateBuffer != null)
+			{
+				currentStateBuffer.Dispose();
+			}
 
+			if (nextStateBuffer != null)
+			{
+				nextStateBuffer.Dispose();
+			}
+
+			if (linksBuffer != null)
+			{
+				linksBuffer.Dispose();
+			}
+
+			if (linksPtrBuffer != null)
+			{
+				linksPtrBuffer.Dispose();
+			}
+
+			if (enegryBuffer != null)
+			{
+				enegryBuffer.Dispose();
+			}
+		}
 
 		/// <summary>
 		/// 
@@ -615,28 +436,6 @@ namespace GraphVis {
 			var temp = nextStateBuffer;
 			nextStateBuffer = currentStateBuffer;
 			currentStateBuffer = temp;
-		}
-
-
-		void calcExtremeValues( Particle3d [] buffer)
-		{
-			float maxAcceleration	= 0;
-			float maxVelocity		= 0;
-			foreach ( var p in buffer )
-			{
-				float velo = p.Velocity.Length();
-				maxVelocity		= velo > maxVelocity ? velo : maxVelocity;
-			}
-
-			maxAcc = maxAcceleration;
-			maxVelo = maxVelocity;
-			energy = 0;
-			pGradE	= 0;
-			foreach ( var en in energyBufferCPU )
-			{
-				energy	+= en.X;
-				pGradE	+= en.Y;
-			}
 		}
 
 
@@ -781,6 +580,9 @@ namespace GraphVis {
 							
 							++tries;
 							++numIterations;
+
+							// Temporary way to prevent freeze:
+							if ( tries > 99 ) break;
 						}
 
 				
@@ -807,9 +609,6 @@ namespace GraphVis {
 			
 			// Debug output: ------------------------------------------------------------
 			var debStr = Game.GetService<DebugStrings>();
-
-			debStr.Add("Press Z to start simulation");
-			debStr.Add("Press Q to pause/unpause");
 			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
 			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
@@ -948,7 +747,5 @@ namespace GraphVis {
 			}
 			energy /= 2; // because each pair is counted 2 times
 		}
-
-
 	}
 }

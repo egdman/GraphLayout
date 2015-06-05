@@ -138,7 +138,6 @@ namespace GraphVis
 		/// <param name="gameTime"></param>
 		protected override void Update(GameTime gameTime)
 		{
-
 			var ds = GetService<DebugStrings>();
 
 			var cam = GetService<Camera>();
@@ -157,13 +156,14 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-		//		partSys.AddScaleFreeNetwork();
-				partSys.AddBinaryTree();
-		//		partSys.AddChain();
+				Graph<int> graph = Graph<int>.MakeBinaryTree( 2048 );
+				partSys.AddGraph(graph);
 			}
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
-				partSys.AddGraphFromFile("../../../../articles_data/idx_edges.txt");
+				CitationGraph<int> graph = new CitationGraph<int>();
+				graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
+				partSys.AddGraph(graph);
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);
@@ -171,10 +171,11 @@ namespace GraphVis
 			ds.Add("F5   - build content and reload textures");
 			ds.Add("F12  - make screenshot");
 			ds.Add("ESC  - exit");
+			ds.Add("Press Z or X to load graph");
+			ds.Add("Press P to pause/unpause");
 
 			base.Update(gameTime);
 
-			//	Update stuff here :
 		}
 
 
@@ -189,8 +190,6 @@ namespace GraphVis
 		protected override void Draw(GameTime gameTime, StereoEye stereoEye)
 		{
 			base.Draw(gameTime, stereoEye);
-
-			//	Draw stuff here :
 		}
 	}
 }

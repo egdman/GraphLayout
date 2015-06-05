@@ -122,9 +122,9 @@ namespace GraphVis
 			base.SetupCamera( cameraLocation, new Vector3(0, 0, 0), new Vector3( 0, 1, 0), new Vector3(0, 0, 0),
 				60.0f, base.Config.FreeCamZNear,base.Config.FreeCamZFar, 0, 0 );
 
-			ds.Add( "Altitude = " + altitude + " m" );
-			ds.Add( "Longitude = " + longitude );
-			ds.Add( "Latitude = " + latitude );
+			//ds.Add( "Altitude = " + altitude + " m" );
+			//ds.Add( "Longitude = " + longitude );
+			//ds.Add( "Latitude = " + latitude );
 			
 			base.Update(gameTime);
 		}
