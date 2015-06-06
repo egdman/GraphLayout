@@ -15,5 +15,6 @@ namespace GraphVis
 	{
 		float GetSize();
 		Color GetColor();
+		int	Id{ get; set; }
 	}
 }

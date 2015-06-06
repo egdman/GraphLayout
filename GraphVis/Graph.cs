@@ -34,9 +34,9 @@ namespace GraphVis
 			adjacencyList = new List<List<int>>();
 		}
 
-
 		public void AddNode(Node node)
 		{
+			node.Id = nodeList.Count;
 			nodeList.Add( node );
 			adjacencyList.Add( new List<int>() );
 		}
@@ -53,6 +53,7 @@ namespace GraphVis
 			adjacencyList[index1].Add( EdgeCount - 1 );
 			adjacencyList[index2].Add( EdgeCount - 1 );
 		}
+
 
 		public bool AddChildren(int number, int index)
 		{
@@ -104,6 +105,75 @@ namespace GraphVis
 			}
 			return graph;
 		}
+
+
+		public float GetCentrality( int index )
+		{
+			float centrality = 0;
+			float [] paths = shortestPaths(index);
+			for (int index2 = 0; index2 < NodeCount; ++index2)
+			{
+				if ( index2 != index ) centrality += ( 1 / paths[index2] );
+			}
+			return centrality;
+		}
+
+
+
+		float [] shortestPaths(int src)
+		{
+			float	[] distances	= new float	[NodeCount];
+			int		[] previous		= new int	[NodeCount];
+			Dictionary<int, float> estim = new Dictionary<int,float>();
+
+			for (int i = 0; i < NodeCount; ++i)
+			{
+				estim.Add(i, 9999999);
+				previous[i] = i;
+			}
+			estim[src] = 0;
+			while (estim.Count > 0)
+			{
+	//			var cheapestNode  = estim.Min( pair => pair.Value );
+				var cheapestNode  = estim.OrderBy( pair => pair.Value ).First();
+				estim.Remove(cheapestNode.Key);
+
+				distances[cheapestNode.Key] = cheapestNode.Value;
+				foreach (var edge in adjacencyList[cheapestNode.Key])
+				{
+					relax( cheapestNode.Key, cheapestNode.Value, edge, estim, previous );
+				}
+			}
+			return distances;
+		}
+
+		void relax( int src, float srcEstim, int edge, Dictionary<int, float> estim, int [] previous )
+		{
+			int neighbor = Edges[edge].End1 == src ? Edges[edge].End2 : Edges[edge].End1;
+
+			float d = Edges[edge].Length;
+			float neighborEstim;
+			if (!estim.TryGetValue( neighbor, out neighborEstim ) ) return;
+			if (neighborEstim > srcEstim + d)
+			{
+				estim[neighbor] = srcEstim + d;
+				previous[neighbor] = src;
+			}
+		}
+
+		float dist(int index1, int index2)
+		{
+			foreach (int edge in adjacencyList[index1])
+			{
+				if (Edges[edge].End1 == index2 || Edges[edge].End2 == index2)
+				{
+					return Edges[edge].Length;
+				}
+			}
+			throw new InvalidOperationException( "Requested edges are not adjacent" );
+		}
+
+
 
 	}
 }

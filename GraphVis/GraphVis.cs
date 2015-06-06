@@ -119,6 +119,29 @@ namespace GraphVis
 			{
 				GetService<ParticleSystem>().SwitchConditionCheck();
 			}
+			if (e.Key == Keys.M)
+			{
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree(512);
+				float[] centralities = new float[graph.NodeCount];
+				float maxC = graph.GetCentrality(0);
+				float minC = maxC;
+				for (int i = 1; i < graph.NodeCount; ++i)
+				{
+					centralities[i] = graph.GetCentrality(i);
+					maxC = maxC < centralities[i] ? centralities[i] : maxC;
+					minC = minC > centralities[i] ? centralities[i] : minC;
+				}
+
+				float range = maxC - minC;
+				for (int i = 0; i < graph.NodeCount; ++i)
+				{
+					centralities[i] -= minC;
+					centralities[i] /= range;
+					var color = new Color(0.6f, 0.7f, centralities[i], 1.0f);
+					graph.Nodes[i] = new BaseNode(10.0f, color);
+				}
+				GetService<ParticleSystem>().AddGraph(graph);
+			}
 
 		}
 
@@ -160,7 +183,7 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree( 4096 );
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree( 512 );
 				partSys.AddGraph(graph);
 			}
 
@@ -176,6 +199,7 @@ namespace GraphVis
 			ds.Add("F12  - make screenshot");
 			ds.Add("ESC  - exit");
 			ds.Add("Press Z or X to load graph");
+			ds.Add("Press M to load painted graph (SLOW!)");
 			ds.Add("Press P to pause/unpause");
 
 			base.Update(gameTime);

@@ -29,7 +29,7 @@ namespace GraphVis {
 		State		state;
 
 		const int	BlockSize				=	256;
-		const int	MaxSimulatedParticles	=	4096;
+		const int	MaxSimulatedParticles	=	512;
 
 		float		particleMass;
 		float		linkSize;
@@ -50,7 +50,6 @@ namespace GraphVis {
 		Queue<int>			commandQueue;
 		Random rand = new Random();
 
-		float	maxAcc;
 		float	stepLength;
 		float	energy;
 		float	deltaEnergy;
@@ -155,14 +154,12 @@ namespace GraphVis {
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 			particleMass		=	0.05f;
 			linkSize			=	100.0f;
-			particleSize		=	2.0f;
-
+			particleSize		=	10.0f;
 			linkList			=	new List<Link>();
 			ParticleList		=	new List<Particle3d>();
 			linkPtrLists		=	new List<List<int> >();
 			commandQueue		=	new Queue<int>();
 			state				=	State.PAUSE;
-			maxAcc				=	0;
 			stepLength			=	1.0f;
 			numIterations		=	0;
 			ignoreConditions	=	false;
@@ -312,10 +309,9 @@ namespace GraphVis {
 
 		void setBuffers(Graph<BaseNode> graph)
 		{
-	//		addNodes( graph.NodeCount );
 			foreach (INode n in graph.Nodes)
 			{
-				addNode( n.GetSize(), n.GetColor() );
+				addNode(n.GetSize(), n.GetColor());
 			}
 			foreach (var e in graph.Edges)
 			{
@@ -377,7 +373,6 @@ namespace GraphVis {
 			}
 
 			state = State.PAUSE;
-			maxAcc = 0;
 			stepLength = 10.0f;
 			numIterations = 0;
 
@@ -627,23 +622,11 @@ namespace GraphVis {
 			var debStr = Game.GetService<DebugStrings>();
 			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
-			debStr.Add( Color.Aqua, "Max acceleration = " + maxAcc );
 			debStr.Add( Color.Aqua, "Step factor  = " + chosenStepLength );
 			debStr.Add( Color.Aqua, "Energy           = " + energy );
 			debStr.Add( Color.Aqua, "DeltaEnergy      = " + deltaEnergy );
 			debStr.Add( Color.Aqua, "pTp              = " + pGradE );
 			debStr.Add( Color.Aqua, "Iteration        = " + numIterations );
-			if ( cond1 ) {
-				debStr.Add( Color.Aqua, "Condition #1:  TRUE" );	
-			} else {
-				debStr.Add( Color.Aqua, "Condition #1:  FALSE" );
-			}
-			if ( cond2 ) {
-				debStr.Add( Color.Aqua, "Condition #2:  TRUE" );	
-			} else {
-				debStr.Add( Color.Aqua, "Condition #2:  FALSE" );
-			}
-
 			base.Draw( gameTime, stereoEye );
 		}
 

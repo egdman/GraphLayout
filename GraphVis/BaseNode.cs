@@ -27,14 +27,16 @@ namespace GraphVis
 			: this(1.0f, Color.White)
 		{ }
 
-		float INode.GetSize()
+		public float GetSize()
 		{
 			return nodeSize;
 		}
 
-		Color INode.GetColor()
+		public Color GetColor()
 		{
 			return nodeColor;
 		}
+
+		int INode.Id { get; set; }
 	}
 }
