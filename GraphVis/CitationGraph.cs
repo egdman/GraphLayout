@@ -7,7 +7,7 @@ using System.IO;
 
 namespace GraphVis
 {
-	public class CitationGraph<Node> : GraphFromFile<Node> where Node : new()
+	public class CitationGraph<Node> : GraphFromFile<Node> where Node : INode, new()
 	{
 		public override void ReadFromFile(string path)
 		{

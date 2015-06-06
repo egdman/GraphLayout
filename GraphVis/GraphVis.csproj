@@ -54,11 +54,13 @@
     <Compile Include="CitationGraph.cs" />
     <Compile Include="GraphFromFile.cs" />
     <Compile Include="Graph.cs" />
+    <Compile Include="INode.cs" />
     <Compile Include="OrbitCamera.cs" />
     <Compile Include="GraphVis.cs" />
     <Compile Include="ParticleSystem.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="BaseNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

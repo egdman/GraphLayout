@@ -113,9 +113,13 @@ namespace GraphVis
 			}
 			if ( e.Key == Keys.P )
 			{
-				var ps = GetService<ParticleSystem>();
-				ps.Pause();
+				GetService<ParticleSystem>().Pause();
 			}
+			if (e.Key == Keys.I)
+			{
+				GetService<ParticleSystem>().SwitchConditionCheck();
+			}
+
 		}
 
 
@@ -156,12 +160,12 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<int> graph = Graph<int>.MakeBinaryTree( 4096 );
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree( 4096 );
 				partSys.AddGraph(graph);
 			}
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
-				CitationGraph<int> graph = new CitationGraph<int>();
+				CitationGraph<BaseNode> graph = new CitationGraph<BaseNode>();
 				graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
 				partSys.AddGraph(graph);
 			}

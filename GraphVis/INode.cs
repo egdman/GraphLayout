@@ -4,12 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Fusion;
+using Fusion.Graphics;
+using Fusion.Mathematics;
+using Fusion.Input;
+
 namespace GraphVis
 {
-	public abstract class GraphFromFile<Node> : Graph<Node> where Node : INode, new()
+	public interface INode
 	{
-
-		public abstract void ReadFromFile( string path );
-
+		float GetSize();
+		Color GetColor();
 	}
 }

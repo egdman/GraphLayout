@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GraphVis
 {
-	public class Graph<Node> where Node : new()
+	public class Graph<Node> where Node : INode, new()
 	{
 		public struct Edge
 		{

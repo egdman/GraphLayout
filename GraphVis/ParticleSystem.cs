@@ -56,6 +56,7 @@ namespace GraphVis {
 		float	deltaEnergy;
 		float	pGradE;
 		uint	numIterations;
+		bool	ignoreConditions;
 
 		[StructLayout(LayoutKind.Explicit)]
 			struct Particle3d {
@@ -154,7 +155,7 @@ namespace GraphVis {
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 			particleMass		=	0.05f;
 			linkSize			=	100.0f;
-			particleSize		=	1.0f;
+			particleSize		=	2.0f;
 
 			linkList			=	new List<Link>();
 			ParticleList		=	new List<Particle3d>();
@@ -163,7 +164,8 @@ namespace GraphVis {
 			state				=	State.PAUSE;
 			maxAcc				=	0;
 			stepLength			=	1.0f;
-			numIterations		=	0;		
+			numIterations		=	0;
+			ignoreConditions	=	false;
 			Game.InputDevice.KeyDown += keyboardHandler;
 
 			base.Initialize();
@@ -174,6 +176,12 @@ namespace GraphVis {
 		{
 			if ( state == State.RUN ) {	state = State.PAUSE; }
 			else { state = State.RUN; }
+		}
+
+
+		public void SwitchConditionCheck()
+		{
+			ignoreConditions = !ignoreConditions;
 		}
 
 
@@ -202,7 +210,7 @@ namespace GraphVis {
 			return r;
 		}
 
-		public void AddGraph(Graph<int> graph)
+		public void AddGraph(Graph<BaseNode> graph)
 		{
 			ParticleList.Clear();
 			linkList.Clear();
@@ -210,12 +218,13 @@ namespace GraphVis {
 			setBuffers( graph );
 		}
 		
-		void addParticle( Vector3 pos, float lifeTime, float size0, float colorBoost = 1 )
+		void addParticle( Vector3 pos, float lifeTime, float size0, Vector4 color, float colorBoost = 1 )
 		{
 			ParticleList.Add( new Particle3d {
 					Position		=	pos,
 					Velocity		=	Vector3.Zero,
-					Color			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
+	//				Color			=	rand.NextVector4( Vector4.Zero, Vector4.One ) * colorBoost,
+					Color			=	color * colorBoost,
 					Size			=	size0,
 					Force			=	Vector3.Zero,
 					Mass			=	particleMass,
@@ -268,37 +277,46 @@ namespace GraphVis {
 			}
 		}
 
+		void addNode(float size, Color color)
+		{
+			var zeroV = new Vector3(0, 0, 0);
+			addParticle(
+					zeroV + RadialRandomVector() * linkSize, 9999,
+					size, color.ToVector4(), 1.0f );
+		}
+
 
 		void addNodes(int N)
 		{
-			var zeroV = new Vector3( 0, 0, -400 );
 			for (int i = 0; i < N; ++i)
 			{
-				addParticle(
-					zeroV + RadialRandomVector() * linkSize, 9999,
-					particleSize, 1.0f );
+				addNode( particleSize, rand.NextColor() );
 			}
 		}
 
 
-		void addChain( int N, bool linked )
-		{
-			Vector3 pos = new Vector3( 0, 0, -400);	
-			for ( int i = 0; i < N; ++i ) {			
-				addParticle( pos, 9999, particleSize, 1.0f );
-				pos += RadialRandomVector() * linkSize;
-			}
-			if ( linked ) {
-				for ( int i = 1; i < N; ++i ) {
-					addLink(i - 1, i);
-				}
-			}
-		}
+		//void addChain( int N, bool linked )
+		//{
+		//	Vector3 pos = new Vector3( 0, 0, -400);	
+		//	for ( int i = 0; i < N; ++i ) {			
+		//		addParticle( pos, 9999, particleSize, 1.0f );
+		//		pos += RadialRandomVector() * linkSize;
+		//	}
+		//	if ( linked ) {
+		//		for ( int i = 1; i < N; ++i ) {
+		//			addLink(i - 1, i);
+		//		}
+		//	}
+		//}
 
 
-		void setBuffers(Graph<int> graph)
+		void setBuffers(Graph<BaseNode> graph)
 		{
-			addNodes( graph.NodeCount );
+	//		addNodes( graph.NodeCount );
+			foreach (INode n in graph.Nodes)
+			{
+				addNode( n.GetSize(), n.GetColor() );
+			}
 			foreach (var e in graph.Edges)
 			{
 				addLink( e.End1, e.End2 );
@@ -450,13 +468,13 @@ namespace GraphVis {
 		public override void Draw ( GameTime gameTime, Fusion.Graphics.StereoEye stereoEye )
 		{
 			var device	=	Game.GraphicsDevice;
-	//		var cam = Game.GetService<OrbitCamera>();
-			var cam = Game.GetService<Camera>();
+			var cam = Game.GetService<OrbitCamera>();
+	//		var cam = Game.GetService<Camera>();
 			bool cond1 = false;
 			bool cond2 = false;
 
 	//		float energyThreshold = 0.003f;
-			float energyThreshold = 0.0f;
+			float energyThreshold = 0.25f;
 
 			
 			int lastCommand = 0;
@@ -505,8 +523,8 @@ namespace GraphVis {
 				param.MaxParticles	=	MaxSimulatedParticles;
 
 				if ( state == State.RUN ) {
-
 					for ( int i = 0; i < 1; ++i )
+			//		do
 					{
 						float Ek	= energy;
 						float Ek1	= 0;
@@ -547,11 +565,12 @@ namespace GraphVis {
 							cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk );
 							cond2 = ( pkGradEk1 >= C2 * pkGradEk );
 							
-
 							// FOR TESTING: //
-					//		cond1 = true;
-					//		cond2 = true;
-
+							if (ignoreConditions)
+							{
+								cond1 = true;
+								cond2 = true;
+							}
 
 							if ( tries > 4 )
 							{
@@ -595,9 +614,8 @@ namespace GraphVis {
 							state = State.PAUSE;
 							break;
 						}
-
-					
 					}
+			//		while (Math.Abs(deltaEnergy) > energyThreshold);
 				}
 			}
 
