@@ -23,13 +23,13 @@ namespace GraphVis {
 		public ParticleConfig cfg{ get; set; }
 		public const float WorldRaduis = 50.0f;
 
-		Texture2D	texture;
-		Ubershader	shader;
-		StateFactory factory;
-		State		state;
+		Texture2D		texture;
+		Ubershader		shader;
+		StateFactory	factory;
+		State			state;
 
 		const int	BlockSize				=	256;
-		const int	MaxSimulatedParticles	=	512;
+		const int	MaxSimulatedParticles	=	1024;
 
 		float		particleMass;
 		float		linkSize;
@@ -146,7 +146,8 @@ namespace GraphVis {
 			factory = new StateFactory( shader, typeof(Flags), ( plState, comb ) => 
 			{
 				plState.RasterizerState	= RasterizerState.CullNone;
-				plState.BlendState		= BlendState.Additive;
+	//			plState.BlendState		= BlendState.Additive;
+				plState.BlendState = BlendState.NegMultiply;
 				plState.DepthStencilState = DepthStencilState.Readonly;
 				plState.Primitive		= Primitive.PointList;
 			} );
@@ -373,7 +374,7 @@ namespace GraphVis {
 			}
 
 			state = State.PAUSE;
-			stepLength = 10.0f;
+			stepLength = 0.1f;
 			numIterations = 0;
 
 			initCalculations();
@@ -469,7 +470,9 @@ namespace GraphVis {
 			bool cond2 = false;
 
 	//		float energyThreshold = 0.003f;
-			float energyThreshold = 0.25f;
+	//		float energyThreshold = 0.1f;
+	//		float energyThreshold = (float)ParticleList.Count / 10000.0f;
+			float energyThreshold = 0;
 
 			
 			int lastCommand = 0;
@@ -516,9 +519,20 @@ namespace GraphVis {
 			if ( currentStateBuffer != null ) {
 						
 				param.MaxParticles	=	MaxSimulatedParticles;
+				float changeFactor = 0.1f;
+
+				if (lastCommand > 0)
+				{
+					stepLength *= (1.0f + changeFactor);
+				}
+				if (lastCommand < 0)
+				{
+					stepLength /= (1.0f + changeFactor);
+				}
+
 
 				if ( state == State.RUN ) {
-					for ( int i = 0; i < 1; ++i )
+					for ( int i = 0; i < 50; ++i )
 			//		do
 					{
 						float Ek	= energy;
@@ -531,35 +545,15 @@ namespace GraphVis {
 						cond2 = false;
 
 						int tries = 0;
-						float changeFactor = 0.1f;
 
-						if ( lastCommand > 0 )
+						if (!ignoreConditions)
 						{
-							stepLength *= (1.0f + changeFactor);
-						}
-						if ( lastCommand < 0 )
-						{
-							stepLength /= (1.0f + changeFactor);
+							calcTotalEnergyAndDotProduct(device, currentStateBuffer, currentStateBuffer,
+									enegryBuffer, param, out Ek, out pkGradEk);
 						}
 
-
-						calcTotalEnergyAndDotProduct(device, currentStateBuffer, currentStateBuffer,
-								enegryBuffer, param, out Ek, out pkGradEk);
 						while ( !(cond1 && cond2) )
 						{
-							param.StepLength = stepLength;
-
-							moveVertices( device, currentStateBuffer, nextStateBuffer, param );
-							calcDescentVector( device, nextStateBuffer, param ); // calc energies
-
-							calcTotalEnergyAndDotProduct( device, currentStateBuffer, nextStateBuffer,
-									enegryBuffer, param, out Ek1, out pkGradEk1 );
-
-
-							// check Wolfe conditions:
-							cond1 = ( Ek1 - Ek <= stepLength * C1 * pkGradEk );
-							cond2 = ( pkGradEk1 >= C2 * pkGradEk );
-							
 							// FOR TESTING: //
 							if (ignoreConditions)
 							{
@@ -567,28 +561,43 @@ namespace GraphVis {
 								cond2 = true;
 							}
 
-							if ( tries > 4 )
+							param.StepLength = stepLength;
+
+							moveVertices( device, currentStateBuffer, nextStateBuffer, param );
+							calcDescentVector(device, nextStateBuffer, param); // calc energies
+
+							if (!ignoreConditions)
 							{
-								// Debug output:
-								Console.WriteLine( "step = " + stepLength + " " + 
-									"cond#1 = " + (cond1 ? "TRUE" : "FALSE") + " " +
-									"cond#2 = " + (cond2 ? "TRUE" : "FALSE") + " " +
-									"deltaE = " + (Ek1 - Ek)
-									);
+								calcTotalEnergyAndDotProduct(device, currentStateBuffer, nextStateBuffer,
+										enegryBuffer, param, out Ek1, out pkGradEk1);
+
+
+								// check Wolfe conditions:
+								cond1 = (Ek1 - Ek <= stepLength * C1 * pkGradEk);
+								cond2 = (pkGradEk1 >= C2 * pkGradEk);
+
+								if (tries > 4)
+								{
+									// Debug output:
+									Console.WriteLine("step = " + stepLength + " " +
+										"cond#1 = " + (cond1 ? "TRUE" : "FALSE") + " " +
+										"cond#2 = " + (cond2 ? "TRUE" : "FALSE") + " " +
+										"deltaE = " + (Ek1 - Ek)
+										);
+								}
+
+								// change step length factor:
+								if (cond1 && !cond2) { stepLength *= (1.0f + changeFactor); }
+								if (!cond1 && !cond2) { stepLength *= (1.0f + changeFactor); }
+
+								if (!cond1 && cond2 && Ek1 < Ek) { stepLength /= (1.0f + changeFactor); }
+								if (!cond1 && cond2 && Ek1 >= Ek) { stepLength /= (1.0f + changeFactor); }
 							}
-
-							// change step length factor:
-							if (  cond1 && !cond2 )					{ stepLength *= (1.0f + changeFactor); }
-							if ( !cond1 && !cond2 )					{ stepLength *= (1.0f + changeFactor); }
-
-							if ( !cond1 &&  cond2 && Ek1  < Ek )	{ stepLength /= (1.0f + changeFactor); }
-							if ( !cond1 &&  cond2 && Ek1 >= Ek )	{ stepLength /= (1.0f + changeFactor); }
-							
 							++tries;
 							++numIterations;
 
 							// Temporary way to prevent freeze:
-							if ( tries > 10 ) break;
+							if ( tries > 5 ) break;
 						}
 
 				
@@ -603,14 +612,14 @@ namespace GraphVis {
 						
 						energy = Ek1;
 						deltaEnergy = Ek1 - Ek;
-						pGradE = pkGradEk;
+						pGradE = pkGradEk1;
 						if (Math.Abs(deltaEnergy) < energyThreshold)
 						{
 							state = State.PAUSE;
 							break;
 						}
 					}
-			//		while (Math.Abs(deltaEnergy) > energyThreshold);
+		//			while (true);
 				}
 			}
 
@@ -636,6 +645,7 @@ namespace GraphVis {
 		void render( GraphicsDevice device, Params parameters )
 		{
 				device.ResetStates();
+			device.ClearBackbuffer( Color.White );
 				device.SetTargets( null, device.BackbufferColor );
 				paramsCB.SetData(parameters);
 

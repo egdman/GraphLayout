@@ -76,16 +76,40 @@ namespace GraphVis
 
 
 
-		public static Graph<Node> MakeBinaryTree(int nodeCount)
+		public static Graph<Node> MakeString(int nodeCount)
 		{
 			Graph<Node> graph = new Graph<Node>();
 
-			graph.AddNode( new Node() );
-			graph.AddChildren( 2, graph.NodeCount - 1 );
+			graph.AddNode(new Node());
+			for (int i = 1; i < nodeCount; ++i)
+			{
+				graph.AddNode(new Node());
+				graph.AddEdge(graph.NodeCount - 2, graph.NodeCount - 1);
+			}
+			return graph;
+		}
+
+
+		public static Graph<Node> MakeRing(int nodeCount)
+		{
+			var graph = MakeString( nodeCount );
+			graph.AddEdge(graph.NodeCount - 1, 0);
+			return graph;
+		}
+
+
+		public static Graph<Node> MakeTree(int nodeCount, int arity)
+		{
+			Graph<Node> graph = new Graph<Node>();
+
+			graph.AddNode(new Node());
+			graph.AddChildren(arity, graph.NodeCount - 1);
 
 			Queue<int> latestIndex = new Queue<int>();
-			latestIndex.Enqueue(graph.NodeCount - 1);
-			latestIndex.Enqueue(graph.NodeCount - 2);
+			for (int i = 0; i < arity; ++i)
+			{
+				latestIndex.Enqueue(graph.NodeCount - 1 - i);
+			}
 
 			while (graph.NodeCount < nodeCount)
 			{
@@ -95,15 +119,22 @@ namespace GraphVis
 				}
 				int parentIndex = latestIndex.Peek();
 
-				if (graph.adjacencyList[parentIndex].Count > 2)
+				if (graph.adjacencyList[parentIndex].Count > arity)
 				{
 					latestIndex.Dequeue();
 					continue;
 				}
-				graph.AddChildren( 1, parentIndex );
+				graph.AddChildren(1, parentIndex);
 				latestIndex.Enqueue(graph.NodeCount - 1);
 			}
 			return graph;
+		}
+
+
+		
+		public static Graph<Node> MakeBinaryTree(int nodeCount)
+		{
+			return MakeTree( nodeCount, 2 );
 		}
 
 
@@ -122,8 +153,10 @@ namespace GraphVis
 
 		float [] shortestPaths(int src)
 		{
+		//	int		nodesRemain		= NodeCount;
 			float	[] distances	= new float	[NodeCount];
 			int		[] previous		= new int	[NodeCount];
+		//	bool	[] done			= new bool	[NodeCount];
 			Dictionary<int, float> estim = new Dictionary<int,float>();
 
 			for (int i = 0; i < NodeCount; ++i)
@@ -133,11 +166,11 @@ namespace GraphVis
 			}
 			estim[src] = 0;
 			while (estim.Count > 0)
+		//	while(nodesRemain > 0)
 			{
-	//			var cheapestNode  = estim.Min( pair => pair.Value );
 				var cheapestNode  = estim.OrderBy( pair => pair.Value ).First();
 				estim.Remove(cheapestNode.Key);
-
+		//		--nodesRemain;
 				distances[cheapestNode.Key] = cheapestNode.Value;
 				foreach (var edge in adjacencyList[cheapestNode.Key])
 				{
@@ -146,6 +179,7 @@ namespace GraphVis
 			}
 			return distances;
 		}
+
 
 		void relax( int src, float srcEstim, int edge, Dictionary<int, float> estim, int [] previous )
 		{

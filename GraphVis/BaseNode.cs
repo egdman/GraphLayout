@@ -24,7 +24,7 @@ namespace GraphVis
 
 		// default constructor:
 		public BaseNode()
-			: this(1.0f, Color.White)
+			: this(3.0f, Color.White)
 		{ }
 
 		public float GetSize()

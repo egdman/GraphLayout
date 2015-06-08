@@ -121,15 +121,19 @@ namespace GraphVis
 			}
 			if (e.Key == Keys.M)
 			{
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree(512);
+		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree(512);
+		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeString( 256 );
+				CitationGraph<BaseNode> graph = new CitationGraph<BaseNode>();
+				graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
 				float[] centralities = new float[graph.NodeCount];
 				float maxC = graph.GetCentrality(0);
 				float minC = maxC;
-				for (int i = 1; i < graph.NodeCount; ++i)
+				for (int i = 0; i < graph.NodeCount; ++i)
 				{
 					centralities[i] = graph.GetCentrality(i);
 					maxC = maxC < centralities[i] ? centralities[i] : maxC;
 					minC = minC > centralities[i] ? centralities[i] : minC;
+					Log.Message( ":{0}", i );
 				}
 
 				float range = maxC - minC;
@@ -137,8 +141,11 @@ namespace GraphVis
 				{
 					centralities[i] -= minC;
 					centralities[i] /= range;
-					var color = new Color(0.6f, 0.7f, centralities[i], 1.0f);
-					graph.Nodes[i] = new BaseNode(10.0f, color);
+					centralities[i] *= 0.9f;
+					centralities[i] += 0.1f;
+					var color = new Color(0.6f, 0.3f, centralities[i], 1.0f);
+			//		var color = new Color(centralities[i]); // B/W
+					graph.Nodes[i] = new BaseNode(5.0f, color);
 				}
 				GetService<ParticleSystem>().AddGraph(graph);
 			}
@@ -183,7 +190,8 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree( 512 );
+	//			Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree( 1024 );
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 1024, 7 );
 				partSys.AddGraph(graph);
 			}
 
@@ -194,13 +202,14 @@ namespace GraphVis
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);
-			ds.Add("F1   - show developer console");
-			ds.Add("F5   - build content and reload textures");
-			ds.Add("F12  - make screenshot");
-			ds.Add("ESC  - exit");
-			ds.Add("Press Z or X to load graph");
-			ds.Add("Press M to load painted graph (SLOW!)");
-			ds.Add("Press P to pause/unpause");
+			ds.Add(Color.Orange, "F1   - show developer console");
+			ds.Add(Color.Orange, "F5   - build content and reload textures");
+			ds.Add(Color.Orange, "F12  - make screenshot");
+			ds.Add(Color.Orange, "ESC  - exit");
+			ds.Add(Color.Orange, "Press Z or X to load graph");
+			ds.Add(Color.Orange, "Press M to load painted graph (SLOW!)");
+			ds.Add(Color.Orange, "Press P to pause/unpause");
+			ds.Add(Color.Orange, "Press I to switch to manual mode");
 
 			base.Update(gameTime);
 
