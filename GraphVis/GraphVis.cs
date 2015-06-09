@@ -121,10 +121,7 @@ namespace GraphVis
 			}
 			if (e.Key == Keys.M)
 			{
-		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree(512);
-		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeString( 256 );
-				CitationGraph<BaseNode> graph = new CitationGraph<BaseNode>();
-				graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 1024, 2 );				
 				float[] centralities = new float[graph.NodeCount];
 				float maxC = graph.GetCentrality(0);
 				float minC = maxC;
@@ -190,8 +187,7 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-	//			Graph<BaseNode> graph = Graph<BaseNode>.MakeBinaryTree( 1024 );
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 1024, 7 );
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 2048, 2 );
 				partSys.AddGraph(graph);
 			}
 

@@ -29,7 +29,7 @@ namespace GraphVis {
 		State			state;
 
 		const int	BlockSize				=	256;
-		const int	MaxSimulatedParticles	=	1024;
+		const int	MaxSimulatedParticles	=	2048;
 
 		float		particleMass;
 		float		linkSize;
@@ -532,7 +532,7 @@ namespace GraphVis {
 
 
 				if ( state == State.RUN ) {
-					for ( int i = 0; i < 50; ++i )
+					for ( int i = 0; i < 25; ++i )
 			//		do
 					{
 						float Ek	= energy;
