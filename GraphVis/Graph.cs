@@ -76,6 +76,14 @@ namespace GraphVis
 
 
 
+		public static Graph<Node> MakeHub(int childrenCount)
+		{
+			Graph<Node> graph = new Graph<Node>();
+			graph.AddNode ( new Node() );
+			graph.AddChildren( childrenCount, 0 );
+			return graph;
+		}
+
 		public static Graph<Node> MakeString(int nodeCount)
 		{
 			Graph<Node> graph = new Graph<Node>();

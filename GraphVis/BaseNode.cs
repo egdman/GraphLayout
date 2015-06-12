@@ -37,6 +37,6 @@ namespace GraphVis
 			return nodeColor;
 		}
 
-		int INode.Id { get; set; }
+		public int Id { get; set; }
 	}
 }

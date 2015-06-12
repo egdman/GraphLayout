@@ -29,7 +29,7 @@ namespace GraphVis {
 		State			state;
 
 		const int	BlockSize				=	256;
-		const int	MaxSimulatedParticles	=	2048;
+		const int	MaxSimulatedParticles	=	1024*8;
 
 		float		particleMass;
 		float		linkSize;
@@ -56,6 +56,7 @@ namespace GraphVis {
 		float	pGradE;
 		uint	numIterations;
 		bool	ignoreConditions;
+		int		stepStability;
 
 		[StructLayout(LayoutKind.Explicit)]
 			struct Particle3d {
@@ -164,6 +165,7 @@ namespace GraphVis {
 			stepLength			=	1.0f;
 			numIterations		=	0;
 			ignoreConditions	=	false;
+			stepStability		=	0;
 			Game.InputDevice.KeyDown += keyboardHandler;
 
 			base.Initialize();
@@ -215,7 +217,16 @@ namespace GraphVis {
 			linkPtrLists.Clear();
 			setBuffers( graph );
 		}
-		
+
+
+		public void AddGraph(Graph<SpatialNode> graph)
+		{
+			ParticleList.Clear();
+			linkList.Clear();
+			linkPtrLists.Clear();
+			setBuffers( graph );
+		}
+
 		void addParticle( Vector3 pos, float lifeTime, float size0, Vector4 color, float colorBoost = 1 )
 		{
 			ParticleList.Add( new Particle3d {
@@ -270,7 +281,7 @@ namespace GraphVis {
 			foreach ( var link in lList )
 			{
 				Link modifLink = linkList[link];
- 				modifLink.length *= 1.1f;
+				modifLink.length *= 1.1f;
 				linkList[link] = modifLink;
 			}
 		}
@@ -284,6 +295,12 @@ namespace GraphVis {
 		}
 
 
+		void addNode(float size, Color color, Vector3 position)
+		{
+			addParticle( position, 9999, size, color.ToVector4(), 1.0f );
+		}
+
+
 		void addNodes(int N)
 		{
 			for (int i = 0; i < N; ++i)
@@ -292,20 +309,6 @@ namespace GraphVis {
 			}
 		}
 
-
-		//void addChain( int N, bool linked )
-		//{
-		//	Vector3 pos = new Vector3( 0, 0, -400);	
-		//	for ( int i = 0; i < N; ++i ) {			
-		//		addParticle( pos, 9999, particleSize, 1.0f );
-		//		pos += RadialRandomVector() * linkSize;
-		//	}
-		//	if ( linked ) {
-		//		for ( int i = 1; i < N; ++i ) {
-		//			addLink(i - 1, i);
-		//		}
-		//	}
-		//}
 
 
 		void setBuffers(Graph<BaseNode> graph)
@@ -317,6 +320,19 @@ namespace GraphVis {
 			foreach (var e in graph.Edges)
 			{
 				addLink( e.End1, e.End2 );
+			}
+			setBuffers();
+		}
+
+		void setBuffers(Graph<SpatialNode> graph)
+		{
+			foreach (SpatialNode n in graph.Nodes)
+			{
+				addNode(n.GetSize(), n.GetColor(), n.Position);
+			}
+			foreach (var e in graph.Edges)
+			{
+				addLink(e.End1, e.End2);
 			}
 			setBuffers();
 		}
@@ -376,7 +392,7 @@ namespace GraphVis {
 			state = State.PAUSE;
 			stepLength = 0.1f;
 			numIterations = 0;
-
+			stepStability = 0;
 			initCalculations();
 		}
 
@@ -436,13 +452,6 @@ namespace GraphVis {
 		public override void Update ( GameTime gameTime )
 		{
 			base.Update( gameTime );
-
-			var ds = Game.GetService<DebugStrings>();
-
-		//	ds.Add( Color.Yellow, "Total particles DST: {0}", simulationBufferDst.GetStructureCount() );
-		//	ds.Add( Color.Yellow, "Total particles SRC: {0}", simulationBufferSrc.GetStructureCount() );
-		//	ds.Add( Color.Yellow, "Injection count: {0}", injectionCount );
-		//	ds.Add( Color.Yellow, "Particle array length: {0}", injectionBufferCPU == null ? "null" : injectionBufferCPU.Length.ToString() );
 		}
 
 		/// <summary>
@@ -481,8 +490,8 @@ namespace GraphVis {
 				lastCommand = commandQueue.Dequeue();
 			}
 			
-			float chosenStepLength = 0;
-
+			float chosenStepLength = stepLength;
+			
 			// Wolfe constants:
 	//		float C1 = 0.1f;
 	//		float C2 = 0.99f;
@@ -532,6 +541,9 @@ namespace GraphVis {
 
 
 				if ( state == State.RUN ) {
+
+		//			StreamWriter sw = File.AppendText( "step.csv" );
+
 					for ( int i = 0; i < 25; ++i )
 			//		do
 					{
@@ -576,6 +588,7 @@ namespace GraphVis {
 								cond1 = (Ek1 - Ek <= stepLength * C1 * pkGradEk);
 								cond2 = (pkGradEk1 >= C2 * pkGradEk);
 
+
 								if (tries > 4)
 								{
 									// Debug output:
@@ -587,11 +600,16 @@ namespace GraphVis {
 								}
 
 								// change step length factor:
-								if (cond1 && !cond2) { stepLength *= (1.0f + changeFactor); }
-								if (!cond1 && !cond2) { stepLength *= (1.0f + changeFactor); }
+								//if (cond1 && !cond2) { stepLength *= (1.0f + changeFactor); }
+								//if (!cond1 && !cond2) { stepLength *= (1.0f + changeFactor); }
 
-								if (!cond1 && cond2 && Ek1 < Ek) { stepLength /= (1.0f + changeFactor); }
-								if (!cond1 && cond2 && Ek1 >= Ek) { stepLength /= (1.0f + changeFactor); }
+								//if (!cond1 && cond2 ) { stepLength /= (1.0f + changeFactor); }
+
+								if (cond1 && !cond2) { stepLength += 0.01f; }
+								if (!cond1 && !cond2) { stepLength += 0.01f; }
+
+								if (!cond1 && cond2) { stepLength -= 0.01f; }
+
 							}
 							++tries;
 							++numIterations;
@@ -605,10 +623,21 @@ namespace GraphVis {
 						var temp = currentStateBuffer;
 						currentStateBuffer = nextStateBuffer;
 						nextStateBuffer = temp;
+
+						if (stepLength == chosenStepLength) // if the new step length is the same as before
+						{
+							++stepStability;
+						}
+						else
+						{
+							stepStability = 0;
+						}
 						chosenStepLength = stepLength;
-						// Reset step length factor:
-				//		stepLength = 1.0f;
-				//		stepLength = 10.0f;
+
+						if (stepStability >= 500) // if stable step length found, switch to manual
+						{
+							ignoreConditions = true;
+						}
 						
 						energy = Ek1;
 						deltaEnergy = Ek1 - Ek;
@@ -618,8 +647,12 @@ namespace GraphVis {
 							state = State.PAUSE;
 							break;
 						}
+						
+		//				sw.WriteLine( numIterations + "," + chosenStepLength );
+
 					}
 		//			while (true);
+		//			sw.Close();
 				}
 			}
 
@@ -636,10 +669,13 @@ namespace GraphVis {
 			debStr.Add( Color.Aqua, "DeltaEnergy      = " + deltaEnergy );
 			debStr.Add( Color.Aqua, "pTp              = " + pGradE );
 			debStr.Add( Color.Aqua, "Iteration        = " + numIterations );
+			debStr.Add(Color.Aqua, "Stability         = " + stepStability);
+
+			debStr.Add(Color.MidnightBlue, "Mode:   " +( ignoreConditions ? "MANUAL" : "AUTO" ));
 			base.Draw( gameTime, stereoEye );
 		}
 
-		
+
 
 
 		void render( GraphicsDevice device, Params parameters )

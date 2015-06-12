@@ -59,7 +59,7 @@ namespace GraphVis
 
 			var cam = GetService<Camera>();
 
-			cam.Config.FreeCamEnabled = true;
+			cam.Config.FreeCamEnabled = false;
 
 			//	add keyboard handler :
 			InputDevice.KeyDown += InputDevice_KeyDown;
@@ -121,7 +121,7 @@ namespace GraphVis
 			}
 			if (e.Key == Keys.M)
 			{
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 1024, 2 );				
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );				
 				float[] centralities = new float[graph.NodeCount];
 				float maxC = graph.GetCentrality(0);
 				float minC = maxC;
@@ -187,7 +187,7 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 2048, 2 );
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 1024*8, 2 );		
 				partSys.AddGraph(graph);
 			}
 
