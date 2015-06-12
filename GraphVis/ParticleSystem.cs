@@ -29,7 +29,7 @@ namespace GraphVis {
 		State			state;
 
 		const int	BlockSize				=	256;
-		const int	MaxSimulatedParticles	=	1024*8;
+	//	const int	MaxSimulatedParticles	=	1024*8;
 
 		float		particleMass;
 		float		linkSize;
@@ -286,11 +286,30 @@ namespace GraphVis {
 			}
 		}
 
+
+		public Graph<SpatialNode> GetGraph()
+		{
+			Particle3d[] particleArray = new Particle3d[currentStateBuffer.GetStructureCount()];
+			currentStateBuffer.GetData( particleArray );
+			Graph<SpatialNode> graph = new Graph<SpatialNode>();
+			foreach (var p in particleArray)
+			{
+				graph.AddNode( new SpatialNode( p.Position, p.Size, new Color(p.Color) ) );
+			}
+			foreach (var l in linkList)
+			{
+				graph.AddEdge((int)l.par1, (int)l.par2);
+			}
+			return graph;
+		}
+
+
+
 		void addNode(float size, Color color)
 		{
 			var zeroV = new Vector3(0, 0, 0);
 			addParticle(
-					zeroV + RadialRandomVector() * linkSize, 9999,
+					zeroV + RadialRandomVector() * linkSize * 10.0f, 9999,
 					size, color.ToVector4(), 1.0f );
 		}
 
@@ -369,7 +388,7 @@ namespace GraphVis {
 				enegryBuffer = new StructuredBuffer (
 							Game.GraphicsDevice,
 							typeof(Vector4),
-							MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ),
+							MathUtil.IntDivUp( particleBufferCPU.Length, BlockSize ),
 							StructuredBufferFlags.Counter );
 			}
 			if ( linksBufferCPU.Length != 0 ) {
@@ -522,21 +541,20 @@ namespace GraphVis {
 			param.View			=	cam.GetViewMatrix( stereoEye );
 			param.Projection	=	cam.GetProjectionMatrix( stereoEye );
 			param.MaxParticles	=	0;
-
 			param.LinkSize		=	linkSize;
 
 			if ( currentStateBuffer != null ) {
 						
-				param.MaxParticles	=	MaxSimulatedParticles;
-				float changeFactor = 0.1f;
+				param.MaxParticles	=	(uint)ParticleList.Count;
 
+				// manual step change:
 				if (lastCommand > 0)
 				{
-					stepLength *= (1.0f + changeFactor);
+					stepLength = increaseStep( stepLength );
 				}
 				if (lastCommand < 0)
 				{
-					stepLength /= (1.0f + changeFactor);
+					stepLength = decreaseStep( stepLength );
 				}
 
 
@@ -566,7 +584,6 @@ namespace GraphVis {
 
 						while ( !(cond1 && cond2) )
 						{
-							// FOR TESTING: //
 							if (ignoreConditions)
 							{
 								cond1 = true;
@@ -605,10 +622,10 @@ namespace GraphVis {
 
 								//if (!cond1 && cond2 ) { stepLength /= (1.0f + changeFactor); }
 
-								if (cond1 && !cond2) { stepLength += 0.01f; }
-								if (!cond1 && !cond2) { stepLength += 0.01f; }
+								if (cond1 && !cond2) { stepLength = increaseStep( stepLength ); }
+								if (!cond1 && !cond2) { stepLength = increaseStep( stepLength ); }
 
-								if (!cond1 && cond2) { stepLength -= 0.01f; }
+								if (!cond1 && cond2) { stepLength = decreaseStep( stepLength ); }
 
 							}
 							++tries;
@@ -634,7 +651,7 @@ namespace GraphVis {
 						}
 						chosenStepLength = stepLength;
 
-						if (stepStability >= 500) // if stable step length found, switch to manual
+						if (stepStability >= 250) // if stable step length found, switch to manual
 						{
 							ignoreConditions = true;
 						}
@@ -707,13 +724,37 @@ namespace GraphVis {
 		}
 
 
+
+		/// <summary>
+		/// This function returns increased step length
+		/// </summary>
+		/// <param name="step"></param>
+		/// <returns></returns>
+		float increaseStep(float step)
+		{
+			return step + 0.01f;
+		}
+
+
+		/// <summary>
+		/// This function returns decreased step length
+		/// </summary>
+		/// <param name="step"></param>
+		/// <returns></returns>
+		float decreaseStep(float step)
+		{
+			return step - 0.01f;
+		}
+
+
+
 		/// <summary>
 		/// This function performss the first iteration of calculations
 		/// </summary>
 		void initCalculations()
 		{
 			Params param = new Params();
-			param.MaxParticles = MaxSimulatedParticles;
+			param.MaxParticles = (uint)ParticleList.Count;
 
 			var device = Game.GraphicsDevice;
 			calcDescentVector(device, currentStateBuffer, param); // calc desc vector and energies
@@ -736,11 +777,11 @@ namespace GraphVis {
 		{
 			paramsCB.SetData( parameters );
 			device.ComputeShaderConstants[0] = paramsCB;
-			device.SetCSRWBuffer( 0, rwVertexBuffer, MaxSimulatedParticles );
+			device.SetCSRWBuffer(0, rwVertexBuffer, ParticleList.Count);
 			device.ComputeShaderResources[2] = linksPtrBuffer;
 			device.ComputeShaderResources[3] = linksBuffer;
 			device.PipelineState = factory[(int)(Flags.COMPUTE|Flags.SIMULATION|Flags.EULER|Flags.LINKS)];
-			device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+			device.Dispatch( MathUtil.IntDivUp( ParticleList.Count, BlockSize ) );
 			device.ResetStates();
 		}
 
@@ -762,9 +803,9 @@ namespace GraphVis {
 			paramsCB.SetData( parameters );
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.ComputeShaderResources[1] = srcVertexBuffer;
-			device.SetCSRWBuffer( 0, dstVertexBuffer, MaxSimulatedParticles );
+			device.SetCSRWBuffer( 0, dstVertexBuffer, ParticleList.Count );
 			device.PipelineState = factory[(int)(Flags.COMPUTE|Flags.MOVE)];
-			device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+			device.Dispatch( MathUtil.IntDivUp( ParticleList.Count, BlockSize ) );
 			device.ResetStates();
 		}
 
@@ -791,9 +832,9 @@ namespace GraphVis {
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.ComputeShaderResources[1] = currentStateBuffer;
 			device.ComputeShaderResources[4] = nextStateBuffer;
-			device.SetCSRWBuffer( 1, outputValues, MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+			device.SetCSRWBuffer( 1, outputValues, MathUtil.IntDivUp( ParticleList.Count, BlockSize ) );
 			device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
-			device.Dispatch( MathUtil.IntDivUp( MaxSimulatedParticles, BlockSize ) );
+			device.Dispatch( MathUtil.IntDivUp( ParticleList.Count, BlockSize ) );
 
 			// perform final summation:
 			Vector4[] valueBufferCPU = new Vector4[outputValues.GetStructureCount()];

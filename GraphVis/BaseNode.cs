@@ -37,6 +37,14 @@ namespace GraphVis
 			return nodeColor;
 		}
 
+		public virtual string GetInfo()
+		{
+			var color = this.GetColor();
+			return (this.Id + "," + this.GetSize() + ","
+				+ "A:" + color.A + " R:" + color.R + " G:" + color.G + " B:" + color.B );
+		}
+
+
 		public int Id { get; set; }
 	}
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace GraphVis
 {
@@ -215,6 +216,16 @@ namespace GraphVis
 			throw new InvalidOperationException( "Requested edges are not adjacent" );
 		}
 
+		public void WriteToFile(string path)
+		{
+			using (StreamWriter wr = new StreamWriter(path))
+			{
+				foreach (var node in Nodes)
+				{
+					wr.WriteLine(node.GetInfo());
+				}
+			}
+		}
 
 
 	}

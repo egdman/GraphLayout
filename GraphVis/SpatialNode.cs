@@ -28,5 +28,11 @@ namespace GraphVis
 			Position = position;
 		}
 
+
+		public override string GetInfo()
+		{
+			return ( base.GetInfo() + ",X:" + Position.X + " Y:" + Position.Y + " Z:" + Position.Z );
+		}
+
 	}
 }

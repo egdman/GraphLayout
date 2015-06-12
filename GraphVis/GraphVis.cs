@@ -146,6 +146,12 @@ namespace GraphVis
 				}
 				GetService<ParticleSystem>().AddGraph(graph);
 			}
+			if (e.Key == Keys.Q)
+			{
+				Graph<SpatialNode> graph = GetService<ParticleSystem>().GetGraph();
+				graph.WriteToFile( "graph.gr" );
+				Log.Message( "Graph saved to file" ); 
+			}
 
 		}
 
@@ -187,7 +193,7 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 1024*8, 2 );		
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 4096, 7 );		
 				partSys.AddGraph(graph);
 			}
 
