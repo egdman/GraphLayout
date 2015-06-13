@@ -15,12 +15,23 @@ using Fusion.Input;
 namespace GraphVis {
 	public class ParticleConfig
 	{
+		public int IterationsPerFrame { get; set; }
+		public int SearchIterations { get; set; }
+		public int SwitchToManualAfter { get; set; }
+
+		public ParticleConfig()
+		{
+			IterationsPerFrame = 25;
+			SearchIterations = 5;
+			SwitchToManualAfter = 250;
+		}
+
 	}
 
 	public class ParticleSystem : GameService {
 
 		[Config]
-		public ParticleConfig cfg{ get; set; }
+		public ParticleConfig Config{ get; set; }
 		public const float WorldRaduis = 50.0f;
 
 		Texture2D		texture;
@@ -83,10 +94,10 @@ namespace GraphVis {
 			public uint par2;
 			[FieldOffset(8)]
 			public float length;
-			[FieldOffset(12)]
-			public float force2;
-			[FieldOffset(16)]
-			public Vector3 orientation;
+//			[FieldOffset(12)]
+//			public float force2;
+//			[FieldOffset(16)]
+//			public Vector3 orientation;
 		}
 
 
@@ -133,7 +144,7 @@ namespace GraphVis {
 		/// <param name="game"></param>
 		public ParticleSystem ( Game game ) : base (game)
 		{
-			cfg = new ParticleConfig();
+			Config = new ParticleConfig();
 		}
 
 		/// <summary>
@@ -251,8 +262,6 @@ namespace GraphVis {
 					par1 = (uint)end1,
 					par2 = (uint)end2,
 					length = 1.0f,
-					force2 = 0,
-					orientation = Vector3.Zero
 				}
 			);
 			linkPtrLists[end1].Add(linkNumber);
@@ -562,7 +571,7 @@ namespace GraphVis {
 
 		//			StreamWriter sw = File.AppendText( "step.csv" );
 
-					for ( int i = 0; i < 25; ++i )
+					for ( int i = 0; i < Config.IterationsPerFrame; ++i )
 			//		do
 					{
 						float Ek	= energy;
@@ -632,7 +641,7 @@ namespace GraphVis {
 							++numIterations;
 
 							// Temporary way to prevent freeze:
-							if ( tries > 5 ) break;
+							if ( tries > Config.SearchIterations ) break;
 						}
 
 				
@@ -651,7 +660,7 @@ namespace GraphVis {
 						}
 						chosenStepLength = stepLength;
 
-						if (stepStability >= 250) // if stable step length found, switch to manual
+						if (stepStability >= Config.SwitchToManualAfter) // if stable step length found, switch to manual
 						{
 							ignoreConditions = true;
 						}

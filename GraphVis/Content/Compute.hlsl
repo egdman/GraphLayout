@@ -43,8 +43,6 @@ struct Link {
 	uint par1;
 	uint par2;
 	float length;
-	float force2;
-	float3 orientation;
 };
 
 
