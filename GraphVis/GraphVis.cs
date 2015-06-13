@@ -117,7 +117,7 @@ namespace GraphVis
 			}
 			if (e.Key == Keys.I)
 			{
-				GetService<ParticleSystem>().SwitchConditionCheck();
+				GetService<ParticleSystem>().SwitchStepMode();
 			}
 			if (e.Key == Keys.M)
 			{
@@ -151,6 +151,22 @@ namespace GraphVis
 				Graph<SpatialNode> graph = GetService<ParticleSystem>().GetGraph();
 				graph.WriteToFile( "graph.gr" );
 				Log.Message( "Graph saved to file" ); 
+			}
+			if (e.Key == Keys.F)
+			{
+				// How to change graph:
+				var pSys = GetService<ParticleSystem>();
+				Graph<SpatialNode> graph = pSys.GetGraph();
+
+				///////
+				// Make some changes here
+				Random rnd = new Random();
+				int end1 = rnd.Next( graph.NodeCount );
+				int end2 = rnd.Next( graph.NodeCount );
+				graph.AddEdge( end1, end2 );
+				///////
+
+				pSys.UpdateGraph(graph);
 			}
 
 		}
@@ -193,7 +209,7 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 4096, 7 );		
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );		
 				partSys.AddGraph(graph);
 			}
 

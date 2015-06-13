@@ -190,7 +190,7 @@ namespace GraphVis {
 		}
 
 
-		public void SwitchConditionCheck()
+		public void SwitchStepMode()
 		{
 			ignoreConditions = !ignoreConditions;
 		}
@@ -223,6 +223,7 @@ namespace GraphVis {
 
 		public void AddGraph(Graph<BaseNode> graph)
 		{
+			resetState();
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
@@ -232,11 +233,27 @@ namespace GraphVis {
 
 		public void AddGraph(Graph<SpatialNode> graph)
 		{
+			resetState();
 			ParticleList.Clear();
 			linkList.Clear();
 			linkPtrLists.Clear();
-			setBuffers( graph );
+			setBuffers(graph);
 		}
+
+
+		public void UpdateGraph(Graph<SpatialNode> graph)
+		{
+			ParticleList.Clear();
+			linkList.Clear();
+			linkPtrLists.Clear();
+
+	//		resetState();
+			state = State.RUN;
+			ignoreConditions = false;
+			
+			setBuffers(graph);
+		}
+
 
 		void addParticle( Vector3 pos, float lifeTime, float size0, Vector4 color, float colorBoost = 1 )
 		{
@@ -273,8 +290,8 @@ namespace GraphVis {
 			Particle3d newPrt2 = ParticleList[end2];
 			newPrt1.Mass	+= 0.7f;
 			newPrt2.Mass	+= 0.7f;
-			newPrt1.Size	+= 0.1f;
-			newPrt2.Size	+= 0.1f;
+	//		newPrt1.Size	+= 0.1f;
+	//		newPrt2.Size	+= 0.1f;
 			ParticleList[end1] = newPrt1;
 			ParticleList[end2] = newPrt2;
 			stretchLinks(end1);
@@ -416,14 +433,17 @@ namespace GraphVis {
 							StructuredBufferFlags.Counter );
 				linksPtrBuffer.SetData(linksPtrBufferCPU);
 			}
+			initCalculations();
+		}
 
+
+		void resetState()
+		{
 			state = State.PAUSE;
 			stepLength = 0.1f;
 			numIterations = 0;
 			stepStability = 0;
-			initCalculations();
 		}
-
 
 	
 		/// <summary>

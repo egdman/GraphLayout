@@ -114,13 +114,15 @@ namespace GraphVis
 				altitude = 0.0f;
 			}
 
+			if ( latitude > 88.0f ) latitude = 88.0f;
+			if ( latitude < -88.0f ) latitude = -88.0f;
 
 
 			Vector3 cameraLocation = anglesToCoords( latitude, longitude, (zeroRadius + altitude) );
 //			base.SetPose( cameraLocation, 0, 0, 0 );
 //			base.LookAt( cameraLocation, new Vector3(0, 0, 0), new Vector3( 0, 1, 0) );
 			base.SetupCamera( cameraLocation, new Vector3(0, 0, 0), new Vector3( 0, 1, 0), new Vector3(0, 0, 0),
-				118.0f, base.Config.FreeCamZNear,base.Config.FreeCamZFar, 0, 0 );
+				120.0f, base.Config.FreeCamZNear,base.Config.FreeCamZFar, 0, 0 );
 
 			//ds.Add( "Altitude = " + altitude + " m" );
 			//ds.Add( "Longitude = " + longitude );
