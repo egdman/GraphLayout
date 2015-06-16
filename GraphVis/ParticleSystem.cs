@@ -250,6 +250,7 @@ namespace GraphVis {
 	//		resetState();
 			state = State.RUN;
 			ignoreConditions = false;
+			stepStability = 0;
 			
 			setBuffers(graph);
 		}
@@ -528,8 +529,8 @@ namespace GraphVis {
 
 	//		float energyThreshold = 0.003f;
 	//		float energyThreshold = 0.1f;
-	//		float energyThreshold = (float)ParticleList.Count / 10000.0f;
-			float energyThreshold = 0;
+			float energyThreshold = (float)ParticleList.Count / 10000.0f;
+	//		float energyThreshold = 0;
 
 			
 			int lastCommand = 0;
@@ -634,10 +635,15 @@ namespace GraphVis {
 								cond1 = (Ek1 - Ek <= stepLength * C1 * pkGradEk);
 								cond2 = (pkGradEk1 >= C2 * pkGradEk);
 
+								// if we are very close to minimum, do not check conditions (it leads to infinite cycles)
+								if (Math.Abs(Ek1 - Ek) < energyThreshold)
+								{
+									cond1 = cond2 = true;
+								}
 
+								// Debug output:
 								if (tries > 4)
 								{
-									// Debug output:
 									Console.WriteLine("step = " + stepLength + " " +
 										"cond#1 = " + (cond1 ? "TRUE" : "FALSE") + " " +
 										"cond#2 = " + (cond2 ? "TRUE" : "FALSE") + " " +
@@ -645,12 +651,7 @@ namespace GraphVis {
 										);
 								}
 
-								// change step length factor:
-								//if (cond1 && !cond2) { stepLength *= (1.0f + changeFactor); }
-								//if (!cond1 && !cond2) { stepLength *= (1.0f + changeFactor); }
-
-								//if (!cond1 && cond2 ) { stepLength /= (1.0f + changeFactor); }
-
+								// change step length:
 								if (cond1 && !cond2) { stepLength = increaseStep( stepLength ); }
 								if (!cond1 && !cond2) { stepLength = increaseStep( stepLength ); }
 
@@ -660,7 +661,7 @@ namespace GraphVis {
 							++tries;
 							++numIterations;
 
-							// Temporary way to prevent freeze:
+							// To prevent freeze:
 							if ( tries > Config.SearchIterations ) break;
 						}
 
@@ -688,11 +689,11 @@ namespace GraphVis {
 						energy = Ek1;
 						deltaEnergy = Ek1 - Ek;
 						pGradE = pkGradEk1;
-						if (Math.Abs(deltaEnergy) < energyThreshold)
-						{
-							state = State.PAUSE;
-							break;
-						}
+						//if (Math.Abs(deltaEnergy) < energyThreshold)
+						//{
+						//	state = State.PAUSE;
+						//	break;
+						//}
 						
 		//				sw.WriteLine( numIterations + "," + chosenStepLength );
 

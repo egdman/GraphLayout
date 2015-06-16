@@ -159,11 +159,13 @@ namespace GraphVis
 				Graph<SpatialNode> graph = pSys.GetGraph();
 
 				///////
-				// Make some changes here
+				// Add random edge:
 				Random rnd = new Random();
-				int end1 = rnd.Next( graph.NodeCount );
-				int end2 = rnd.Next( graph.NodeCount );
-				graph.AddEdge( end1, end2 );
+			
+				int end1 = rnd.Next(graph.NodeCount);
+				int end2 = rnd.Next(graph.NodeCount);
+				graph.AddEdge(end1, end2);
+				
 				///////
 
 				pSys.UpdateGraph(graph);
@@ -209,7 +211,8 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );		
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 512, 2 );	
+		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
 				partSys.AddGraph(graph);
 			}
 
