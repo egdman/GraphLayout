@@ -21,7 +21,7 @@ namespace GraphVis {
 
 		public ParticleConfig()
 		{
-			IterationsPerFrame = 25;
+			IterationsPerFrame = 1;
 			SearchIterations = 5;
 			SwitchToManualAfter = 250;
 		}
@@ -68,6 +68,7 @@ namespace GraphVis {
 		uint	numIterations;
 		bool	ignoreConditions;
 		int		stepStability;
+		float	checkSum;
 
 		[StructLayout(LayoutKind.Explicit)]
 			struct Particle3d {
@@ -165,7 +166,7 @@ namespace GraphVis {
 			} );
 
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
-			particleMass		=	0.05f;
+			particleMass		=	1.0f;
 			linkSize			=	100.0f;
 			particleSize		=	10.0f;
 			linkList			=	new List<Link>();
@@ -177,6 +178,7 @@ namespace GraphVis {
 			numIterations		=	0;
 			ignoreConditions	=	false;
 			stepStability		=	0;
+			checkSum			=	0;
 			Game.InputDevice.KeyDown += keyboardHandler;
 
 			base.Initialize();
@@ -289,8 +291,8 @@ namespace GraphVis {
 			// modify particles masses and sizes according to number of links:
 			Particle3d newPrt1 = ParticleList[end1];
 			Particle3d newPrt2 = ParticleList[end2];
-			newPrt1.Mass	+= 0.7f;
-			newPrt2.Mass	+= 0.7f;
+	//		newPrt1.Mass	+= 0.7f;
+	//		newPrt2.Mass	+= 0.7f;
 	//		newPrt1.Size	+= 0.1f;
 	//		newPrt2.Size	+= 0.1f;
 			ParticleList[end1] = newPrt1;
@@ -609,7 +611,7 @@ namespace GraphVis {
 						if (!ignoreConditions)
 						{
 							calcTotalEnergyAndDotProduct(device, currentStateBuffer, currentStateBuffer,
-									enegryBuffer, param, out Ek, out pkGradEk);
+									enegryBuffer, param, out Ek, out pkGradEk, out checkSum);
 						}
 
 						while ( !(cond1 && cond2) )
@@ -628,7 +630,7 @@ namespace GraphVis {
 							if (!ignoreConditions)
 							{
 								calcTotalEnergyAndDotProduct(device, currentStateBuffer, nextStateBuffer,
-										enegryBuffer, param, out Ek1, out pkGradEk1);
+										enegryBuffer, param, out Ek1, out pkGradEk1, out checkSum);
 
 
 								// check Wolfe conditions:
@@ -717,8 +719,9 @@ namespace GraphVis {
 			debStr.Add( Color.Aqua, "pTp              = " + pGradE );
 			debStr.Add( Color.Aqua, "Iteration        = " + numIterations );
 			debStr.Add(Color.Aqua, "Stability         = " + stepStability);
+			debStr.Add(Color.Orchid, "Check sum       = " + checkSum);
 
-			debStr.Add(Color.MidnightBlue, "Mode:   " +( ignoreConditions ? "MANUAL" : "AUTO" ));
+			debStr.Add(Color.RoyalBlue, "Mode:   " +( ignoreConditions ? "MANUAL" : "AUTO" ));
 			base.Draw( gameTime, stereoEye );
 		}
 
@@ -789,7 +792,7 @@ namespace GraphVis {
 			var device = Game.GraphicsDevice;
 			calcDescentVector(device, currentStateBuffer, param); // calc desc vector and energies
 			calcTotalEnergyAndDotProduct(device, currentStateBuffer, currentStateBuffer,
-					enegryBuffer, param, out energy, out pGradE);
+					enegryBuffer, param, out energy, out pGradE, out checkSum);
 		}
 
 
@@ -855,7 +858,7 @@ namespace GraphVis {
 		/// <param name="pTgradE"></param>
 		void calcTotalEnergyAndDotProduct( GraphicsDevice device, StructuredBuffer currentStateBuffer,
 			StructuredBuffer nextStateBuffer, StructuredBuffer outputValues, Params parameters,
-			out float energy, out float pTgradE )
+			out float energy, out float pTgradE, out float checkSum )
 		{
 			// preform reduction on GPU:
 			paramsCB.SetData( parameters );
@@ -871,10 +874,12 @@ namespace GraphVis {
 			outputValues.GetData( valueBufferCPU );
 			energy	= 0;
 			pTgradE	= 0;
+			checkSum = 0;
 			foreach( var value in valueBufferCPU )
 			{
 				energy	+= value.X;
 				pTgradE	+= value.Y;
+				checkSum += value.Z;
 			}
 			energy /= 2; // because each pair is counted 2 times
 		}

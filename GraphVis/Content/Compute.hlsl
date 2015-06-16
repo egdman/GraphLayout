@@ -271,13 +271,15 @@ void CSMain(
 	float energy1 = p1next.Energy;
 	float energy2 = p2next.Energy;
 
+	float mass	= p1next.Mass + p2next.Mass;
+
 	float dotPr1 = - (p1curr.Force.x*p1next.Force.x + p1curr.Force.y*p1next.Force.y + p1curr.Force.z*p1next.Force.z);
 	float dotPr2 = - (p2curr.Force.x*p2next.Force.x + p2curr.Force.y*p2next.Force.y + p2curr.Force.z*p2next.Force.z);
 
 	//float forceSq1 = - (p1.Force.x*p1.Force.x + p1.Force.y*p1.Force.y + p1.Force.z*p1.Force.z);
 	//float forceSq2 = - (p2.Force.x*p2.Force.x + p2.Force.y*p2.Force.y + p2.Force.z*p2.Force.z);
 
-	sh_energy[groupIndex] = float4( energy1 + energy2, dotPr1 + dotPr2, 0, 0 );
+	sh_energy[groupIndex] = float4( energy1 + energy2, dotPr1 + dotPr2, mass, 0 );
 	GroupMemoryBarrierWithGroupSync();
 
 	// full unroll:
