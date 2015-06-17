@@ -307,14 +307,45 @@ void CSMain(
 		GroupMemoryBarrierWithGroupSync();
 	}
 
-	if ( groupIndex < 16 )
+	if ( HALF_BLOCK >= 32 )
 	{
-	/*	if ( BLOCK_SIZE >= 32 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex + 16]; }
-	/*	if ( BLOCK_SIZE >= 16 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  8]; }
-	/*	if ( BLOCK_SIZE >=  8 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  4]; }
-	/*	if ( BLOCK_SIZE >=  4 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  2]; }
-	/*	if ( BLOCK_SIZE >=  2 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  1]; }
+		if ( groupIndex < 16 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 16];}
+		GroupMemoryBarrierWithGroupSync();
 	}
+
+	if ( HALF_BLOCK >= 16 )
+	{
+		if ( groupIndex < 8 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 8];}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 8 )
+	{
+		if ( groupIndex < 4 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 4];}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 4 )
+	{
+		if ( groupIndex < 2 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 2];}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if ( HALF_BLOCK >= 2 )
+	{
+		if ( groupIndex < 1 ) {sh_energy[groupIndex] += sh_energy[groupIndex + 1];}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	// this does not work on every GPU:
+//	if ( groupIndex < 8 )
+//	{
+////		if ( BLOCK_SIZE >= 32 ) { sh_energy[groupIndex] += sh_energy[groupIndex + 16]; }
+//	/*	if ( BLOCK_SIZE >= 16 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  8]; }
+//	/*	if ( BLOCK_SIZE >=  8 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  4]; }
+//	/*	if ( BLOCK_SIZE >=  4 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  2]; }
+//	/*	if ( BLOCK_SIZE >=  2 )*/ { sh_energy[groupIndex] += sh_energy[groupIndex +  1]; }
+//	}
 
 
 	if( groupIndex == 0 )

@@ -288,11 +288,9 @@ namespace GraphVis {
 
 			linkPtrLists[end2].Add(linkNumber);
 
-			// modify particles masses and sizes according to number of links:
+			// modify particles sizes according to number of links:
 			Particle3d newPrt1 = ParticleList[end1];
 			Particle3d newPrt2 = ParticleList[end2];
-	//		newPrt1.Mass	+= 0.7f;
-	//		newPrt2.Mass	+= 0.7f;
 	//		newPrt1.Size	+= 0.1f;
 	//		newPrt2.Size	+= 0.1f;
 			ParticleList[end1] = newPrt1;
