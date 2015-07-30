@@ -211,7 +211,7 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 512, 2 );	
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 4096, 2 );	
 		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
 				partSys.AddGraph(graph);
 			}

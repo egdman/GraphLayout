@@ -18,12 +18,14 @@ namespace GraphVis {
 		public int IterationsPerFrame { get; set; }
 		public int SearchIterations { get; set; }
 		public int SwitchToManualAfter { get; set; }
+		public bool UseGPU { get; set; }
 
 		public ParticleConfig()
 		{
 			IterationsPerFrame = 1;
 			SearchIterations = 5;
 			SwitchToManualAfter = 250;
+			UseGPU = true;
 		}
 
 	}
@@ -67,6 +69,8 @@ namespace GraphVis {
 		float	pGradE;
 		uint	numIterations;
 		bool	ignoreConditions;
+		bool	useGPU;
+
 		int		stepStability;
 		float	checkSum;
 
@@ -177,6 +181,7 @@ namespace GraphVis {
 			stepLength			=	1.0f;
 			numIterations		=	0;
 			ignoreConditions	=	false;
+			useGPU				=	Config.UseGPU;
 			stepStability		=	0;
 			checkSum			=	0;
 			Game.InputDevice.KeyDown += keyboardHandler;
@@ -858,27 +863,53 @@ namespace GraphVis {
 			StructuredBuffer nextStateBuffer, StructuredBuffer outputValues, Params parameters,
 			out float energy, out float pTgradE, out float checkSum )
 		{
-			// preform reduction on GPU:
-			paramsCB.SetData( parameters );
-			device.ComputeShaderConstants[0] = paramsCB;
-			device.ComputeShaderResources[1] = currentStateBuffer;
-			device.ComputeShaderResources[4] = nextStateBuffer;
-			device.SetCSRWBuffer( 1, outputValues, MathUtil.IntDivUp( ParticleList.Count, BlockSize ) );
-			device.PipelineState = factory[(int)Flags.COMPUTE|(int)Flags.REDUCTION];
-			device.Dispatch( MathUtil.IntDivUp( ParticleList.Count, BlockSize ) );
-
-			// perform final summation:
-			Vector4[] valueBufferCPU = new Vector4[outputValues.GetStructureCount()];
-			outputValues.GetData( valueBufferCPU );
-			energy	= 0;
-			pTgradE	= 0;
+			energy = 0;
+			pTgradE = 0;
 			checkSum = 0;
-			foreach( var value in valueBufferCPU )
+
+			if (useGPU)
 			{
-				energy	+= value.X;
-				pTgradE	+= value.Y;
-				checkSum += value.Z;
+				// perform reduction on GPU:
+				paramsCB.SetData(parameters);
+				device.ComputeShaderConstants[0] = paramsCB;
+				device.ComputeShaderResources[1] = currentStateBuffer;
+				device.ComputeShaderResources[4] = nextStateBuffer;
+				device.SetCSRWBuffer(1, outputValues, MathUtil.IntDivUp(ParticleList.Count, BlockSize));
+				device.PipelineState = factory[(int)Flags.COMPUTE | (int)Flags.REDUCTION];
+				device.Dispatch(MathUtil.IntDivUp(ParticleList.Count, BlockSize));
+
+				// perform final summation:
+				Vector4[] valueBufferCPU = new Vector4[outputValues.GetStructureCount()];
+				outputValues.GetData(valueBufferCPU);
+				
+				foreach (var value in valueBufferCPU)
+				{
+					energy += value.X;
+					pTgradE += value.Y;
+					checkSum += value.Z;
+				}
 			}
+			else // if not use GPU
+			{
+				// perform summation on CPU:
+				Particle3d[] currentBufferCPU = new Particle3d[parameters.MaxParticles];
+				Particle3d[] nextBufferCPU = new Particle3d[parameters.MaxParticles];
+
+				currentStateBuffer.GetData(currentBufferCPU);
+				nextStateBuffer.GetData(nextBufferCPU);
+
+
+				for (int i = 0; i < parameters.MaxParticles; ++i)
+				{
+					Vector3 force1 = currentBufferCPU[i].Force;
+					Vector3 force2 = nextBufferCPU[i].Force;
+
+					pTgradE += -1.0f * Vector3.Dot(force1, force2);
+					energy += nextBufferCPU[i].Energy;
+					checkSum += nextBufferCPU[i].Mass;
+				}
+			}
+
 			energy /= 2; // because each pair is counted 2 times
 		}
 	}

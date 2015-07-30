@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Calculator.cs" />
     <Compile Include="CitationGraph.cs" />
     <Compile Include="GraphFromFile.cs" />
     <Compile Include="Graph.cs" />
