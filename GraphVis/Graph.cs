@@ -42,17 +42,58 @@ namespace GraphVis
 			adjacencyList.Add( new List<int>() );
 		}
 
-		public void AddEdge(int index1, int index2)
+		public void AddEdge(int node1, int node2)
 		{
 			edgeList.Add( new Edge
 				{
-					End1 = index1,
-					End2 = index2,
+					End1 = node1,
+					End2 = node2,
 					Length = 1.0f
 				}
 			);
-			adjacencyList[index1].Add( EdgeCount - 1 );
-			adjacencyList[index2].Add( EdgeCount - 1 );
+			adjacencyList[node1].Add( EdgeCount - 1 );
+			adjacencyList[node2].Add( EdgeCount - 1 );
+		}
+
+
+		public void CollapseEdge(int edgeIndex)
+		{
+			var edge = edgeList[edgeIndex];
+			MergeNodes(edge.End1, edge.End2);
+		}
+
+
+        public void MergeNodes(int node1, int node2)
+		{
+			int detachedNode = node1 > node2 ? node1 : node2;
+			int remainNode = node1 < node2 ? node1 : node2;
+			var adjEdges = GetEdges(detachedNode);
+			foreach (int adjEdge in adjEdges)
+			{
+				var edge = edgeList[adjEdge];
+				if (edge.End1 == detachedNode)
+				{
+					edge.End1 = remainNode;
+				}
+				else
+				{
+					edge.End2 = remainNode;
+				}
+				edgeList[adjEdge] = edge;
+			}
+			AdjacencyList[detachedNode].Clear();
+		}
+
+
+
+		public List<int> GetEdges(int nodeIndex)
+		{
+			List<int> adjEdges = new List<int>();
+			foreach (var adjEdge in AdjacencyList[nodeIndex])
+			{
+				adjEdges.Add(adjEdge);
+			}
+			return adjEdges;
 		}
 
 

@@ -157,6 +157,19 @@
     <CSEntryPoint>CSMain</CSEntryPoint>
     <SourceFile>Compute.hlsl</SourceFile>
     <ShowPemutations>false</ShowPemutations>
-    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\1899D2215792452F122591D2CF41D839.html</ListingPath>
+    <ListingPath>C:\egorov\graphLayout\GraphVis\Content\Temp\1899D2215792452F122591D2CF41D839.html</ListingPath>
+  </Asset>
+  <Asset xsi:type="ImageFileTextureAsset">
+    <AssetPath>selection.tga</AssetPath>
+    <BuildOrder>0</BuildOrder>
+    <IgnoreToolChanges>false</IgnoreToolChanges>
+    <NoMips>false</NoMips>
+    <Fast>false</Fast>
+    <ToNormal>false</ToNormal>
+    <Color>true</Color>
+    <Alpha>false</Alpha>
+    <Normal>false</Normal>
+    <Compression>RGB</Compression>
+    <SourceFile>selection.tga</SourceFile>
   </Asset>
 </ArrayOfAsset>

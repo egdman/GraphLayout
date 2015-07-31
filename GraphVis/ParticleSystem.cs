@@ -36,7 +36,8 @@ namespace GraphVis {
 		public ParticleConfig Config{ get; set; }
 		public const float WorldRaduis = 50.0f;
 
-		Texture2D		texture;
+		Texture2D		particleTex;
+		Texture2D		selectionTex;
 		Ubershader		shader;
 		StateFactory	factory;
 		State			state;
@@ -73,6 +74,9 @@ namespace GraphVis {
 
 		int		stepStability;
 		float	checkSum;
+
+		int		selectedNode;
+		bool	drawSelected;
 
 		[StructLayout(LayoutKind.Explicit)]
 			struct Particle3d {
@@ -126,7 +130,9 @@ namespace GraphVis {
 			COMPUTE			=	0x1 << 8,
 			DRAW			=	0x1 << 9,
 
-			LINKS			=	0x1 << 10
+			LINKS			=	0x1 << 10,
+
+			SELECTION		=	0x1 << 11,
 		}
 
 		enum State {
@@ -141,6 +147,7 @@ namespace GraphVis {
 			[FieldOffset(128)] public uint		MaxParticles;
 			[FieldOffset(132)] public float		StepLength;
 			[FieldOffset(136)] public float		LinkSize;
+			[FieldOffset(140)] public int		SelectedNode;
 		} 
 
 		/// <summary>
@@ -157,7 +164,8 @@ namespace GraphVis {
 		/// </summary>
 		public override void Initialize ()
 		{
-			texture		=	Game.Content.Load<Texture2D>("smaller");
+			particleTex		=	Game.Content.Load<Texture2D>("smaller");
+			selectionTex	=	Game.Content.Load<Texture2D>("selection");
 			shader		=	Game.Content.Load<Ubershader>("Compute");
 
 			factory = new StateFactory( shader, typeof(Flags), ( plState, comb ) => 
@@ -184,6 +192,8 @@ namespace GraphVis {
 			useGPU				=	Config.UseGPU;
 			stepStability		=	0;
 			checkSum			=	0;
+			drawSelected		=	false;
+			selectedNode		=	0;
 			Game.InputDevice.KeyDown += keyboardHandler;
 
 			base.Initialize();
@@ -214,6 +224,74 @@ namespace GraphVis {
 				commandQueue.Enqueue(-1);
 			}
 		}
+
+
+		public bool CursorNearestNode(Point cursor, StereoEye eye, float threshold, out Vector3 nearestPos, out int nodeIndex )
+		{
+			nearestPos.X = 0;
+			nearestPos.Y = 0;
+			nearestPos.Z = 0;
+			nodeIndex = 0;
+
+			var cam = Game.GetService<OrbitCamera>();
+			var viewMatrix = cam.GetViewMatrix( eye );
+			var projMatrix = cam.GetProjectionMatrix( eye );
+			Graph<SpatialNode> graph = this.GetGraph();
+
+			Vector2 cursorProj = new Vector2(
+				(float)cursor.X / (float)Game.GraphicsDevice.DisplayBounds.Width,
+				(float)cursor.Y / (float)Game.GraphicsDevice.DisplayBounds.Height
+			);
+			cursorProj.X = cursorProj.X * 2 - 1;
+			cursorProj.Y = -cursorProj.Y * 2 + 1;
+			bool nearestFound = false;
+			
+			float minZ = 99999;
+			int currentIndex = 0;
+			foreach (var node in graph.Nodes)
+			{
+				Vector4 posWorld = new Vector4( node.Position, 1.0f );
+				Vector4 posView = Vector4.Transform(posWorld, viewMatrix);
+				Vector4 posProj = Vector4.Transform(posView, projMatrix);
+				posProj /= posProj.W;
+				Vector2 diff = new Vector2(posProj.X - cursorProj.X, posProj.Y - cursorProj.Y);
+				if (diff.Length() < threshold)
+				{
+					nearestFound = true;
+					if (minZ > posProj.Z)
+					{
+						minZ = posProj.Z;
+						nearestPos.X = posWorld.X;
+						nearestPos.Y = posWorld.Y;
+						nearestPos.Z = posWorld.Z;
+						nodeIndex = currentIndex;
+					}
+				}
+				++currentIndex;
+			}
+			//nearestPos.X = 0.5f * (nearestPos.X + 1);
+			//nearestPos.Y = 0.5f * (1 - nearestPos.Y);
+			return nearestFound;
+		}
+
+
+
+
+		public void Select(int nodeIndex)
+		{
+			selectedNode = nodeIndex;
+			drawSelected = true;
+		}
+
+		public void Deselect()
+		{
+			drawSelected = false;
+		}
+
+
+
+
+
 		/// <summary>
 		/// Returns random radial vector
 		/// </summary>
@@ -464,8 +542,8 @@ namespace GraphVis {
 				if ( factory != null ) {
 					factory.Dispose();
 				}	
-				if ( texture != null ) {
-					texture.Dispose();
+				if ( particleTex != null ) {
+					particleTex.Dispose();
 				}
 			}
 			base.Dispose( disposing );
@@ -733,32 +811,40 @@ namespace GraphVis {
 
 		void render( GraphicsDevice device, Params parameters )
 		{
-				device.ResetStates();
+			device.ResetStates();
 			device.ClearBackbuffer( Color.White );
-				device.SetTargets( null, device.BackbufferColor );
-				paramsCB.SetData(parameters);
+			device.SetTargets( null, device.BackbufferColor );
+			parameters.SelectedNode = selectedNode;
+			paramsCB.SetData(parameters);
 
-				device.ComputeShaderConstants	[0] = paramsCB;
-				device.VertexShaderConstants	[0] = paramsCB;
-				device.GeometryShaderConstants	[0] = paramsCB;
-				device.PixelShaderConstants		[0] = paramsCB;
+			device.ComputeShaderConstants	[0] = paramsCB;
+			device.VertexShaderConstants	[0] = paramsCB;
+			device.GeometryShaderConstants	[0] = paramsCB;
+			device.PixelShaderConstants		[0] = paramsCB;
 
-				device.PixelShaderSamplers		[0] = SamplerState.LinearWrap;
+			device.PixelShaderSamplers		[0] = SamplerState.LinearWrap;
 			
-				// draw points: ------------------------------------------------------------------------
-				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.POINT];
-				device.SetCSRWBuffer( 0, null );
-				device.PixelShaderResources[0] = texture;
-				device.GeometryShaderResources[1] = currentStateBuffer;
-				device.Draw( ParticleList.Count, 0 );
+			// draw points: ------------------------------------------------------------------------
+			device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.POINT];
+			device.SetCSRWBuffer( 0, null );
+			device.PixelShaderResources[0] = particleTex;
+			device.GeometryShaderResources[1] = currentStateBuffer;
+			device.Draw( ParticleList.Count, 0 );
 						
-				// draw lines: -------------------------------------------------------------------------
-				device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
-				device.GeometryShaderResources[1] = currentStateBuffer;
-				device.GeometryShaderResources[3] = linksBuffer;
-				device.Draw( linkList.Count, 0 );		
-		}
+			// draw lines: -------------------------------------------------------------------------
+			device.PipelineState = factory[(int)Flags.DRAW|(int)Flags.LINE];
+			device.GeometryShaderResources[1] = currentStateBuffer;
+			device.GeometryShaderResources[3] = linksBuffer;
+			device.Draw( linkList.Count, 0 );
 
+			// draw selected points:
+			if (drawSelected)
+			{
+				device.PipelineState = factory[(int)Flags.DRAW | (int)Flags.SELECTION];
+				device.PixelShaderResources[5] = selectionTex;
+				device.Draw(1, 0);
+			}
+		}
 
 
 		/// <summary>

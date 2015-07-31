@@ -15,6 +15,12 @@ namespace GraphVis
 {
 	public class GraphVis : Game
 	{
+        Random rnd = new Random();
+		int selectedNodeIndex;
+		Vector3 selectedNodePos;
+		bool isSelected;
+		int time;
+		
 		/// <summary>
 		/// GraphVis constructor
 		/// </summary>
@@ -60,7 +66,10 @@ namespace GraphVis
 			var cam = GetService<Camera>();
 
 			cam.Config.FreeCamEnabled = false;
-
+			selectedNodeIndex = 0;
+			selectedNodePos = new Vector3();
+			isSelected = false;
+			time = 0;
 			//	add keyboard handler :
 			InputDevice.KeyDown += InputDevice_KeyDown;
 
@@ -152,7 +161,7 @@ namespace GraphVis
 				graph.WriteToFile( "graph.gr" );
 				Log.Message( "Graph saved to file" ); 
 			}
-			if (e.Key == Keys.F)
+			if (e.Key == Keys.F) // add random edge
 			{
 				// How to change graph:
 				var pSys = GetService<ParticleSystem>();
@@ -160,16 +169,21 @@ namespace GraphVis
 
 				///////
 				// Add random edge:
-				Random rnd = new Random();
-			
 				int end1 = rnd.Next(graph.NodeCount);
 				int end2 = rnd.Next(graph.NodeCount);
-				graph.AddEdge(end1, end2);
-				
+				graph.AddEdge(end1, end2);	
 				///////
 
 				pSys.UpdateGraph(graph);
 			}
+            if (e.Key == Keys.G) // collapse random edge
+            {
+                var pSys = GetService<ParticleSystem>();
+                Graph<SpatialNode> graph = pSys.GetGraph();
+                int edge = rnd.Next(graph.EdgeCount);
+				graph.CollapseEdge(edge);
+				pSys.UpdateGraph(graph);
+            }
 
 		}
 
@@ -211,7 +225,7 @@ namespace GraphVis
 
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 4096, 2 );	
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );	
 		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
 				partSys.AddGraph(graph);
 			}
@@ -248,6 +262,48 @@ namespace GraphVis
 		protected override void Draw(GameTime gameTime, StereoEye stereoEye)
 		{
 			base.Draw(gameTime, stereoEye);
+
+			time += gameTime.Elapsed.Milliseconds;
+
+			var cam = GetService<OrbitCamera>();
+			var dr = GetService<DebugRender>();
+			var pSys = GetService<ParticleSystem>(); 
+			dr.View = cam.GetViewMatrix(stereoEye);
+			dr.Projection = cam.GetProjectionMatrix(stereoEye);
+
+
+			if (InputDevice.IsKeyDown(Keys.LeftButton))
+			{
+				Point cursor = InputDevice.MousePosition;
+				Vector3 nodePosition = new Vector3();
+				int selNode = 0;
+				if (pSys.CursorNearestNode(cursor, stereoEye, 0.025f, out nodePosition, out selNode))
+				{
+					selectedNodeIndex = selNode;
+					isSelected = true;
+					dr.DrawBox(new BoundingBox(-5.0f * Vector3.One, 5.0f * Vector3.One),
+						Matrix.Translation(nodePosition),
+						Color.Blue
+						);
+					selectedNodePos = nodePosition;
+				}
+				else
+				{
+					isSelected = false;
+				}
+			}
+
+			var ds = GetService<DebugStrings>();
+			if (isSelected)
+			{
+				ds.Add(Color.Orange, "Selected node # " + selectedNodeIndex);
+				pSys.Select(selectedNodeIndex);
+			}
+			else
+			{
+				ds.Add(Color.Orange, "No selection");
+				pSys.Deselect();
+			}
 		}
 	}
 }

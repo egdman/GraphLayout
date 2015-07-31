@@ -1,5 +1,6 @@
 #if 0
-$ubershader (COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA +LINKS))|(DRAW POINT|LINE)
+$ubershader COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA +LINKS)
+$ubershader	DRAW POINT|LINE|SELECTION
 #endif
 
 
@@ -13,6 +14,7 @@ struct PARAMS {
 	uint		MaxParticles;
 	float		DeltaTime;
 	float		LinkSize;
+	int			SelectedParticle;
 };
 
 cbuffer CB1 : register(b0) { 
@@ -58,6 +60,8 @@ RWStructuredBuffer<float4>			energyRWBuffer		:	register(u1);
 
 StructuredBuffer<LinkId>			linksPtrBuffer		:	register(t2);
 StructuredBuffer<Link>				linksBuffer			:	register(t3);
+
+Texture2D							SelectionTexture	:	register(t5);
 
 
 
@@ -510,6 +514,61 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 
 #endif // LINE
 
+#ifdef SELECTION
+
+[maxvertexcount(8)]
+void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> outputStream )
+{
+	GSOutput p0, p1, p2, p3;
+
+	PARTICLE3D prt = particleReadBuffer[ Params.SelectedParticle ];
+
+	float sz = prt.Size0*1.5f;
+	float4 color	=	float4(0, 1, 0, 1);
+	float4 pos		=	float4( prt.Position.xyz, 1 );
+	float4 posV		=	mul( pos, Params.View );
+
+	p0.Position = mul( posV + float4( sz, sz, 0, 0 ) , Params.Projection );	
+	p0.TexCoord = float2(1,1);
+	p0.Color = color;
+
+	p1.Position = mul( posV + float4(-sz, sz, 0, 0 ) , Params.Projection );
+	p1.TexCoord = float2(0,1);
+	p1.Color = color;
+
+	p2.Position = mul( posV + float4(-sz,-sz, 0, 0 ) , Params.Projection );
+	p2.TexCoord = float2(0,0);
+	p2.Color = color;
+
+	p3.Position = mul( posV + float4( sz,-sz, 0, 0 ) , Params.Projection );
+	p3.TexCoord = float2(1,0);
+	p3.Color = color;
+
+	//outputStream.Append(p0);
+	//outputStream.Append(p1);
+	//outputStream.RestartStrip();
+	//outputStream.Append(p1);
+	//outputStream.Append(p2);
+	//outputStream.RestartStrip();
+	//outputStream.Append(p2);
+	//outputStream.Append(p3);
+	//outputStream.RestartStrip();
+	//outputStream.Append(p3);
+	//outputStream.Append(p0);
+	//outputStream.RestartStrip();
+
+	outputStream.Append(p0);
+	outputStream.Append(p1);
+	outputStream.Append(p2);
+	outputStream.RestartStrip();
+	outputStream.Append(p0);
+	outputStream.Append(p2);
+	outputStream.Append(p3);
+	outputStream.RestartStrip();
+
+}
+
+#endif // SELECTION
 
 
 #ifdef LINE
@@ -525,6 +584,14 @@ float4 PSMain( GSOutput input ) : SV_Target
 float4 PSMain( GSOutput input ) : SV_Target
 {
 	return Texture.Sample( Sampler, input.TexCoord ) * float4(input.Color.rgb,1);
+}
+#endif // POINT
+
+
+#ifdef SELECTION
+float4 PSMain( GSOutput input ) : SV_Target
+{
+	return SelectionTexture.Sample( Sampler, input.TexCoord ) * float4(input.Color.rgb,1);
 }
 #endif // POINT
 
