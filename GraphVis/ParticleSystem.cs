@@ -54,6 +54,7 @@ namespace GraphVis {
 		StructuredBuffer	linksPtrBuffer;
 		StructuredBuffer	enegryBuffer;
 		StructuredBuffer	linksBuffer;
+		StructuredBuffer	selectedIndicesBuffer;
 		ConstantBuffer		paramsCB;
 		Particle3d[]		particleBufferCPU;
 		LinkId[]			linksPtrBufferCPU;
@@ -75,7 +76,7 @@ namespace GraphVis {
 		int		stepStability;
 		float	checkSum;
 
-		int		selectedNode;
+		int		numSelectedNodes;
 		bool	drawSelected;
 
 		[StructLayout(LayoutKind.Explicit)]
@@ -193,7 +194,7 @@ namespace GraphVis {
 			stepStability		=	0;
 			checkSum			=	0;
 			drawSelected		=	false;
-			selectedNode		=	0;
+			numSelectedNodes		=	0;
 			Game.InputDevice.KeyDown += keyboardHandler;
 
 			base.Initialize();
@@ -226,6 +227,19 @@ namespace GraphVis {
 		}
 
 
+		Vector2 PixelsToProj(Point point)
+		{
+			Vector2 proj = new Vector2(
+				(float)point.X / (float)Game.GraphicsDevice.DisplayBounds.Width,
+				(float)point.Y / (float)Game.GraphicsDevice.DisplayBounds.Height
+			);
+			proj.X = proj.X * 2 - 1;
+			proj.Y = -proj.Y * 2 + 1;
+			return proj;
+		}
+
+
+
 		public bool CursorNearestNode(Point cursor, StereoEye eye, float threshold, out Vector3 nearestPos, out int nodeIndex )
 		{
 			nearestPos.X = 0;
@@ -238,12 +252,7 @@ namespace GraphVis {
 			var projMatrix = cam.GetProjectionMatrix( eye );
 			Graph<SpatialNode> graph = this.GetGraph();
 
-			Vector2 cursorProj = new Vector2(
-				(float)cursor.X / (float)Game.GraphicsDevice.DisplayBounds.Width,
-				(float)cursor.Y / (float)Game.GraphicsDevice.DisplayBounds.Height
-			);
-			cursorProj.X = cursorProj.X * 2 - 1;
-			cursorProj.Y = -cursorProj.Y * 2 + 1;
+			Vector2 cursorProj = PixelsToProj(cursor);
 			bool nearestFound = false;
 			
 			float minZ = 99999;
@@ -275,17 +284,59 @@ namespace GraphVis {
 		}
 
 
+		public List<int> DragSelect(Point topLeft, Point bottomRight, StereoEye eye )
+		{
+			List<int> selectedIndices = new List<int>();
+			Vector2 topLeftProj		= PixelsToProj(topLeft);
+			Vector2 bottomRightProj	= PixelsToProj(bottomRight);
+
+			var cam = Game.GetService<OrbitCamera>();
+			var viewMatrix = cam.GetViewMatrix(eye);
+			var projMatrix = cam.GetProjectionMatrix(eye);
+
+			Graph<SpatialNode> graph = this.GetGraph();
+			int currentIndex = 0;
+			foreach (var node in graph.Nodes)
+			{
+				Vector4 posWorld = new Vector4(node.Position, 1.0f);
+				Vector4 posView = Vector4.Transform(posWorld, viewMatrix);
+				Vector4 posProj = Vector4.Transform(posView, projMatrix);
+				posProj /= posProj.W;
+				if
+				(	posProj.X >= topLeftProj.X && posProj.X <= bottomRightProj.X &&
+					posProj.Y >= bottomRightProj.Y && posProj.Y <= topLeftProj.Y
+				)
+				{
+					selectedIndices.Add(currentIndex);
+				}
+				++currentIndex;
+			}
+			return selectedIndices;
+		}
+
+
 
 
 		public void Select(int nodeIndex)
 		{
-			selectedNode = nodeIndex;
-			drawSelected = true;
+			Select( new int[1] {nodeIndex} );
+		}
+
+
+		public void Select(ICollection<int> nodeIndices)
+		{
+			if (selectedIndicesBuffer != null)
+			{
+				selectedIndicesBuffer.Dispose();
+			}
+			selectedIndicesBuffer = new StructuredBuffer(Game.GraphicsDevice, typeof(int), nodeIndices.Count, StructuredBufferFlags.Counter);
+			selectedIndicesBuffer.SetData(nodeIndices.ToArray());
+			numSelectedNodes = nodeIndices.Count;
 		}
 
 		public void Deselect()
 		{
-			drawSelected = false;
+			numSelectedNodes = 0;
 		}
 
 
@@ -575,6 +626,10 @@ namespace GraphVis {
 			{
 				enegryBuffer.Dispose();
 			}
+			if (selectedIndicesBuffer != null)
+			{
+				selectedIndicesBuffer.Dispose();
+			}
 		}
 
 		/// <summary>
@@ -814,7 +869,6 @@ namespace GraphVis {
 			device.ResetStates();
 			device.ClearBackbuffer( Color.White );
 			device.SetTargets( null, device.BackbufferColor );
-			parameters.SelectedNode = selectedNode;
 			paramsCB.SetData(parameters);
 
 			device.ComputeShaderConstants	[0] = paramsCB;
@@ -837,13 +891,11 @@ namespace GraphVis {
 			device.GeometryShaderResources[3] = linksBuffer;
 			device.Draw( linkList.Count, 0 );
 
-			// draw selected points:
-			if (drawSelected)
-			{
-				device.PipelineState = factory[(int)Flags.DRAW | (int)Flags.SELECTION];
-				device.PixelShaderResources[5] = selectionTex;
-				device.Draw(1, 0);
-			}
+			// draw selected points: ---------------------------------------------------------------
+			device.PipelineState = factory[(int)Flags.DRAW | (int)Flags.SELECTION];
+			device.PixelShaderResources		[5] = selectionTex;
+			device.GeometryShaderResources	[6] = selectedIndicesBuffer;
+			device.Draw(numSelectedNodes, 0);
 		}
 
 

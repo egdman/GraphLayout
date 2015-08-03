@@ -43,10 +43,16 @@ namespace GraphVis
 			get { return longitude; }
 		}
 
+		public Vector3 CenterOfOrbit
+		{
+			get;
+			set;
+		}
+
 
 		public OrbitCamera( Game game ) : base(game)
 		{
-			
+			CenterOfOrbit = new Vector3(0, 0, 0);
 		}
 
 
@@ -119,9 +125,7 @@ namespace GraphVis
 
 
 			Vector3 cameraLocation = anglesToCoords( latitude, longitude, (zeroRadius + altitude) );
-//			base.SetPose( cameraLocation, 0, 0, 0 );
-//			base.LookAt( cameraLocation, new Vector3(0, 0, 0), new Vector3( 0, 1, 0) );
-			base.SetupCamera( cameraLocation, new Vector3(0, 0, 0), new Vector3( 0, 1, 0), new Vector3(0, 0, 0),
+			base.SetupCamera( cameraLocation, CenterOfOrbit, new Vector3( 0, 1, 0), new Vector3(0, 0, 0),
 				120.0f, base.Config.FreeCamZNear,base.Config.FreeCamZFar, 0, 0 );
 
 			//ds.Add( "Altitude = " + altitude + " m" );
@@ -140,7 +144,7 @@ namespace GraphVis
 			float X = (float)( rSmall * Math.Sin( lon ) );
  			float Z = (float)( rSmall * Math.Cos( lon ) );
 			float Y = radius * (float)( Math.Sin( lat ) );
-			return new Vector3( X, Y, Z );
+			return new Vector3( X, Y, Z ) + CenterOfOrbit;
 		}
 
 

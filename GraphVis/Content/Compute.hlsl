@@ -62,6 +62,7 @@ StructuredBuffer<LinkId>			linksPtrBuffer		:	register(t2);
 StructuredBuffer<Link>				linksBuffer			:	register(t3);
 
 Texture2D							SelectionTexture	:	register(t5);
+StructuredBuffer<int>				SelectedIndices		:	register(t6);
 
 
 
@@ -521,7 +522,8 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 {
 	GSOutput p0, p1, p2, p3;
 
-	PARTICLE3D prt = particleReadBuffer[ Params.SelectedParticle ];
+//	PARTICLE3D prt = particleReadBuffer[ Params.SelectedParticle ];
+	PARTICLE3D prt = particleReadBuffer[ SelectedIndices[inputPoint[0].vertexID] ];
 
 	float sz = prt.Size0*1.5f;
 	float4 color	=	float4(0, 1, 0, 1);

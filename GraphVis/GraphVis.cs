@@ -19,6 +19,7 @@ namespace GraphVis
 		int selectedNodeIndex;
 		Vector3 selectedNodePos;
 		bool isSelected;
+		Tuple<Point, Point> dragFrame;
 		int time;
 		
 		/// <summary>
@@ -159,22 +160,20 @@ namespace GraphVis
 			{
 				Graph<SpatialNode> graph = GetService<ParticleSystem>().GetGraph();
 				graph.WriteToFile( "graph.gr" );
-				Log.Message( "Graph saved to file" ); 
+				Log.Message( "Graph saved to file" );
 			}
 			if (e.Key == Keys.F) // add random edge
 			{
-				// How to change graph:
+				var cam = GetService<OrbitCamera>();
 				var pSys = GetService<ParticleSystem>();
-				Graph<SpatialNode> graph = pSys.GetGraph();
-
-				///////
-				// Add random edge:
-				int end1 = rnd.Next(graph.NodeCount);
-				int end2 = rnd.Next(graph.NodeCount);
-				graph.AddEdge(end1, end2);	
-				///////
-
-				pSys.UpdateGraph(graph);
+				if (!isSelected)
+				{
+					cam.CenterOfOrbit = new Vector3(0, 0, 0);
+				}
+				else
+				{
+					cam.CenterOfOrbit = pSys.GetGraph().Nodes[selectedNodeIndex].Position;
+				}
 			}
             if (e.Key == Keys.G) // collapse random edge
             {
@@ -211,21 +210,11 @@ namespace GraphVis
 
 			var cam = GetService<Camera>();
 			var debRen = GetService<DebugRender>();
-		
-			
+					
 			var partSys = GetService<ParticleSystem>();
-			
-		//	if (InputDevice.IsKeyDown(Keys.Z)) {
-		//		Vector2 target = InputDevice.MousePosition;
-		//		partSys.AddParticles();
-		//		for ( float t=0; t<=1; t+=1.0f/256) {
-		//			partSys.AddParticle( new Vector3( 0, 0, 0 ), 9999, 1, 2 );
-		//		}
-		//	}
-
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );	
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 2048, 2 );	
 		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
 				partSys.AddGraph(graph);
 			}
