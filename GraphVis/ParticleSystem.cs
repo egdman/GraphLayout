@@ -77,7 +77,7 @@ namespace GraphVis {
 		float	checkSum;
 
 		int		numSelectedNodes;
-		bool	drawSelected;
+		int		referenceNodeIndex;
 
 		[StructLayout(LayoutKind.Explicit)]
 			struct Particle3d {
@@ -193,8 +193,9 @@ namespace GraphVis {
 			useGPU				=	Config.UseGPU;
 			stepStability		=	0;
 			checkSum			=	0;
-			drawSelected		=	false;
-			numSelectedNodes		=	0;
+			numSelectedNodes	=	0;
+			referenceNodeIndex	=	0;
+
 			Game.InputDevice.KeyDown += keyboardHandler;
 
 			base.Initialize();
@@ -259,7 +260,7 @@ namespace GraphVis {
 			int currentIndex = 0;
 			foreach (var node in graph.Nodes)
 			{
-				Vector4 posWorld = new Vector4( node.Position, 1.0f );
+				Vector4 posWorld = new Vector4(node.Position - graph.Nodes[referenceNodeIndex].Position, 1.0f);
 				Vector4 posView = Vector4.Transform(posWorld, viewMatrix);
 				Vector4 posProj = Vector4.Transform(posView, projMatrix);
 				posProj /= posProj.W;
@@ -329,6 +330,7 @@ namespace GraphVis {
 			{
 				selectedIndicesBuffer.Dispose();
 			}
+			
 			selectedIndicesBuffer = new StructuredBuffer(Game.GraphicsDevice, typeof(int), nodeIndices.Count, StructuredBufferFlags.Counter);
 			selectedIndicesBuffer.SetData(nodeIndices.ToArray());
 			numSelectedNodes = nodeIndices.Count;
@@ -339,6 +341,11 @@ namespace GraphVis {
 			numSelectedNodes = 0;
 		}
 
+
+		public void ChangeReference(int nodeIndex)
+		{
+			referenceNodeIndex = nodeIndex;
+		}
 
 
 
@@ -869,6 +876,7 @@ namespace GraphVis {
 			device.ResetStates();
 			device.ClearBackbuffer( Color.White );
 			device.SetTargets( null, device.BackbufferColor );
+			parameters.SelectedNode = referenceNodeIndex;
 			paramsCB.SetData(parameters);
 
 			device.ComputeShaderConstants	[0] = paramsCB;

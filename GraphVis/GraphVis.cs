@@ -162,17 +162,18 @@ namespace GraphVis
 				graph.WriteToFile( "graph.gr" );
 				Log.Message( "Graph saved to file" );
 			}
-			if (e.Key == Keys.F) // add random edge
+			if (e.Key == Keys.F) // focus on a node
 			{
 				var cam = GetService<OrbitCamera>();
 				var pSys = GetService<ParticleSystem>();
 				if (!isSelected)
 				{
-					cam.CenterOfOrbit = new Vector3(0, 0, 0);
+	//				cam.CenterOfOrbit = new Vector3(0, 0, 0);
 				}
 				else
 				{
-					cam.CenterOfOrbit = pSys.GetGraph().Nodes[selectedNodeIndex].Position;
+	//				cam.CenterOfOrbit = pSys.GetGraph().Nodes[selectedNodeIndex].Position;
+					pSys.ChangeReference(selectedNodeIndex);
 				}
 			}
             if (e.Key == Keys.G) // collapse random edge

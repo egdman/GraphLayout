@@ -429,11 +429,11 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 //	VSOutput prt = inputPoint[0];
 
 	PARTICLE3D prt = particleReadBuffer[ inputPoint[0].vertexID ];
-	
+	PARTICLE3D referencePrt = particleReadBuffer[ Params.SelectedParticle ];
 
 	float sz = prt.Size0;
 	float4 color	=	prt.Color0;
-	float4 pos		=	float4( prt.Position.xyz, 1 );
+	float4 pos		=	float4( prt.Position.xyz - referencePrt.Position.xyz, 1 );
 	float4 posV		=	mul( pos, Params.View );
 
 //		p0.Position = mul( float4( position + float2( sz, sz), 0, 1 ), Params.Projection );
@@ -483,8 +483,10 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 	Link lk = linksBuffer[ inputLine[0].vertexID ];
 	PARTICLE3D end1 = particleReadBuffer[ lk.par1 ];
 	PARTICLE3D end2 = particleReadBuffer[ lk.par2 ];
-	float4 pos1 = float4( end1.Position.xyz, 1 );
-	float4 pos2 = float4( end2.Position.xyz, 1 );
+	PARTICLE3D referencePrt = particleReadBuffer[ Params.SelectedParticle ];
+
+	float4 pos1 = float4( end1.Position.xyz - referencePrt.Position.xyz, 1 );
+	float4 pos2 = float4( end2.Position.xyz - referencePrt.Position.xyz, 1 );
 
 	float4 posV1	=	mul( pos1, Params.View );
 	float4 posV2	=	mul( pos2, Params.View );
@@ -522,12 +524,12 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 {
 	GSOutput p0, p1, p2, p3;
 
-//	PARTICLE3D prt = particleReadBuffer[ Params.SelectedParticle ];
 	PARTICLE3D prt = particleReadBuffer[ SelectedIndices[inputPoint[0].vertexID] ];
+	PARTICLE3D referencePrt = particleReadBuffer[ Params.SelectedParticle ];
 
 	float sz = prt.Size0*1.5f;
 	float4 color	=	float4(0, 1, 0, 1);
-	float4 pos		=	float4( prt.Position.xyz, 1 );
+	float4 pos		=	float4( prt.Position.xyz - referencePrt.Position.xyz, 1 );
 	float4 posV		=	mul( pos, Params.View );
 
 	p0.Position = mul( posV + float4( sz, sz, 0, 0 ) , Params.Projection );	
