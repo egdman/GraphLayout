@@ -346,7 +346,7 @@ namespace GraphVis
 
 		public void ResetState()
 		{
-			stepLength = 0.1f;
+			stepLength = env.GetService<GraphSystem>().Config.StepSize;
 			numIterations = 0;
 			stepStability = 0;
 		}

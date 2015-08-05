@@ -120,8 +120,8 @@ namespace GraphVis
 				altitude = 0.0f;
 			}
 
-			if ( latitude > 88.0f ) latitude = 88.0f;
-			if ( latitude < -88.0f ) latitude = -88.0f;
+			if ( latitude > 89.9f ) latitude = 89.9f;
+			if ( latitude < -89.9f ) latitude = -89.9f;
 
 
 			Vector3 cameraLocation = anglesToCoords( latitude, longitude, (zeroRadius + altitude) );

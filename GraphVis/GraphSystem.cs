@@ -15,21 +15,31 @@ using Fusion.Input;
 namespace GraphVis {
 	public class ParticleConfig
 	{
-		public int	IterationsPerFrame	{ get; set; }
+		[Category("Advanced")]
 		public int	SearchIterations	{ get; set; }
+		[Category("Advanced")]
 		public int	SwitchToManualAfter	{ get; set; }
+		[Category("Advanced")]
 		public bool	UseGPU				{ get; set; }
-		public bool DisableAutoStep		{ get; set; }
+		[Category("Advanced")]
+		public bool Simple				{ get; set; }
+
+		[Category("Simple")]
+		public int IterationsPerFrame	{ get; set; }
+		[Category("Simple")]
 		public float RepulsionForce		{ get; set; }
+		[Category("Simple")]
+		public float StepSize			{ get; set; }
 
 		public ParticleConfig()
 		{
-			IterationsPerFrame = 20;
-			SearchIterations = 5;
+			IterationsPerFrame	= 20;
+			SearchIterations	= 5;
 			SwitchToManualAfter = 250;
 			UseGPU = true;
-			DisableAutoStep = true;
-			RepulsionForce = 0.05f;
+			Simple = true;
+			RepulsionForce	= 0.05f;
+			StepSize		= 0.5f;
 		}
 
 	}
@@ -100,7 +110,7 @@ namespace GraphVis {
 			calc = new Calculator(Game);
 			calc.UseGPU = Config.UseGPU;
 			calc.RunPause = Calculator.State.PAUSE;
-			calc.DisableAutoStep = Config.DisableAutoStep;
+			calc.DisableAutoStep = Config.Simple;
 
 			factory = new StateFactory( shader, typeof(RenderFlags), ( plState, comb ) => 
 			{
