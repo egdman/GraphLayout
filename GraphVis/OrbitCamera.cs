@@ -66,7 +66,7 @@ namespace GraphVis
 			zeroRadius		= GraphSystem.WorldRaduis;
 			latitude	= 0;
 			longitude	= 0;
-			altitude	= 5.0f;
+			altitude	= 1000.0f;
 
 			angularVelocity = 0.005f;
 			latVelocity		= 0.005f;

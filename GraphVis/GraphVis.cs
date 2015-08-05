@@ -73,7 +73,6 @@ namespace GraphVis
 			time = 0;
 			//	add keyboard handler :
 			InputDevice.KeyDown += InputDevice_KeyDown;
-
 			//	load content & create graphics and audio resources here:
 		}
 
@@ -184,6 +183,27 @@ namespace GraphVis
 				graph.CollapseEdge(edge);
 				pSys.UpdateGraph(graph);
             }
+			if (e.Key == Keys.LeftButton)
+			{
+				var pSys = GetService<GraphSystem>();
+				Point cursor = InputDevice.MousePosition;
+				Vector3 nodePosition = new Vector3();
+				int selNode = 0;
+				if (pSys.CursorNearestNode(cursor, StereoEye.Mono, 0.025f, out nodePosition, out selNode))
+				{
+					selectedNodeIndex = selNode;
+					isSelected = true;
+					//dr.DrawBox(new BoundingBox(-5.0f * Vector3.One, 5.0f * Vector3.One),
+					//	Matrix.Translation(nodePosition),
+					//	Color.Blue
+					//	);
+					selectedNodePos = nodePosition;
+				}
+				else
+				{
+					isSelected = false;
+				}
+			}
 
 		}
 
@@ -253,35 +273,13 @@ namespace GraphVis
 		{
 			base.Draw(gameTime, stereoEye);
 
-			time += gameTime.Elapsed.Milliseconds;
+	//		time += gameTime.Elapsed.Milliseconds;
 
 			var cam = GetService<OrbitCamera>();
 			var dr = GetService<DebugRender>();
 			var pSys = GetService<GraphSystem>(); 
 			dr.View = cam.GetViewMatrix(stereoEye);
 			dr.Projection = cam.GetProjectionMatrix(stereoEye);
-
-
-			if (InputDevice.IsKeyDown(Keys.LeftButton))
-			{
-				Point cursor = InputDevice.MousePosition;
-				Vector3 nodePosition = new Vector3();
-				int selNode = 0;
-				if (pSys.CursorNearestNode(cursor, stereoEye, 0.025f, out nodePosition, out selNode))
-				{
-					selectedNodeIndex = selNode;
-					isSelected = true;
-					dr.DrawBox(new BoundingBox(-5.0f * Vector3.One, 5.0f * Vector3.One),
-						Matrix.Translation(nodePosition),
-						Color.Blue
-						);
-					selectedNodePos = nodePosition;
-				}
-				else
-				{
-					isSelected = false;
-				}
-			}
 
 			var ds = GetService<DebugStrings>();
 			if (isSelected)

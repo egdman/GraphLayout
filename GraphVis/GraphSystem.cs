@@ -20,6 +20,7 @@ namespace GraphVis {
 		public int	SwitchToManualAfter	{ get; set; }
 		public bool	UseGPU				{ get; set; }
 		public bool DisableAutoStep		{ get; set; }
+		public float RepulsionForce		{ get; set; }
 
 		public ParticleConfig()
 		{
@@ -28,6 +29,7 @@ namespace GraphVis {
 			SwitchToManualAfter = 250;
 			UseGPU = true;
 			DisableAutoStep = true;
+			RepulsionForce = 0.05f;
 		}
 
 	}
@@ -314,16 +316,16 @@ namespace GraphVis {
 		}
 
 
-		void addParticle( Vector3 pos, float lifeTime, float size0, Vector4 color, float colorBoost = 1 )
+		void addParticle( Vector3 pos, float size, Vector4 color, float colorBoost = 1 )
 		{
 			ParticleList.Add( new Particle3d {
 					Position		=	pos,
 					Velocity		=	Vector3.Zero,
 					Color			=	color * colorBoost,
-					Size			=	size0,
+					Size			=	size,
 					Force			=	Vector3.Zero,
 					Mass			=	particleMass,
-					Charge			=	0.05f
+					Charge			=	Config.RepulsionForce
 				}
 			);
 			linkIndexLists.Add( new List<int>() );
@@ -371,18 +373,22 @@ namespace GraphVis {
 
 		public Graph<SpatialNode> GetGraph()
 		{
-			Particle3d[] particleArray = new Particle3d[calc.CurrentStateBuffer.GetStructureCount()];
-			calc.CurrentStateBuffer.GetData( particleArray );
-			Graph<SpatialNode> graph = new Graph<SpatialNode>();
-			foreach (var p in particleArray)
+			if (calc.CurrentStateBuffer != null)
 			{
-				graph.AddNode( new SpatialNode( p.Position, p.Size, new Color(p.Color) ) );
+				Particle3d[] particleArray = new Particle3d[calc.ParticleCount];
+				calc.CurrentStateBuffer.GetData(particleArray);
+				Graph<SpatialNode> graph = new Graph<SpatialNode>();
+				foreach (var p in particleArray)
+				{
+					graph.AddNode(new SpatialNode(p.Position, p.Size, new Color(p.Color)));
+				}
+				foreach (var l in linkList)
+				{
+					graph.AddEdge((int)l.par1, (int)l.par2);
+				}
+				return graph;
 			}
-			foreach (var l in linkList)
-			{
-				graph.AddEdge((int)l.par1, (int)l.par2);
-			}
-			return graph;
+			return new Graph<SpatialNode>();
 		}
 
 
@@ -391,14 +397,14 @@ namespace GraphVis {
 		{
 			var zeroV = new Vector3(0, 0, 0);
 			addParticle(
-					zeroV + RadialRandomVector() * linkSize * 10.0f, 9999,
+					zeroV + RadialRandomVector() * linkSize * 10.0f,
 					size, color.ToVector4(), 1.0f );
 		}
 
 
 		void addNode(float size, Color color, Vector3 position)
 		{
-			addParticle( position, 9999, size, color.ToVector4(), 1.0f );
+			addParticle( position, size, color.ToVector4(), 1.0f );
 		}
 
 
@@ -452,7 +458,6 @@ namespace GraphVis {
 					particleTex.Dispose();
 				}
 			}
-	//		calc.Dispose( disposing );
 			base.Dispose( disposing );
 		}
 
