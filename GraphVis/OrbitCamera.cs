@@ -26,8 +26,6 @@ namespace GraphVis
 		float lonVelocity;
 		float upDownVelocity;
 
-		float zeroRadius;
-
 		const float PI180		= (float)Math.PI / 180;
 
 		public float Altitude
@@ -49,6 +47,12 @@ namespace GraphVis
 			set;
 		}
 
+		public float ZeroRadius
+		{
+			get;
+			set;
+		}
+
 
 		public OrbitCamera( Game game ) : base(game)
 		{
@@ -63,7 +67,7 @@ namespace GraphVis
 			
 			var rndr = Game.GetService<GraphSystem>();
 
-			zeroRadius		= GraphSystem.WorldRaduis;
+			ZeroRadius = 50.0f;
 			latitude	= 0;
 			longitude	= 0;
 			altitude	= 1000.0f;
@@ -124,7 +128,7 @@ namespace GraphVis
 			if ( latitude < -89.9f ) latitude = -89.9f;
 
 
-			Vector3 cameraLocation = anglesToCoords( latitude, longitude, (zeroRadius + altitude) );
+			Vector3 cameraLocation = anglesToCoords(latitude, longitude, (ZeroRadius + altitude));
 			base.SetupCamera( cameraLocation, CenterOfOrbit, new Vector3( 0, 1, 0), new Vector3(0, 0, 0),
 				120.0f, base.Config.FreeCamZNear,base.Config.FreeCamZFar, 0, 0 );
 

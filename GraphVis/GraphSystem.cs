@@ -48,7 +48,7 @@ namespace GraphVis {
 
 		[Config]
 		public ParticleConfig Config{ get; set; }
-		public const float WorldRaduis = 50.0f;
+//		public const float WorldSize = 50.0f;
 
 		Texture2D		particleTex;
 		Texture2D		selectionTex;
@@ -468,6 +468,7 @@ namespace GraphVis {
 					particleTex.Dispose();
 				}
 			}
+			calc.Dispose();
 			base.Dispose( disposing );
 		}
 

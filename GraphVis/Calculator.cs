@@ -127,8 +127,8 @@ namespace GraphVis
 			set;
 		}
 
-		Ubershader			shader;
-		StateFactory		factory;
+		static Ubershader		shader;
+		static StateFactory		factory;
 		ConstantBuffer		paramsCB;
 
 		float	linkSize;
@@ -262,10 +262,12 @@ namespace GraphVis
 				if (factory != null)
 				{
 					factory.Dispose();
+					factory = null;
 				}
 				if (shader != null)
 				{
 					shader.Dispose();
+					shader = null;
 				}
 			}
 		}
