@@ -43,7 +43,7 @@ namespace GraphVis
 			//	add here additional services :
 			AddService(new Camera(this), true, false, 9997, 9997);
 			AddService(new OrbitCamera(this), true, false, 9996, 9996 );
-			AddService(new ParticleSystem(this), true, true, 9995, 9995);
+			AddService(new GraphSystem(this), true, true, 9995, 9995);
 
 
 			//	add here additional services :
@@ -123,11 +123,11 @@ namespace GraphVis
 			}
 			if ( e.Key == Keys.P )
 			{
-				GetService<ParticleSystem>().Pause();
+				GetService<GraphSystem>().Pause();
 			}
 			if (e.Key == Keys.I)
 			{
-				GetService<ParticleSystem>().SwitchStepMode();
+				GetService<GraphSystem>().SwitchStepMode();
 			}
 			if (e.Key == Keys.M)
 			{
@@ -154,18 +154,18 @@ namespace GraphVis
 			//		var color = new Color(centralities[i]); // B/W
 					graph.Nodes[i] = new BaseNode(5.0f, color);
 				}
-				GetService<ParticleSystem>().AddGraph(graph);
+				GetService<GraphSystem>().AddGraph(graph);
 			}
 			if (e.Key == Keys.Q)
 			{
-				Graph<SpatialNode> graph = GetService<ParticleSystem>().GetGraph();
+				Graph<SpatialNode> graph = GetService<GraphSystem>().GetGraph();
 				graph.WriteToFile( "graph.gr" );
 				Log.Message( "Graph saved to file" );
 			}
 			if (e.Key == Keys.F) // focus on a node
 			{
 				var cam = GetService<OrbitCamera>();
-				var pSys = GetService<ParticleSystem>();
+				var pSys = GetService<GraphSystem>();
 				if (!isSelected)
 				{
 	//				cam.CenterOfOrbit = new Vector3(0, 0, 0);
@@ -178,7 +178,7 @@ namespace GraphVis
 			}
             if (e.Key == Keys.G) // collapse random edge
             {
-                var pSys = GetService<ParticleSystem>();
+                var pSys = GetService<GraphSystem>();
                 Graph<SpatialNode> graph = pSys.GetGraph();
                 int edge = rnd.Next(graph.EdgeCount);
 				graph.CollapseEdge(edge);
@@ -212,7 +212,7 @@ namespace GraphVis
 			var cam = GetService<Camera>();
 			var debRen = GetService<DebugRender>();
 					
-			var partSys = GetService<ParticleSystem>();
+			var partSys = GetService<GraphSystem>();
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
 				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 2048, 2 );	
@@ -257,7 +257,7 @@ namespace GraphVis
 
 			var cam = GetService<OrbitCamera>();
 			var dr = GetService<DebugRender>();
-			var pSys = GetService<ParticleSystem>(); 
+			var pSys = GetService<GraphSystem>(); 
 			dr.View = cam.GetViewMatrix(stereoEye);
 			dr.Projection = cam.GetProjectionMatrix(stereoEye);
 

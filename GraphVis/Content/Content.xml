@@ -172,4 +172,24 @@
     <Compression>RGB</Compression>
     <SourceFile>selection.tga</SourceFile>
   </Asset>
+  <Asset xsi:type="UbershaderAsset">
+    <AssetPath>Render.hlsl</AssetPath>
+    <BuildOrder>0</BuildOrder>
+    <IgnoreToolChanges>false</IgnoreToolChanges>
+    <GraphicsProfile>HiDef</GraphicsProfile>
+    <DisableOptimization>false</DisableOptimization>
+    <OptimizationLevel>1</OptimizationLevel>
+    <AvoidFlowControl>false</AvoidFlowControl>
+    <PreferFlowControl>false</PreferFlowControl>
+    <MatrixPacking>RowMajor</MatrixPacking>
+    <PSEntryPoint>PSMain</PSEntryPoint>
+    <VSEntryPoint>VSMain</VSEntryPoint>
+    <GSEntryPoint>GSMain</GSEntryPoint>
+    <DSEntryPoint>DSMain</DSEntryPoint>
+    <HSEntryPoint>HSMain</HSEntryPoint>
+    <CSEntryPoint>CSMain</CSEntryPoint>
+    <SourceFile>Render.hlsl</SourceFile>
+    <ShowPemutations>false</ShowPemutations>
+    <ListingPath>C:\egorov\graphLayout\GraphVis\Content\Temp\D2FF2A025CD3CFBBE98E238647ED8262.html</ListingPath>
+  </Asset>
 </ArrayOfAsset>

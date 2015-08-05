@@ -61,9 +61,9 @@ namespace GraphVis
 
 			base.Initialize();
 			
-			var rndr = Game.GetService<ParticleSystem>();
+			var rndr = Game.GetService<GraphSystem>();
 
-			zeroRadius		= ParticleSystem.WorldRaduis;
+			zeroRadius		= GraphSystem.WorldRaduis;
 			latitude	= 0;
 			longitude	= 0;
 			altitude	= 5.0f;
@@ -81,7 +81,7 @@ namespace GraphVis
 		{		
 			Config.FreeCamEnabled	= false;
 
-			var rndr	= Game.GetService<ParticleSystem>();
+			var rndr	= Game.GetService<GraphSystem>();
 			var ds		= Game.GetService<DebugStrings>();
 
 			angularVelocity	= 0.25f;
