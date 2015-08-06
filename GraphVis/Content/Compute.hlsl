@@ -14,7 +14,7 @@ struct PARAMS {
 	float		SpringTension;
 };
 
-cbuffer CB1 : register(b0) { 
+cbuffer CB1 : register(b0) {
 	PARAMS Params; 
 };
 
@@ -101,30 +101,30 @@ float4 tileForce( float4 position, uint threadId )
 	return force;
 }
 
-#define TEST_SIZE 16
-
-float4 tileForce2( float4 position, uint threadId )
-{
-	float4 force = float4(0, 0, 0, 0);
-	float4 otherPosition = float4(0, 0, 0, 0);
-
-	threadId = threadId % TEST_SIZE;
-	for ( uint i = 0; i < BLOCK_SIZE - TEST_SIZE; ++i )
-	{
-		otherPosition = shPositions[i + threadId];
-		force += pairBodyForce( position, otherPosition );
-	}
-	
-	for ( uint j = 0; j < TEST_SIZE; ++j )
-	{
-		uint index = j + threadId + BLOCK_SIZE - TEST_SIZE;
-		index = j >= BLOCK_SIZE ? j - BLOCK_SIZE : j;
-		otherPosition = shPositions[index];
-		force += pairBodyForce( position, otherPosition );
-	}
-	
-	return force;
-}
+//#define TEST_SIZE 16
+//
+//float4 tileForce2( float4 position, uint threadId )
+//{
+//	float4 force = float4(0, 0, 0, 0);
+//	float4 otherPosition = float4(0, 0, 0, 0);
+//
+//	threadId = threadId % TEST_SIZE;
+//	for ( uint i = 0; i < BLOCK_SIZE - TEST_SIZE; ++i )
+//	{
+//		otherPosition = shPositions[i + threadId];
+//		force += pairBodyForce( position, otherPosition );
+//	}
+//	
+//	for ( uint j = 0; j < TEST_SIZE; ++j )
+//	{
+//		uint index = j + threadId + BLOCK_SIZE - TEST_SIZE;
+//		index = j >= BLOCK_SIZE ? j - BLOCK_SIZE : j;
+//		otherPosition = shPositions[index];
+//		force += pairBodyForce( position, otherPosition );
+//	}
+//	
+//	return force;
+//}
 
 
 

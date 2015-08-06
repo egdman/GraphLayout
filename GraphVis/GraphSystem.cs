@@ -355,14 +355,14 @@ namespace GraphVis {
 			linkIndexLists[end2].Add(linkNumber);
 
 			// modify particles sizes according to number of links:
-			Particle3d newPrt1 = ParticleList[end1];
-			Particle3d newPrt2 = ParticleList[end2];
+	//		Particle3d newPrt1 = ParticleList[end1];
+	//		Particle3d newPrt2 = ParticleList[end2];
 	//		newPrt1.Size	+= 0.1f;
 	//		newPrt2.Size	+= 0.1f;
-			ParticleList[end1] = newPrt1;
-			ParticleList[end2] = newPrt2;
-			stretchLinks(end1);
-			stretchLinks(end2);
+	//		ParticleList[end1] = newPrt1;
+	//		ParticleList[end2] = newPrt2;
+	//		stretchLinks(end1);
+	//		stretchLinks(end2);
 
 		}
 
@@ -474,8 +474,11 @@ namespace GraphVis {
 				{
 					computeShader.Dispose();
 				}
-			}
-			lay.Dispose();
+				if (lay != null)
+				{
+					lay.Dispose();
+				}
+			}		
 			base.Dispose( disposing );
 		}
 

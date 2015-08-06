@@ -9,12 +9,13 @@ namespace GraphVis
 {
 	public class StanfordNetwork<Node> : GraphFromFile<Node> where Node : INode, new()
 	{
+		const int maxNodes = 10000;
 
 		public override void ReadFromFile(string path)
 		{
-			
 			var lines = File.ReadAllLines(path);
 			Dictionary<int, int> nodeId_NodeNumber = new Dictionary<int, int>();
+			List<int> nodeDegrees = new List<int>();
 
 			int numOfNodesAdded = 0;
 			if (lines.Length > 0)
@@ -43,24 +44,49 @@ namespace GraphVis
 				}
 
 
+				int numNodes = maxNodes < nodeId_NodeNumber.Count ? maxNodes : nodeId_NodeNumber.Count;
 				// add nodes:
-				for (int i = 0; i < nodeId_NodeNumber.Count; ++i)
+				for (int i = 0; i < numNodes; ++i)
 				{
 					AddNode(new Node());
+					nodeDegrees.Add(0);
 				}
 
 				// add edges:
+				Console.WriteLine("checking...");
 				foreach ( var line in lines )
 				{
 					if (line.ElementAt(0) != '#')
 					{
 						string[] parts;
 						parts = line.Split(new Char[] {'\t', ' '});
-						int index1 = int.Parse(parts[0]);
-						int index2 = int.Parse(parts[1]);
-						AddEdge(nodeId_NodeNumber[index1], nodeId_NodeNumber[index2]);
+						int index1 = nodeId_NodeNumber[int.Parse(parts[0])];
+						int index2 = nodeId_NodeNumber[int.Parse(parts[1])];
+						
+						if (index1 != index2)
+						{
+							if ( index1 < numNodes && index2 < numNodes ) {
+								AddEdge(index1, index2);
+								nodeDegrees[index1] += 1;
+								nodeDegrees[index2] += 1;
+							}
+						}
+						else
+						{
+							Console.WriteLine("bad edge " + line);
+						}
+						
 					}
 				}
+				Console.WriteLine("checked");
+
+				int maxDegree = 0;
+				foreach (var d2 in nodeDegrees)
+				{
+					int degree = d2/2;
+					maxDegree = degree > maxDegree ? degree : maxDegree;	
+				}
+				Console.WriteLine("max degree = " + maxDegree);
 			}
 		}
 	}

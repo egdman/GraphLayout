@@ -24,8 +24,8 @@ namespace GraphVis
 
 
 
-		protected override void initCalculations() {
-		}
+		protected override void initCalculations() { }
+
 
 		protected override void resetState()
 		{

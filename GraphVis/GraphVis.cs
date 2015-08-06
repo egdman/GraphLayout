@@ -243,7 +243,7 @@ namespace GraphVis
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 				StanfordNetwork<BaseNode> graph = new StanfordNetwork<BaseNode>();
 		//		graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
-				graph.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+				graph.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
 				graphSys.AddGraph(graph);
 			}
 

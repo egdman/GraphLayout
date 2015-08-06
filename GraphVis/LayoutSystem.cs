@@ -226,6 +226,7 @@ namespace GraphVis
 		{	
 			calcAuto.Reset();
 			calcFixed.Reset();
+			calcWolfram.Reset();
 		}
 
 		void initializeCalc()
@@ -409,7 +410,9 @@ namespace GraphVis
 			device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
 			device.ComputeShaderResources[2] = LinksIndexBuffer;
 			device.ComputeShaderResources[3] = LinksBuffer;
-			device.PipelineState = factory[(int)(ComputeFlags.COMPUTE | ComputeFlags.SIMULATION | ComputeFlags.EULER | ComputeFlags.LINKS)];
+			device.PipelineState = factory[(int)(
+				ComputeFlags.COMPUTE | ComputeFlags.SIMULATION |
+				ComputeFlags.EULER | ComputeFlags.LINKS)];
 			device.Dispatch(MathUtil.IntDivUp((int)parameters.MaxParticles, BlockSize));
 			device.ResetStates();
 		}
