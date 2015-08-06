@@ -125,9 +125,9 @@ namespace GraphVis
 				GetService<GraphSystem>().Pause();
 			}
 			if (e.Key == Keys.I)
-			{
-				GetService<GraphSystem>().SwitchStepMode();
-			}
+			//{
+			//	GetService<GraphSystem>().SwitchStepMode();
+			//}
 			if (e.Key == Keys.M)
 			{
 				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );				
@@ -232,18 +232,18 @@ namespace GraphVis
 			var cam = GetService<Camera>();
 			var debRen = GetService<DebugRender>();
 					
-			var partSys = GetService<GraphSystem>();
+			var graphSys = GetService<GraphSystem>();
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 2048, 2 );	
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 2048, 2 );
 		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
-				partSys.AddGraph(graph);
+				graphSys.AddGraph(graph);
 			}
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 				CitationGraph<BaseNode> graph = new CitationGraph<BaseNode>();
 				graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
-				partSys.AddGraph(graph);
+				graphSys.AddGraph(graph);
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);

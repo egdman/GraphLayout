@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Fusion;
-using Fusion.Graphics;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.IO;
+
+using Fusion;
+using Fusion.Graphics;
 
 
 namespace GraphVis

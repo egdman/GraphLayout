@@ -94,8 +94,6 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 {
 
 	GSOutput p0, p1, p2, p3;
-	
-//	VSOutput prt = inputPoint[0];
 
 	PARTICLE3D prt = particleReadBuffer[ inputPoint[0].vertexID ];
 	PARTICLE3D referencePrt = particleReadBuffer[ Params.SelectedParticle ];
@@ -105,27 +103,19 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 	float4 pos		=	float4( prt.Position.xyz - referencePrt.Position.xyz, 1 );
 	float4 posV		=	mul( pos, Params.View );
 
-//		p0.Position = mul( float4( position + float2( sz, sz), 0, 1 ), Params.Projection );
-	p0.Position = mul( posV + float4( sz, sz, 0, 0 ) , Params.Projection );
-//		p0.Position = posP + float4( sz, sz, 0, 0 );		
+	p0.Position = mul( posV + float4( sz, sz, 0, 0 ) , Params.Projection );		
 	p0.TexCoord = float2(1,1);
 	p0.Color = color;
 
-//		p1.Position = mul( float4( position + float2(-sz, sz), 0, 1 ), Params.Projection );
 	p1.Position = mul( posV + float4(-sz, sz, 0, 0 ) , Params.Projection );
-//		p1.Position = posP + float4(-sz, sz, 0, 0 );
 	p1.TexCoord = float2(0,1);
 	p1.Color = color;
 
-//		p2.Position = mul( float4( position + float2(-sz,-sz), 0, 1 ), Params.Projection );
 	p2.Position = mul( posV + float4(-sz,-sz, 0, 0 ) , Params.Projection );
-//		p2.Position = posP + float4(-sz,-sz, 0, 0 );
 	p2.TexCoord = float2(0,0);
 	p2.Color = color;
 
-//		p3.Position = mul( float4( position + float2( sz,-sz), 0, 1 ), Params.Projection );
 	p3.Position = mul( posV + float4( sz,-sz, 0, 0 ) , Params.Projection );
-//		p3.Position = posP + float4( sz,-sz, 0, 0 );
 	p3.TexCoord = float2(1,0);
 	p3.Color = color;
 
@@ -217,19 +207,6 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 	p3.TexCoord = float2(1,0);
 	p3.Color = color;
 
-	//outputStream.Append(p0);
-	//outputStream.Append(p1);
-	//outputStream.RestartStrip();
-	//outputStream.Append(p1);
-	//outputStream.Append(p2);
-	//outputStream.RestartStrip();
-	//outputStream.Append(p2);
-	//outputStream.Append(p3);
-	//outputStream.RestartStrip();
-	//outputStream.Append(p3);
-	//outputStream.Append(p0);
-	//outputStream.RestartStrip();
-
 	outputStream.Append(p0);
 	outputStream.Append(p1);
 	outputStream.Append(p2);
@@ -266,7 +243,7 @@ float4 PSMain( GSOutput input ) : SV_Target
 {
 	return SelectionTexture.Sample( Sampler, input.TexCoord ) * float4(input.Color.rgb,1);
 }
-#endif // POINT
+#endif // SELECTION
 
 
 #endif //DRAW

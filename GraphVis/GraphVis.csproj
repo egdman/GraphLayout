@@ -51,11 +51,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Calculator.cs" />
+    <Compile Include="CalculationSystem.cs" />
+    <Compile Include="LayoutSystem.cs" />
     <Compile Include="CitationGraph.cs" />
     <Compile Include="GraphFromFile.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="INode.cs" />
+    <Compile Include="CalculationSystemAuto.cs" />
+    <Compile Include="CalculationSystemFixed.cs" />
+    <Compile Include="NodeWithText.cs" />
     <Compile Include="OrbitCamera.cs" />
     <Compile Include="GraphVis.cs" />
     <Compile Include="GraphSystem.cs" />

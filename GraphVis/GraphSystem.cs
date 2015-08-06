@@ -22,7 +22,7 @@ namespace GraphVis {
 		[Category("Advanced")]
 		public bool	UseGPU				{ get; set; }
 		[Category("Advanced")]
-		public bool Simple				{ get; set; }
+		public LayoutSystem.StepMethod StepMode	{ get; set; }
 
 		[Category("Simple")]
 		public int IterationsPerFrame	{ get; set; }
@@ -36,8 +36,8 @@ namespace GraphVis {
 			IterationsPerFrame	= 20;
 			SearchIterations	= 5;
 			SwitchToManualAfter = 250;
-			UseGPU = true;
-			Simple = true;
+			UseGPU			= true;
+			StepMode		= LayoutSystem.StepMethod.Fixed;
 			RepulsionForce	= 0.05f;
 			StepSize		= 0.5f;
 		}
@@ -52,7 +52,8 @@ namespace GraphVis {
 
 		Texture2D		particleTex;
 		Texture2D		selectionTex;
-		Ubershader		shader;
+		Ubershader		renderShader;
+		Ubershader		computeShader;
 		StateFactory	factory;
 
 		float		particleMass;
@@ -65,9 +66,9 @@ namespace GraphVis {
 		List<Link>			linkList;
 		List<Particle3d>	ParticleList;
 		Queue<int>			commandQueue;
-		Random rand = new Random();
+		Random				rand = new Random();
 
-		Calculator calc;
+		LayoutSystem		lay;
 
 		int		numSelectedNodes;
 		int		referenceNodeIndex;
@@ -105,14 +106,15 @@ namespace GraphVis {
 		{
 			particleTex		=	Game.Content.Load<Texture2D>("smaller");
 			selectionTex	=	Game.Content.Load<Texture2D>("selection");
-			shader			=	Game.Content.Load<Ubershader>("Render");
+			renderShader	=	Game.Content.Load<Ubershader>("Render");
+			computeShader	=	Game.Content.Load<Ubershader>("Compute");
 
-			calc = new Calculator(Game);
-			calc.UseGPU = Config.UseGPU;
-			calc.RunPause = Calculator.State.PAUSE;
-			calc.DisableAutoStep = Config.Simple;
+			// creating the layout system:
+			lay = new LayoutSystem(Game, computeShader);
+			lay.UseGPU = Config.UseGPU;
+			lay.RunPause = LayoutSystem.State.PAUSE;
 
-			factory = new StateFactory( shader, typeof(RenderFlags), ( plState, comb ) => 
+			factory = new StateFactory( renderShader, typeof(RenderFlags), ( plState, comb ) => 
 			{
 				plState.RasterizerState	= RasterizerState.CullNone;
 				plState.BlendState = BlendState.NegMultiply;
@@ -139,13 +141,7 @@ namespace GraphVis {
 
 		public void Pause()
 		{
-			calc.Pause();
-		}
-
-
-		public void SwitchStepMode()
-		{
-			calc.FixedStep = !calc.FixedStep;
+			lay.Pause();
 		}
 
 
@@ -296,9 +292,10 @@ namespace GraphVis {
 			return r;
 		}
 
+
 		public void AddGraph(Graph<BaseNode> graph)
 		{
-			calc.ResetState();
+			lay.ResetState();
 			ParticleList.Clear();
 			linkList.Clear();
 			linkIndexLists.Clear();
@@ -308,7 +305,7 @@ namespace GraphVis {
 
 		public void AddGraph(Graph<SpatialNode> graph)
 		{
-			calc.ResetState();
+			lay.ResetState();
 			ParticleList.Clear();
 			linkList.Clear();
 			linkIndexLists.Clear();
@@ -321,7 +318,6 @@ namespace GraphVis {
 			ParticleList.Clear();
 			linkList.Clear();
 			linkIndexLists.Clear();
-			calc.FixedStep = false;	
 			setBuffers(graph);
 		}
 
@@ -383,10 +379,10 @@ namespace GraphVis {
 
 		public Graph<SpatialNode> GetGraph()
 		{
-			if (calc.CurrentStateBuffer != null)
+			if (lay.CurrentStateBuffer != null)
 			{
-				Particle3d[] particleArray = new Particle3d[calc.ParticleCount];
-				calc.CurrentStateBuffer.GetData(particleArray);
+				Particle3d[] particleArray = new Particle3d[lay.ParticleCount];
+				lay.CurrentStateBuffer.GetData(particleArray);
 				Graph<SpatialNode> graph = new Graph<SpatialNode>();
 				foreach (var p in particleArray)
 				{
@@ -448,7 +444,7 @@ namespace GraphVis {
 
 		void setBuffers()
 		{
-			calc.SetData(ParticleList, linkList, linkIndexLists);
+			lay.SetData(ParticleList, linkList, linkIndexLists);
 		}
 
 	
@@ -467,8 +463,16 @@ namespace GraphVis {
 				if ( particleTex != null ) {
 					particleTex.Dispose();
 				}
+				if (renderShader != null)
+				{
+					renderShader.Dispose();
+				}
+				if (computeShader != null)
+				{
+					computeShader.Dispose();
+				}
 			}
-			calc.Dispose();
+			lay.Dispose();
 			base.Dispose( disposing );
 		}
 
@@ -507,14 +511,14 @@ namespace GraphVis {
 			}
 
 			// Calculate positions: ----------------------------------------------------
-			calc.Update(lastCommand);
+			lay.Update(lastCommand);
 
 			// Render: -----------------------------------------------------------------
 			Params param = new Params();
 
 			param.View			= cam.GetViewMatrix(stereoEye);
 			param.Projection	= cam.GetProjectionMatrix(stereoEye);
-			param.MaxParticles	= calc.ParticleCount;
+			param.MaxParticles = lay.ParticleCount;
 			param.SelectedNode	= referenceNodeIndex;
 
 			render( device, param );
@@ -523,7 +527,6 @@ namespace GraphVis {
 			var debStr = Game.GetService<DebugStrings>();
 			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
-			debStr.Add(Color.RoyalBlue, "Mode:   " +( calc.FixedStep ? "MANUAL" : "AUTO" ));
 			base.Draw( gameTime, stereoEye );
 		}
 
@@ -546,13 +549,13 @@ namespace GraphVis {
 			device.PipelineState = factory[(int)RenderFlags.DRAW|(int)RenderFlags.POINT];
 			device.SetCSRWBuffer( 0, null );
 			device.PixelShaderResources		[0] = particleTex;
-			device.GeometryShaderResources	[2] = calc.CurrentStateBuffer;
+			device.GeometryShaderResources	[2] = lay.CurrentStateBuffer;
 			device.Draw( ParticleList.Count, 0 );
 						
 			// draw lines: -------------------------------------------------------------------------
 			device.PipelineState = factory[(int)RenderFlags.DRAW|(int)RenderFlags.LINE];
-			device.GeometryShaderResources	[2] = calc.CurrentStateBuffer;
-			device.GeometryShaderResources	[3] = calc.LinksBuffer;
+			device.GeometryShaderResources	[2] = lay.CurrentStateBuffer;
+			device.GeometryShaderResources	[3] = lay.LinksBuffer;
 			device.Draw( linkList.Count, 0 );
 
 			// draw selected points: ---------------------------------------------------------------

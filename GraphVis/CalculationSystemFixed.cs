@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Fusion;
+using Fusion.Graphics;
+using Fusion.Mathematics;
+using Fusion.Input;
+
+namespace GraphVis
+{
+	class CalculationSystemFixed : CalculationSystem
+	{
+		float	stepLength;
+		int		numIterations;
+
+
+		public CalculationSystemFixed(LayoutSystem host)
+			: base(host)
+		{
+			stepLength		= 1.0f;
+			numIterations	= 0;
+		}
+
+		public int NumberOfIterations
+		{
+			get { return numIterations; }
+		}
+
+
+		protected override void initCalculations() {
+		}
+
+		protected override void resetState()
+		{
+			stepLength = HostSystem.Environment.GetService<GraphSystem>().Config.StepSize;
+			numIterations = 0;
+		}
+
+
+		protected override void update(int userCommand)
+		{
+			var graphSys	= HostSystem.Environment.GetService<GraphSystem>();
+			LayoutSystem.ComputeParams param = new LayoutSystem.ComputeParams();
+
+			if (HostSystem.CurrentStateBuffer != null)
+			{
+				// manual step change:
+				if (userCommand > 0)
+				{
+					stepLength = increaseStep(stepLength);
+				}
+				if (userCommand < 0)
+				{
+					stepLength = decreaseStep(stepLength);
+				}
+			}
+
+			param.StepLength = stepLength;
+
+			if (HostSystem.RunPause == LayoutSystem.State.RUN)
+			{
+				for (int i = 0; i < graphSys.Config.IterationsPerFrame; ++i)
+				{
+					HostSystem.CalcDescentVector(HostSystem.CurrentStateBuffer, param);	// calculate current descent vectors
+
+					HostSystem.MoveVertices(HostSystem.CurrentStateBuffer,
+						HostSystem.NextStateBuffer, param);	// move vertices in the descent direction
+
+					// swap buffers: --------------------------------------------------------------------
+					HostSystem.SwapBuffers();
+					++numIterations;
+				}
+			}
+			var debStr = HostSystem.Environment.GetService<DebugStrings>();
+
+			debStr.Add(Color.Thistle, "FIXED MODE");
+			debStr.Add(Color.Aqua, "Step factor  = " + stepLength);
+			debStr.Add(Color.Aqua, "Iteration      = " + numIterations);
+		}
+
+
+
+		/// <summary>
+		/// This function returns increased step length
+		/// </summary>
+		/// <param name="step"></param>
+		/// <returns></returns>
+		float increaseStep(float step)
+		{
+			return step + 0.01f;
+		}
+
+
+		/// <summary>
+		/// This function returns decreased step length
+		/// </summary>
+		/// <param name="step"></param>
+		/// <returns></returns>
+		float decreaseStep(float step)
+		{
+			return step - 0.01f;
+		}
+	}
+}

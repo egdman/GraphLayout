@@ -26,7 +26,7 @@ namespace GraphVis
 		float lonVelocity;
 		float upDownVelocity;
 
-		const float PI180		= (float)Math.PI / 180;
+		const float PI180		= (float)Math.PI / 180.0f;
 
 		public float Altitude
 		{
@@ -130,7 +130,7 @@ namespace GraphVis
 
 			Vector3 cameraLocation = anglesToCoords(latitude, longitude, (ZeroRadius + altitude));
 			base.SetupCamera( cameraLocation, CenterOfOrbit, new Vector3( 0, 1, 0), new Vector3(0, 0, 0),
-				120.0f, base.Config.FreeCamZNear,base.Config.FreeCamZFar, 0, 0 );
+				PI180*70.0f, base.Config.FreeCamZNear, base.Config.FreeCamZFar, 0, 0);
 
 			//ds.Add( "Altitude = " + altitude + " m" );
 			//ds.Add( "Longitude = " + longitude );

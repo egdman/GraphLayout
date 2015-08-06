@@ -61,11 +61,19 @@ namespace GraphVis
 	}
 
 
-	class Calculator : IDisposable
+	public class LayoutSystem : IDisposable
 	{
-		
+		public enum StepMethod
+		{
+			Fixed,
+			Auto,
+			Wolfram
+		}
+
+		public StepMethod StepMode { get { return Environment.GetService<GraphSystem>().Config.StepMode; } }
+
 		[StructLayout(LayoutKind.Explicit, Size = 16)]
-		struct ComputeParams
+		public struct ComputeParams
 		{
 			[FieldOffset(0)]
 			public uint MaxParticles;
@@ -127,20 +135,11 @@ namespace GraphVis
 			set;
 		}
 
-		static Ubershader		shader;
-		static StateFactory		factory;
+		Ubershader			shader;
+		StateFactory		factory;
 		ConstantBuffer		paramsCB;
 
 		float	linkSize;
-
-		float	stepLength;
-		float	energy;
-		float	deltaEnergy;
-		float	pGradE;
-		int		numIterations;
-
-		int		stepStability;
-		float	checkSum;
 		int		numParticles;
 
 
@@ -148,11 +147,8 @@ namespace GraphVis
 		{
 			get { return numParticles; }
 		}
-
-		public int NumberOfIterations
-		{
-			get { return numIterations; }
-		}
+	
+	
 
 		public State RunPause
 		{
@@ -168,14 +164,20 @@ namespace GraphVis
 		}
 
 		Game	env;
+		GraphicsDevice device;
+
+		CalculationSystemAuto calcAuto;
+		CalculationSystemFixed calcFixed;
 
 
+		public Game Environment { get { return env; } }
 
 		// Constructor: ----------------------------------------------------------------------------------------
-		public Calculator(Game game)
+		public LayoutSystem(Game game, Ubershader ubershader)
 		{
 			env = game;
-			shader = env.Content.Load<Ubershader>("Compute");
+			shader = ubershader;
+			device = env.GraphicsDevice;
 			factory = new StateFactory(shader, typeof(ComputeFlags), (plState, comb) =>
 			{
 				plState.RasterizerState = RasterizerState.CullNone;
@@ -186,23 +188,12 @@ namespace GraphVis
 
 			paramsCB = new ConstantBuffer(env.GraphicsDevice, typeof(ComputeParams));
 
-			linkSize			=	100.0f;			
+			linkSize			=	100.0f;
 
-			stepLength			=	1.0f;
-			numIterations		=	0;
-			FixedStep			=	false;
-
-			stepStability		=	0;
-			checkSum			=	0;
+			calcAuto	= new CalculationSystemAuto(this);
+			calcFixed	= new CalculationSystemFixed(this);
 		}
 		// ----------------------------------------------------------------------------------------------------
-
-
-		public bool FixedStep
-		{
-			get;
-			set;
-		}
 
 
 		public bool UseGPU
@@ -218,6 +209,49 @@ namespace GraphVis
 			else RunPause = State.RUN;
 		}
 
+
+		public void ResetState()
+		{	
+			calcAuto.Reset();
+			calcFixed.Reset();
+		}
+
+		void initializeCalc()
+		{
+			switch (StepMode)
+			{
+				case StepMethod.Auto:
+					calcAuto.Initialize();
+					break;
+				case StepMethod.Fixed:
+					calcFixed.Initialize();
+					break;
+				default:
+					break;
+			}
+		}
+
+		public void Update(int userCommand)
+		{
+			switch (StepMode)
+			{
+				case StepMethod.Auto:
+					calcAuto.Update(userCommand);
+					break;
+				case StepMethod.Fixed:
+					calcFixed.Update(userCommand);
+					break;
+				default:
+					break;
+			}
+		}
+
+		public void SwapBuffers()
+		{
+			var temp = CurrentStateBuffer;
+			CurrentStateBuffer = NextStateBuffer;
+			NextStateBuffer = temp;
+		}
 
 		void disposeOfBuffers()
 		{
@@ -253,6 +287,7 @@ namespace GraphVis
 			GC.SuppressFinalize(this);
 		}
 
+
 		protected virtual void Dispose(bool disposing)
 		{
 			if (disposing)
@@ -262,15 +297,16 @@ namespace GraphVis
 				if (factory != null)
 				{
 					factory.Dispose();
-					factory = null;
 				}
 				if (shader != null)
 				{
 					shader.Dispose();
-					shader = null;
 				}
 			}
 		}
+
+
+
 
 
 
@@ -333,239 +369,9 @@ namespace GraphVis
 							StructuredBufferFlags.Counter);
 				LinksIndexBuffer.SetData(linksPtrBufferCPU);
 			}
-			initCalculations();
+			initializeCalc();
 		}
 
-
-
-		void SwapParticleBuffers()
-		{
-			var temp = NextStateBuffer;
-			NextStateBuffer = CurrentStateBuffer;
-			CurrentStateBuffer = temp;
-		}
-
-
-		public void ResetState()
-		{
-			stepLength = env.GetService<GraphSystem>().Config.StepSize;
-			numIterations = 0;
-			stepStability = 0;
-		}
-
-
-		public void Update(int userCommand)
-		{
-			var device = env.GraphicsDevice;
-			var graphSys = env.GetService<GraphSystem>();
-			bool cond1 = false;
-			bool cond2 = false;
-
-			float energyThreshold = (float)ParticleCount / 10000.0f;
-			float chosenStepLength = stepLength;
-
-			if (DisableAutoStep)
-			{
-				FixedStep = true;
-			}
-
-			// Wolfe constants:
-			//		float C1 = 0.1f;
-			//		float C2 = 0.99f;
-
-			float C1 = 0.3f;
-			float C2 = 0.99f;
-
-			//			stepLength = 0.1f;
-
-			// Algorithm outline:
-			//
-			//  1. Calc descent vector pk
-			//  2. calc pk * grad(Ek)
-			//  3. calc Ek
-			//  4. try move with some step factor
-			//  5. calc pk * grad(Ek+1)
-			//  6. calc Ek+1
-			//  7. check Wolfe conditions
-			//  8. if both are OK GOTO 11
-			//  9. modify step factor
-			// 10. GOTO 4
-			// 11. swap try buffer with current buffer
-			// 12. GOTO 1
-			// 
-
-			ComputeParams param = new ComputeParams();
-			param.MaxParticles = 0;
-			param.LinkSize = linkSize;
-
-
-			if (CurrentStateBuffer != null)
-			{
-
-				param.MaxParticles = (uint)ParticleCount;
-
-				// manual step change:
-				if (userCommand > 0)
-				{
-					stepLength = increaseStep(stepLength);
-				}
-				if (userCommand < 0)
-				{
-					stepLength = decreaseStep(stepLength);
-				}
-
-
-				if (RunPause == State.RUN)
-				{
-
-					//			StreamWriter sw = File.AppendText( "step.csv" );
-
-					for (int i = 0; i < graphSys.Config.IterationsPerFrame; ++i)
-					{
-						float Ek = energy;
-						float Ek1 = 0;
-
-						float pkGradEk = 0;
-						float pkGradEk1 = 0;
-
-						cond1 = false;
-						cond2 = false;
-
-						int tries = 0;
-
-						if (!FixedStep)
-						{
-							calcTotalEnergyAndDotProduct(device, CurrentStateBuffer, CurrentStateBuffer,
-									EnergyBuffer, param, out Ek, out pkGradEk, out checkSum);
-						}
-
-						while (!(cond1 && cond2))
-						{
-							if (FixedStep)
-							{
-								cond1 = true;
-								cond2 = true;
-							}
-
-							param.StepLength = stepLength;
-
-							moveVertices(device, CurrentStateBuffer, NextStateBuffer, param);
-							calcDescentVector(device, NextStateBuffer, param); // calc energies
-
-							if (!FixedStep)
-							{
-								calcTotalEnergyAndDotProduct(device, CurrentStateBuffer, NextStateBuffer,
-										EnergyBuffer, param, out Ek1, out pkGradEk1, out checkSum);
-
-
-								// check Wolfe conditions:
-								cond1 = (Ek1 - Ek <= stepLength * C1 * pkGradEk);
-								cond2 = (pkGradEk1 >= C2 * pkGradEk);
-
-								// if we are very close to minimum, do not check conditions (it leads to infinite cycles)
-								if (Math.Abs(Ek1 - Ek) < energyThreshold)
-								{
-									cond1 = cond2 = true;
-								}
-
-								// Debug output:
-								if (tries > 4)
-								{
-									Console.WriteLine("step = " + stepLength + " " +
-										"cond#1 = " + (cond1 ? "TRUE" : "FALSE") + " " +
-										"cond#2 = " + (cond2 ? "TRUE" : "FALSE") + " " +
-										"deltaE = " + (Ek1 - Ek)
-										);
-								}
-
-								// change step length:
-								if (cond1 && !cond2) { stepLength = increaseStep(stepLength); }
-								if (!cond1 && !cond2) { stepLength = increaseStep(stepLength); }
-
-								if (!cond1 && cond2) { stepLength = decreaseStep(stepLength); }
-
-							}
-							++tries;
-							++numIterations;
-
-							// To prevent freeze:
-							if (tries > graphSys.Config.SearchIterations) break;
-						}
-						// swap buffers: --------------------------------------------------------------------
-						var temp = CurrentStateBuffer;
-						CurrentStateBuffer = NextStateBuffer;
-						NextStateBuffer = temp;
-
-						if (stepLength == chosenStepLength) // if the new step length is the same as before
-						{
-							++stepStability;
-						}
-						else
-						{
-							stepStability = 0;
-						}
-						chosenStepLength = stepLength;
-
-						if (stepStability >= graphSys.Config.SwitchToManualAfter) // if stable step length found, switch to manual
-						{
-							FixedStep = true;
-						}
-
-						energy = Ek1;
-						deltaEnergy = Ek1 - Ek;
-						pGradE = pkGradEk1;
-						
-					}
-				}
-			}
-
-			var debStr = env.GetService<DebugStrings>();
-
-			debStr.Add(Color.Aqua, "Step factor  = " + chosenStepLength);
-	//		debStr.Add(Color.Aqua, "Energy           = " + energy);
-	//		debStr.Add(Color.Aqua, "DeltaEnergy      = " + deltaEnergy);
-	//		debStr.Add(Color.Aqua, "pTp              = " + pGradE);
-			debStr.Add(Color.Aqua, "Iteration        = " + numIterations);
-	//		debStr.Add(Color.Aqua, "Stability         = " + stepStability);
-	//		debStr.Add(Color.Orchid, "Check sum       = " + checkSum);
-		}
-
-
-		/// <summary>
-		/// This function returns increased step length
-		/// </summary>
-		/// <param name="step"></param>
-		/// <returns></returns>
-		float increaseStep(float step)
-		{
-			return step + 0.01f;
-		}
-
-
-		/// <summary>
-		/// This function returns decreased step length
-		/// </summary>
-		/// <param name="step"></param>
-		/// <returns></returns>
-		float decreaseStep(float step)
-		{
-			return step - 0.01f;
-		}
-
-
-		/// <summary>
-		/// This function performs the first iteration of calculations
-		/// </summary>
-		void initCalculations()
-		{
-			ComputeParams param = new ComputeParams();
-			param.MaxParticles = (uint)ParticleCount;
-
-			var device = env.GraphicsDevice;
-			calcDescentVector(device, CurrentStateBuffer, param); // calc desc vector and energies
-			calcTotalEnergyAndDotProduct(device, CurrentStateBuffer, CurrentStateBuffer,
-					EnergyBuffer, param, out energy, out pGradE, out checkSum);
-		}
 
 
 		/// <summary>
@@ -577,8 +383,10 @@ namespace GraphVis
 		/// <param name="device"></param>
 		/// <param name="rwVertexBuffer"></param>
 		/// <param name="parameters"></param>
-		void calcDescentVector(GraphicsDevice device, StructuredBuffer rwVertexBuffer, ComputeParams parameters)
+		public void CalcDescentVector(StructuredBuffer rwVertexBuffer, ComputeParams parameters)
 		{
+			parameters.MaxParticles = (uint)ParticleCount;
+			parameters.LinkSize = linkSize;
 			paramsCB.SetData(parameters);
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
@@ -601,9 +409,11 @@ namespace GraphVis
 		/// <param name="srcVertexBuffer"></param>
 		/// <param name="dstVertexBuffer"></param>
 		/// <param name="parameters"></param>
-		void moveVertices(GraphicsDevice device, StructuredBuffer srcVertexBuffer,
+		public void MoveVertices(StructuredBuffer srcVertexBuffer,
 							StructuredBuffer dstVertexBuffer, ComputeParams parameters)
 		{
+			parameters.MaxParticles = (uint)ParticleCount;
+			parameters.LinkSize = linkSize;
 			paramsCB.SetData(parameters);
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.ComputeShaderResources[0] = srcVertexBuffer;
@@ -627,10 +437,12 @@ namespace GraphVis
 		/// <param name="parameters"></param>
 		/// <param name="energy"></param>
 		/// <param name="pTgradE"></param>
-		void calcTotalEnergyAndDotProduct(GraphicsDevice device, StructuredBuffer currentStateBuffer,
+		public void CalcTotalEnergyAndDotProduct(StructuredBuffer currentStateBuffer,
 			StructuredBuffer nextStateBuffer, StructuredBuffer outputValues, ComputeParams parameters,
 			out float energy, out float pTgradE, out float checkSum)
 		{
+			parameters.MaxParticles = (uint)ParticleCount;
+			parameters.LinkSize = linkSize;
 			energy = 0;
 			pTgradE = 0;
 			checkSum = 0;
@@ -679,7 +491,5 @@ namespace GraphVis
 
 			energy /= 2; // because each pair is counted 2 times
 		}
-
-
 	}
 }
