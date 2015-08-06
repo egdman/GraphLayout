@@ -14,20 +14,14 @@ namespace GraphVis
 	class CalculationSystemFixed : CalculationSystem
 	{
 		float	stepLength;
-		int		numIterations;
 
 
 		public CalculationSystemFixed(LayoutSystem host)
 			: base(host)
 		{
-			stepLength		= 1.0f;
-			numIterations	= 0;
+			stepLength = HostSystem.Environment.GetService<GraphSystem>().Config.StepSize;
 		}
 
-		public int NumberOfIterations
-		{
-			get { return numIterations; }
-		}
 
 
 		protected override void initCalculations() {

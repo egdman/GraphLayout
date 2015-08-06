@@ -14,7 +14,6 @@ namespace GraphVis
 	class CalculationSystemAuto : CalculationSystem
 	{
 		float	stepLength;
-		int		numIterations;
 
 		float	energy;
 		float	deltaEnergy;
@@ -26,18 +25,11 @@ namespace GraphVis
 		public CalculationSystemAuto(LayoutSystem host)
 			: base(host)
 		{
-			stepLength		= 1.0f;
-			numIterations	= 0;
+			stepLength		= HostSystem.Environment.GetService<GraphSystem>().Config.StepSize;
 			stepStability	= 0;
 			checkSum		= 0;
-			numIterations	= 0;
 		}
 
-
-		public int NumberOfIterations
-		{
-			get { return numIterations; }
-		}
 
 		public bool FixedStep
 		{
@@ -51,8 +43,7 @@ namespace GraphVis
 		protected override void initCalculations()
 		{
 			LayoutSystem.ComputeParams param = new LayoutSystem.ComputeParams();
-
-			var device = HostSystem.Environment.GraphicsDevice;
+			param.StepLength = stepLength;
 			HostSystem.CalcDescentVector(HostSystem.CurrentStateBuffer, param); // calc desc vector and energies
 			HostSystem.CalcTotalEnergyAndDotProduct(HostSystem.CurrentStateBuffer, HostSystem.CurrentStateBuffer,
 					HostSystem.EnergyBuffer, param, out energy, out pGradE, out checkSum);

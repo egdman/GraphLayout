@@ -168,6 +168,7 @@ namespace GraphVis
 
 		CalculationSystemAuto calcAuto;
 		CalculationSystemFixed calcFixed;
+		CalculationSystemWolfram calcWolfram;
 
 
 		public Game Environment { get { return env; } }
@@ -192,6 +193,7 @@ namespace GraphVis
 
 			calcAuto	= new CalculationSystemAuto(this);
 			calcFixed	= new CalculationSystemFixed(this);
+			calcWolfram = new CalculationSystemWolfram(this);
 		}
 		// ----------------------------------------------------------------------------------------------------
 
@@ -226,6 +228,9 @@ namespace GraphVis
 				case StepMethod.Fixed:
 					calcFixed.Initialize();
 					break;
+				case StepMethod.Wolfram:
+					calcWolfram.Initialize();
+					break;
 				default:
 					break;
 			}
@@ -240,6 +245,9 @@ namespace GraphVis
 					break;
 				case StepMethod.Fixed:
 					calcFixed.Update(userCommand);
+					break;
+				case StepMethod.Wolfram:
+					calcWolfram.Update(userCommand);
 					break;
 				default:
 					break;

@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CalculationSystem.cs" />
+    <Compile Include="CalculationSystemWolfram.cs" />
     <Compile Include="LayoutSystem.cs" />
     <Compile Include="CitationGraph.cs" />
     <Compile Include="GraphFromFile.cs" />
