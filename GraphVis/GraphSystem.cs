@@ -30,6 +30,8 @@ namespace GraphVis {
 		public float RepulsionForce		{ get; set; }
 		[Category("Simple")]
 		public float StepSize			{ get; set; }
+		[Category("Simple")]
+		public float SpringTension		{ get; set; }
 
 		public ParticleConfig()
 		{
@@ -40,6 +42,7 @@ namespace GraphVis {
 			StepMode		= LayoutSystem.StepMethod.Fixed;
 			RepulsionForce	= 0.05f;
 			StepSize		= 0.5f;
+			SpringTension	= 0.1f;
 		}
 
 	}
@@ -124,7 +127,7 @@ namespace GraphVis {
 
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 			particleMass		=	1.0f;
-			linkSize			=	100.0f;
+			linkSize			=	1000.0f;
 			linkList			=	new List<Link>();
 			ParticleList		=	new List<Particle3d>();
 			linkIndexLists		=	new List<List<int> >();
@@ -403,7 +406,7 @@ namespace GraphVis {
 		{
 			var zeroV = new Vector3(0, 0, 0);
 			addParticle(
-					zeroV + RadialRandomVector() * linkSize * 10.0f,
+					zeroV + RadialRandomVector() * linkSize,
 					size, color.ToVector4(), 1.0f );
 		}
 

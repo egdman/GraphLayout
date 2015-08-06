@@ -241,8 +241,9 @@ namespace GraphVis
 			}
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
-				CitationGraph<BaseNode> graph = new CitationGraph<BaseNode>();
-				graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
+				StanfordNetwork<BaseNode> graph = new StanfordNetwork<BaseNode>();
+		//		graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
+				graph.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
 				graphSys.AddGraph(graph);
 			}
 

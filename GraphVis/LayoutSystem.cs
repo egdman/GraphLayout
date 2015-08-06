@@ -81,6 +81,8 @@ namespace GraphVis
 			public float StepLength;
 			[FieldOffset(8)]
 			public float LinkSize;
+			[FieldOffset(12)]
+			public float SpringTension;
 		}
 
 
@@ -163,6 +165,13 @@ namespace GraphVis
 			set;
 		}
 
+
+		public float SpringTension
+		{
+			get;
+			set;
+		}
+
 		Game	env;
 		GraphicsDevice device;
 
@@ -191,6 +200,7 @@ namespace GraphVis
 
 			linkSize			=	100.0f;
 
+			SpringTension = env.GetService<GraphSystem>().Config.SpringTension;
 			calcAuto	= new CalculationSystemAuto(this);
 			calcFixed	= new CalculationSystemFixed(this);
 			calcWolfram = new CalculationSystemWolfram(this);
@@ -220,6 +230,7 @@ namespace GraphVis
 
 		void initializeCalc()
 		{
+			SpringTension = env.GetService<GraphSystem>().Config.SpringTension;
 			switch (StepMode)
 			{
 				case StepMethod.Auto:
@@ -315,9 +326,6 @@ namespace GraphVis
 
 
 
-
-
-
 		public void SetData(List<Particle3d> ParticleList, List<Link> linkList, List<List<int>> linkIndexLists)
 		{
 			numParticles = ParticleList.Count;
@@ -395,6 +403,7 @@ namespace GraphVis
 		{
 			parameters.MaxParticles = (uint)ParticleCount;
 			parameters.LinkSize = linkSize;
+			parameters.SpringTension = SpringTension;
 			paramsCB.SetData(parameters);
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
@@ -422,6 +431,7 @@ namespace GraphVis
 		{
 			parameters.MaxParticles = (uint)ParticleCount;
 			parameters.LinkSize = linkSize;
+			parameters.SpringTension = SpringTension;
 			paramsCB.SetData(parameters);
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.ComputeShaderResources[0] = srcVertexBuffer;
@@ -451,6 +461,7 @@ namespace GraphVis
 		{
 			parameters.MaxParticles = (uint)ParticleCount;
 			parameters.LinkSize = linkSize;
+			parameters.SpringTension = SpringTension;
 			energy = 0;
 			pTgradE = 0;
 			checkSum = 0;

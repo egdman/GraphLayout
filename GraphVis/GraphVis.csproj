@@ -68,6 +68,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BaseNode.cs" />
     <Compile Include="SpatialNode.cs" />
+    <Compile Include="StanfordNetwork.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

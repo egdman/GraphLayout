@@ -11,6 +11,7 @@ struct PARAMS {
 	uint		MaxParticles;
 	float		DeltaTime;
 	float		LinkSize;
+	float		SpringTension;
 };
 
 cbuffer CB1 : register(b0) { 
@@ -65,8 +66,6 @@ groupshared float4 shPositions[BLOCK_SIZE];
 groupshared float4 sh_energy[BLOCK_SIZE];
 
 
-
-
 inline float4 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th component is charge
 {
 	float3 R			= (otherPos - thisPos).xyz;		
@@ -84,8 +83,8 @@ float4 springForce( float4 pos, float4 otherPos ) // 4th component in otherPos i
 	float3 R			= (otherPos - pos).xyz;
 	float Rabs			= length( R ) + 0.1f;
 	float deltaR		= Rabs - otherPos.w;
-	float absForce		= 0.1f * ( deltaR ) / ( Rabs );
-	float energy		= 0.05f * deltaR * deltaR;
+	float absForce		= Params.SpringTension * ( deltaR ) / ( Rabs );
+	float energy		= 0.5f * Params.SpringTension * deltaR * deltaR;
 	return float4( mul( absForce, R ), energy );  // we write energy into the 4th component
 }
 
