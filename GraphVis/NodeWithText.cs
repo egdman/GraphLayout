@@ -22,5 +22,7 @@ namespace GraphVis
 			return (base.GetInfo() + ", " + text);
 		}
 
+		public string Text { get { return text; } set { text = value; } }
+
 	}
 }

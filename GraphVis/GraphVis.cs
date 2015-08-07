@@ -246,6 +246,7 @@ namespace GraphVis
 				StanfordNetwork<BaseNode> graph = new StanfordNetwork<BaseNode>();
 		//		graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
 				graph.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+
 				graphSys.AddGraph(graph);
 			}
 

@@ -70,7 +70,7 @@ namespace GraphVis
 			}
 			var debStr = HostSystem.Environment.GetService<DebugStrings>();
 
-			debStr.Add(Color.Thistle, "FIXED MODE");
+			debStr.Add(Color.Black, "FIXED MODE");
 			debStr.Add(Color.Aqua, "Step factor  = " + stepLength);
 			debStr.Add(Color.Aqua, "Iteration      = " + numIterations);
 		}

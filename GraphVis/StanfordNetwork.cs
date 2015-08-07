@@ -61,7 +61,7 @@ namespace GraphVis
 						string[] parts;
 						parts = line.Split(new Char[] {'\t', ' '});
 						int index1 = nodeId_NodeNumber[int.Parse(parts[0])];
-						int index2 = nodeId_NodeNumber[int.Parse(parts[1])];
+						int index2 = nodeId_NodeNumber[int.Parse(parts[1])];		
 						
 						if (index1 != index2)
 						{

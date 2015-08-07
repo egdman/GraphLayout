@@ -75,7 +75,6 @@ namespace GraphVis
 
 			Vector3 axis = new Vector3(0, 0, 0);
 			Vector3 side = Vector3.Cross(up, radial);
-			bool angleChanged = false;
 			if (Game.InputDevice.IsKeyDown(Keys.W))
 			{
 				axis += -side;
@@ -108,12 +107,7 @@ namespace GraphVis
 				altitude = 0.0f;
 			}
 			if (axis.Length() > 0)
-			{
-				angleChanged = true;
-			}
-
-			if (angleChanged)
-			{
+			{		
 				float angle = angularVelocity * gameTime.Elapsed.Milliseconds;
 				Matrix3x3 rot = Matrix3x3.RotationAxis(Vector3.Normalize(axis), angle);
 

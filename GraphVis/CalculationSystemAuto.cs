@@ -230,15 +230,15 @@ namespace GraphVis
 
 			var debStr = HostSystem.Environment.GetService<DebugStrings>();
 
-			debStr.Add(Color.Honeydew, "AUTO MODE");
-			debStr.Add(Color.Aqua, "Step factor  = " + chosenStepLength);
-			debStr.Add(Color.Aqua, "Energy         = " + energy);
-			//		debStr.Add(Color.Aqua, "DeltaE         = " + deltaEnergy);
-			//		debStr.Add(Color.Aqua, "pTp            = " + pGradE);
-			debStr.Add(Color.Aqua, "Iteration      = " + numIterations);
+			debStr.Add(Color.Black,		"AUTO MODE");
+			debStr.Add(Color.Aqua,		"Step factor  = " + chosenStepLength);
+			debStr.Add(Color.Aqua,		"Energy         = " + energy);
+//			debStr.Add(Color.Aqua,		"DeltaE         = " + deltaEnergy);
+//			debStr.Add(Color.Aqua,		"pTp            = " + pGradE);
+			debStr.Add(Color.Aqua,		"Iteration      = " + numIterations);
 			debStr.Add(Color.RoyalBlue, "Mode:   " + (FixedStep ? "FIXED" : "AUTO"));
-			debStr.Add(Color.Aqua, "Stability       = " + stepStability);
-			debStr.Add(Color.Orchid, "Check sum     = " + checkSum);
+			debStr.Add(Color.Aqua,		"Stability       = " + stepStability);
+			debStr.Add(Color.Orchid,	"Check sum     = " + checkSum);
 		}
 
 
