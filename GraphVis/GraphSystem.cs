@@ -181,7 +181,7 @@ namespace GraphVis {
 			nearestPos.Z = 0;
 			nodeIndex = 0;
 
-			var cam = Game.GetService<OrbitCamera>();
+			var cam = Game.GetService<GreatCircleCamera>();
 			var viewMatrix = cam.GetViewMatrix( eye );
 			var projMatrix = cam.GetProjectionMatrix( eye );
 			Graph<SpatialNode> graph = this.GetGraph();
@@ -222,7 +222,7 @@ namespace GraphVis {
 			Vector2 topLeftProj		= PixelsToProj(topLeft);
 			Vector2 bottomRightProj	= PixelsToProj(bottomRight);
 
-			var cam = Game.GetService<OrbitCamera>();
+			var cam = Game.GetService<GreatCircleCamera>();
 			var viewMatrix = cam.GetViewMatrix(eye);
 			var projMatrix = cam.GetProjectionMatrix(eye);
 
@@ -508,7 +508,7 @@ namespace GraphVis {
 		public override void Draw ( GameTime gameTime, Fusion.Graphics.StereoEye stereoEye )
 		{
 			var device	=	Game.GraphicsDevice;
-			var cam = Game.GetService<OrbitCamera>();
+			var cam = Game.GetService<GreatCircleCamera>();
 			
 			int lastCommand = 0;
 			if ( commandQueue.Count > 0 )

@@ -10,6 +10,7 @@ using Fusion.Audio;
 using Fusion.Input;
 using Fusion.Content;
 using Fusion.Development;
+using Fusion.UserInterface;
 
 namespace GraphVis
 {
@@ -42,8 +43,9 @@ namespace GraphVis
 
 			//	add here additional services :
 			AddService(new Camera(this), true, false, 9997, 9997);
-			AddService(new OrbitCamera(this), true, false, 9996, 9996 );
-			AddService(new GraphSystem(this), true, true, 9995, 9995);
+	//		AddService(new OrbitCamera(this), true, false, 9996, 9996 );
+			AddService(new GreatCircleCamera(this), true, false, 9995, 9995);
+			AddService(new GraphSystem(this), true, true, 9994, 9994);
 
 
 			//	add here additional services :
@@ -163,7 +165,7 @@ namespace GraphVis
 			}
 			if (e.Key == Keys.F) // focus on a node
 			{
-				var cam = GetService<OrbitCamera>();
+				var cam = GetService<GreatCircleCamera>();
 				var pSys = GetService<GraphSystem>();
 				if (!isSelected)
 				{
@@ -235,7 +237,7 @@ namespace GraphVis
 			var graphSys = GetService<GraphSystem>();
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 2048, 2 );
+				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );
 		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
 				graphSys.AddGraph(graph);
 			}
@@ -243,7 +245,7 @@ namespace GraphVis
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 				StanfordNetwork<BaseNode> graph = new StanfordNetwork<BaseNode>();
 		//		graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
-				graph.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
+				graph.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
 				graphSys.AddGraph(graph);
 			}
 
@@ -255,7 +257,7 @@ namespace GraphVis
 			ds.Add(Color.Orange, "Press Z or X to load graph");
 			ds.Add(Color.Orange, "Press M to load painted graph (SLOW!)");
 			ds.Add(Color.Orange, "Press P to pause/unpause");
-			ds.Add(Color.Orange, "Press I to switch to manual mode");
+//			ds.Add(Color.Orange, "Press I to switch to manual mode");
 
 			base.Update(gameTime);
 
@@ -276,7 +278,7 @@ namespace GraphVis
 
 	//		time += gameTime.Elapsed.Milliseconds;
 
-			var cam = GetService<OrbitCamera>();
+			var cam = GetService<GreatCircleCamera>();
 			var dr = GetService<DebugRender>();
 			var pSys = GetService<GraphSystem>(); 
 			dr.View = cam.GetViewMatrix(stereoEye);

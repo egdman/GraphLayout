@@ -65,8 +65,6 @@ namespace GraphVis
 
 			base.Initialize();
 			
-			var rndr = Game.GetService<GraphSystem>();
-
 			ZeroRadius = 50.0f;
 			latitude	= 0;
 			longitude	= 0;
@@ -84,8 +82,6 @@ namespace GraphVis
 		public override void Update(GameTime gameTime)
 		{		
 			Config.FreeCamEnabled	= false;
-
-			var rndr	= Game.GetService<GraphSystem>();
 			var ds		= Game.GetService<DebugStrings>();
 
 			angularVelocity	= 0.25f;

@@ -157,7 +157,7 @@
     <CSEntryPoint>CSMain</CSEntryPoint>
     <SourceFile>Compute.hlsl</SourceFile>
     <ShowPemutations>false</ShowPemutations>
-    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\1899D2215792452F122591D2CF41D839.html</ListingPath>
+    <ListingPath>C:\egorov\graphLayout\GraphVis\Content\Temp\1899D2215792452F122591D2CF41D839.html</ListingPath>
   </Asset>
   <Asset xsi:type="ImageFileTextureAsset">
     <AssetPath>selection.tga</AssetPath>
