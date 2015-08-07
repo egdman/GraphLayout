@@ -7,13 +7,13 @@ using System.IO;
 
 namespace GraphVis
 {
-	public class CitationGraph<Node> : GraphFromFile<Node> where Node : INode, new()
+	public class CitationGraph : GraphFromFile
 	{
 		public override void ReadFromFile(string path)
 		{
 			for (int i = 0; i < 1000; ++i)
 			{
-				AddNode(new Node());
+				AddNode(new BaseNode());
 			}
 			var dstrings = File.ReadAllLines(path);
 			if (dstrings.Length > 0)

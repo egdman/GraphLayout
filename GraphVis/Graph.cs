@@ -7,7 +7,7 @@ using System.IO;
 
 namespace GraphVis
 {
-	public class Graph<Node> where Node : INode, new()
+	public class Graph
 	{
 		public struct Edge
 		{
@@ -16,26 +16,26 @@ namespace GraphVis
 			public float	Length;
 		}
 
-		List<Node>	nodeList;
+		List<BaseNode>	nodeList;
 		List<Edge>	edgeList;
 		List<List<int>> adjacencyList;
 
 		public int NodeCount { get { return nodeList.Count; } }
 		public int EdgeCount { get { return edgeList.Count; } }
 
-		public List<Node> Nodes { get { return nodeList; } }
-		public List<Edge> Edges { get { return edgeList; } }
+		public List<BaseNode>	Nodes { get { return nodeList; } }
+		public List<Edge>		Edges { get { return edgeList; } }
 		public List<List<int>> AdjacencyList { get { return adjacencyList; } }
 
 
 		public Graph()
 		{
-			nodeList	= new List<Node>();
+			nodeList = new List<BaseNode>();
 			edgeList	= new List<Edge>();
 			adjacencyList = new List<List<int>>();
 		}
 
-		public void AddNode(Node node)
+		public void AddNode(BaseNode node)
 		{
 			node.Id = nodeList.Count;
 			nodeList.Add( node );
@@ -110,7 +110,7 @@ namespace GraphVis
 			for (int i = 0; i < number; ++i)
 			{
 				int newNodeIndex = NodeCount;
-				AddNode( new Node() );
+				AddNode(new BaseNode());
 				AddEdge( index, newNodeIndex );
 			}
 			return true;
@@ -118,29 +118,29 @@ namespace GraphVis
 
 
 
-		public static Graph<Node> MakeHub(int childrenCount)
+		public static Graph MakeHub(int childrenCount)
 		{
-			Graph<Node> graph = new Graph<Node>();
-			graph.AddNode ( new Node() );
+			Graph graph = new Graph();
+			graph.AddNode(new BaseNode());
 			graph.AddChildren( childrenCount, 0 );
 			return graph;
 		}
 
-		public static Graph<Node> MakeString(int nodeCount)
+		public static Graph MakeString(int nodeCount)
 		{
-			Graph<Node> graph = new Graph<Node>();
+			Graph graph = new Graph();
 
-			graph.AddNode(new Node());
+			graph.AddNode(new BaseNode());
 			for (int i = 1; i < nodeCount; ++i)
 			{
-				graph.AddNode(new Node());
+				graph.AddNode(new BaseNode());
 				graph.AddEdge(graph.NodeCount - 2, graph.NodeCount - 1);
 			}
 			return graph;
 		}
 
 
-		public static Graph<Node> MakeRing(int nodeCount)
+		public static Graph MakeRing(int nodeCount)
 		{
 			var graph = MakeString( nodeCount );
 			graph.AddEdge(graph.NodeCount - 1, 0);
@@ -148,11 +148,11 @@ namespace GraphVis
 		}
 
 
-		public static Graph<Node> MakeTree(int nodeCount, int arity)
+		public static Graph MakeTree(int nodeCount, int arity)
 		{
-			Graph<Node> graph = new Graph<Node>();
+			Graph graph = new Graph();
 
-			graph.AddNode(new Node());
+			graph.AddNode(new BaseNode());
 			graph.AddChildren(arity, graph.NodeCount - 1);
 
 			Queue<int> latestIndex = new Queue<int>();
@@ -182,7 +182,7 @@ namespace GraphVis
 
 
 		
-		public static Graph<Node> MakeBinaryTree(int nodeCount)
+		public static Graph MakeBinaryTree(int nodeCount)
 		{
 			return MakeTree( nodeCount, 2 );
 		}

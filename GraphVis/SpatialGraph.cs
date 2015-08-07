@@ -6,10 +6,14 @@ using System.Threading.Tasks;
 
 namespace GraphVis
 {
-	public abstract class GraphFromFile : Graph
+	public class SpatialGraph : Graph
 	{
 
-		public abstract void ReadFromFile( string path );
+		public SpatialGraph() : base() { }
 
+		public void AddNode(SpatialNode node)
+		{
+			base.AddNode(node);
+		}
 	}
 }

@@ -22,7 +22,8 @@ namespace GraphVis
 		bool isSelected;
 		Tuple<Point, Point> dragFrame;
 		int time;
-		
+
+
 		/// <summary>
 		/// GraphVis constructor
 		/// </summary>
@@ -132,7 +133,7 @@ namespace GraphVis
 			//}
 			if (e.Key == Keys.M)
 			{
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );				
+				Graph graph = Graph.MakeTree( 256, 2 );				
 				float[] centralities = new float[graph.NodeCount];
 				float maxC = graph.GetCentrality(0);
 				float minC = maxC;
@@ -159,7 +160,7 @@ namespace GraphVis
 			}
 			if (e.Key == Keys.Q)
 			{
-				Graph<SpatialNode> graph = GetService<GraphSystem>().GetGraph();
+				Graph graph = GetService<GraphSystem>().GetGraph();
 				graph.WriteToFile( "graph.gr" );
 				Log.Message( "Graph saved to file" );
 			}
@@ -180,7 +181,7 @@ namespace GraphVis
             if (e.Key == Keys.G) // collapse random edge
             {
                 var pSys = GetService<GraphSystem>();
-                Graph<SpatialNode> graph = pSys.GetGraph();
+                Graph graph = pSys.GetGraph();
                 int edge = rnd.Next(graph.EdgeCount);
 				graph.CollapseEdge(edge);
 				pSys.UpdateGraph(graph);
@@ -237,13 +238,13 @@ namespace GraphVis
 			var graphSys = GetService<GraphSystem>();
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph<BaseNode> graph = Graph<BaseNode>.MakeTree( 256, 2 );
+				Graph graph = Graph.MakeTree( 256, 2 );
 		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
 				graphSys.AddGraph(graph);
 			}
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
-				StanfordNetwork<BaseNode> graph = new StanfordNetwork<BaseNode>();
+				StanfordNetwork graph = new StanfordNetwork();
 		//		graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
 				graph.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
 

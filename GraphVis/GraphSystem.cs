@@ -184,16 +184,16 @@ namespace GraphVis {
 			var cam = Game.GetService<GreatCircleCamera>();
 			var viewMatrix = cam.GetViewMatrix( eye );
 			var projMatrix = cam.GetProjectionMatrix( eye );
-			Graph<SpatialNode> graph = this.GetGraph();
+			Graph graph = this.GetGraph();
 
 			Vector2 cursorProj = PixelsToProj(cursor);
 			bool nearestFound = false;
 			
 			float minZ = 99999;
 			int currentIndex = 0;
-			foreach (var node in graph.Nodes)
+			foreach (SpatialNode node in graph.Nodes)
 			{
-				Vector4 posWorld = new Vector4(node.Position - graph.Nodes[referenceNodeIndex].Position, 1.0f);
+				Vector4 posWorld = new Vector4(node.Position - ((SpatialNode)graph.Nodes[referenceNodeIndex]).Position, 1.0f);
 				Vector4 posView = Vector4.Transform(posWorld, viewMatrix);
 				Vector4 posProj = Vector4.Transform(posView, projMatrix);
 				posProj /= posProj.W;
@@ -226,9 +226,9 @@ namespace GraphVis {
 			var viewMatrix = cam.GetViewMatrix(eye);
 			var projMatrix = cam.GetProjectionMatrix(eye);
 
-			Graph<SpatialNode> graph = this.GetGraph();
+			Graph graph = this.GetGraph();
 			int currentIndex = 0;
-			foreach (var node in graph.Nodes)
+			foreach (SpatialNode node in graph.Nodes)
 			{
 				Vector4 posWorld = new Vector4(node.Position, 1.0f);
 				Vector4 posView = Vector4.Transform(posWorld, viewMatrix);
@@ -296,7 +296,7 @@ namespace GraphVis {
 		}
 
 
-		public void AddGraph(Graph<BaseNode> graph)
+		public void AddGraph(Graph graph)
 		{
 			lay.ResetState();
 			ParticleList.Clear();
@@ -306,17 +306,17 @@ namespace GraphVis {
 		}
 
 
-		public void AddGraph(Graph<SpatialNode> graph)
-		{
-			lay.ResetState();
-			ParticleList.Clear();
-			linkList.Clear();
-			linkIndexLists.Clear();
-			setBuffers(graph);
-		}
+		//public void AddGraph(Graph graph)
+		//{
+		//	lay.ResetState();
+		//	ParticleList.Clear();
+		//	linkList.Clear();
+		//	linkIndexLists.Clear();
+		//	setBuffers(graph);
+		//}
 
 
-		public void UpdateGraph(Graph<SpatialNode> graph)
+		public void UpdateGraph(Graph graph)
 		{
 			ParticleList.Clear();
 			linkList.Clear();
@@ -380,13 +380,13 @@ namespace GraphVis {
 		}
 
 
-		public Graph<SpatialNode> GetGraph()
+		public Graph GetGraph()
 		{
 			if (lay.CurrentStateBuffer != null)
 			{
 				Particle3d[] particleArray = new Particle3d[lay.ParticleCount];
 				lay.CurrentStateBuffer.GetData(particleArray);
-				Graph<SpatialNode> graph = new Graph<SpatialNode>();
+				Graph graph = new Graph();
 				foreach (var p in particleArray)
 				{
 					graph.AddNode(new SpatialNode(p.Position, p.Size, new Color(p.Color)));
@@ -397,7 +397,7 @@ namespace GraphVis {
 				}
 				return graph;
 			}
-			return new Graph<SpatialNode>();
+			return new Graph();
 		}
 
 
@@ -418,11 +418,18 @@ namespace GraphVis {
 
 
 
-		void setBuffers(Graph<BaseNode> graph)
+		void setBuffers(Graph graph)
 		{
-			foreach (INode n in graph.Nodes)
+			foreach (BaseNode n in graph.Nodes)
 			{
-				addNode(n.GetSize(), n.GetColor());
+				if (n is SpatialNode)
+				{
+					addNode(n.GetSize(), n.GetColor(), ((SpatialNode)n).Position);
+				}
+				else
+				{
+					addNode(n.GetSize(), n.GetColor());
+				}
 			}
 			foreach (var e in graph.Edges)
 			{
@@ -431,18 +438,18 @@ namespace GraphVis {
 			setBuffers();
 		}
 
-		void setBuffers(Graph<SpatialNode> graph)
-		{
-			foreach (SpatialNode n in graph.Nodes)
-			{
-				addNode(n.GetSize(), n.GetColor(), n.Position);
-			}
-			foreach (var e in graph.Edges)
-			{
-				addLink(e.End1, e.End2);
-			}
-			setBuffers();
-		}
+		//void setBuffers(Graph graph)
+		//{
+		//	foreach (SpatialNode n in graph.Nodes)
+		//	{
+		//		addNode(n.GetSize(), n.GetColor(), n.Position);
+		//	}
+		//	foreach (var e in graph.Edges)
+		//	{
+		//		addLink(e.End1, e.End2);
+		//	}
+		//	setBuffers();
+		//}
 
 
 		void setBuffers()

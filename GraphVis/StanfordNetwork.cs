@@ -7,7 +7,7 @@ using System.IO;
 
 namespace GraphVis
 {
-	public class StanfordNetwork<Node> : GraphFromFile<Node> where Node : INode, new()
+	public class StanfordNetwork : GraphFromFile
 	{
 		const int maxNodes = 10000;
 
@@ -48,7 +48,7 @@ namespace GraphVis
 				// add nodes:
 				for (int i = 0; i < numNodes; ++i)
 				{
-					AddNode(new Node());
+					AddNode(new NodeWithText());
 					nodeDegrees.Add(0);
 				}
 
@@ -69,6 +69,8 @@ namespace GraphVis
 								AddEdge(index1, index2);
 								nodeDegrees[index1] += 1;
 								nodeDegrees[index2] += 1;
+								((NodeWithText)Nodes[index1]).Text = "id=" + parts[0];
+								((NodeWithText)Nodes[index2]).Text = "id=" + parts[1];
 							}
 						}
 						else
