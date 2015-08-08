@@ -127,7 +127,7 @@ namespace GraphVis
 			{
 				GetService<GraphSystem>().Pause();
 			}
-			if (e.Key == Keys.I)
+			//if (e.Key == Keys.I)
 			//{
 			//	GetService<GraphSystem>().SwitchStepMode();
 			//}
