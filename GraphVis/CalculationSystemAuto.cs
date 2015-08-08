@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 using Fusion;
 using Fusion.Graphics;
@@ -80,8 +81,11 @@ namespace GraphVis
 			//		float C1 = 0.1f;
 			//		float C2 = 0.99f;
 
-			float C1 = 0.3f;
-			float C2 = 0.99f;
+			//float C1 = 0.3f;
+			//float C2 = 0.99f;
+			var graphSystem = HostSystem.Environment.GetService<GraphSystem>();
+			float C1 = graphSystem.Config.C1;
+			float C2 = graphSystem.Config.C2;
 
 			// Algorithm outline:
 			//
@@ -117,14 +121,14 @@ namespace GraphVis
 
 				if (HostSystem.RunPause == LayoutSystem.State.RUN)
 				{
-					//			StreamWriter sw = File.AppendText( "step.csv" );
+					StreamWriter sw = File.AppendText( "stepsize.csv" );
 					for (int i = 0; i < graphSys.Config.IterationsPerFrame; ++i)
 					{
 						float Ek = energy;		// current energy
 						float Ek1 = 0;			// next energy
 
-						float pkGradEk = 0;		// current dot prodct
-						float pkGradEk1 = 0;	// next dot prodct
+						float pkGradEk = 1;		// current dot prodct
+						float pkGradEk1 = 1;	// next dot prodct
 
 						cond1 = false;
 						cond2 = false;
@@ -220,16 +224,20 @@ namespace GraphVis
 							FixedStep = true;
 						}
 
+						sw.WriteLine(numIterations + "," + stepLength + "," + C1 + "," + C2);
 						energy = Ek1;
 						deltaEnergy = Ek1 - Ek;
 						pGradE = pkGradEk1;
 					}
+					sw.Close();
 				}
 			}
 
 			var debStr = HostSystem.Environment.GetService<DebugStrings>();
 
 			debStr.Add(Color.Black,		"AUTO MODE");
+			debStr.Add(Color.Black,		"C1 = " + C1);
+			debStr.Add(Color.Black,		"C2 = " + C2);
 			debStr.Add(Color.Aqua,		"Step factor  = " + chosenStepLength);
 			debStr.Add(Color.Aqua,		"Energy         = " + energy);
 //			debStr.Add(Color.Aqua,		"DeltaE         = " + deltaEnergy);

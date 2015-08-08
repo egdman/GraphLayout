@@ -15,15 +15,6 @@ using Fusion.Input;
 namespace GraphVis {
 	public class ParticleConfig
 	{
-		[Category("Advanced")]
-		public int	SearchIterations	{ get; set; }
-		[Category("Advanced")]
-		public int	SwitchToManualAfter	{ get; set; }
-		[Category("Advanced")]
-		public bool	UseGPU				{ get; set; }
-		[Category("Advanced")]
-		public LayoutSystem.StepMethod StepMode	{ get; set; }
-
 		[Category("Simple")]
 		public int IterationsPerFrame	{ get; set; }
 		[Category("Simple")]
@@ -32,6 +23,19 @@ namespace GraphVis {
 		public float StepSize			{ get; set; }
 		[Category("Simple")]
 		public float SpringTension		{ get; set; }
+
+		[Category("Advanced")]
+		public int SearchIterations { get; set; }
+		[Category("Advanced")]
+		public int SwitchToManualAfter { get; set; }
+		[Category("Advanced")]
+		public bool UseGPU { get; set; }
+		[Category("Advanced")]
+		public LayoutSystem.StepMethod StepMode { get; set; }
+		[Category("Advanced")]
+		public float C1 { get; set; }
+		[Category("Advanced")]
+		public float C2 { get; set; }
 
 		public ParticleConfig()
 		{
@@ -43,6 +47,8 @@ namespace GraphVis {
 			RepulsionForce	= 0.5f;
 			StepSize		= 0.5f;
 			SpringTension	= 0.1f;
+			C1 = 0.1f;
+			C2 = 0.9f;
 		}
 
 	}
