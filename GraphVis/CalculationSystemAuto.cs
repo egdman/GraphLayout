@@ -25,7 +25,7 @@ namespace GraphVis
 		public CalculationSystemAuto(LayoutSystem host)
 			: base(host)
 		{
-			stepLength		= HostSystem.Environment.GetService<GraphSystem>().Config.StepSize;
+			stepLength		= 0.01f;
 			stepStability	= 0;
 			checkSum		= 0;
 		}
@@ -55,7 +55,7 @@ namespace GraphVis
 		/// </summary>
 		protected override void resetState()
 		{
-			stepLength = HostSystem.Environment.GetService<GraphSystem>().Config.StepSize;
+			stepLength = 0.01f;
 			numIterations = 0;
 			stepStability = 0;
 			FixedStep = false;
@@ -152,13 +152,13 @@ namespace GraphVis
 							param.StepLength = stepLength;
 
 							HostSystem.MoveVertices(
-								HostSystem.CurrentStateBuffer, 
+								HostSystem.CurrentStateBuffer,
 								HostSystem.NextStateBuffer,
 								param);	// move vertices in descent direction
 
 							HostSystem.CalcDescentVector(
 								HostSystem.NextStateBuffer,
-								param);	// calculate energies and current descent vectors
+								param);	// calculate energies and next descent vectors
 
 							if (!FixedStep)
 							{
@@ -173,21 +173,21 @@ namespace GraphVis
 								cond1 = (Ek1 - Ek <= stepLength * C1 * pkGradEk);
 								cond2 = (pkGradEk1 >= C2 * pkGradEk);
 
-								// if we are very close to minimum, do not check conditions (it leads to infinite cycles)
-								if (Math.Abs(Ek1 - Ek) < energyThreshold)
-								{
-									cond1 = cond2 = true;
-								}
+								//// if we are very close to minimum, do not check conditions (it leads to infinite cycles)
+								//if (Math.Abs(Ek1 - Ek) < energyThreshold)
+								//{
+								//	cond1 = cond2 = true;
+								//}
 
-								// Debug output:
-								if (tries > 4)
-								{
-									Console.WriteLine("step = " + stepLength + " " +
-										"cond#1 = " + (cond1 ? "TRUE" : "FALSE") + " " +
-										"cond#2 = " + (cond2 ? "TRUE" : "FALSE") + " " +
-										"deltaE = " + (Ek1 - Ek)
-										);
-								}
+								//// Debug output:
+								//if (tries > 4)
+								//{
+								//	Console.WriteLine("step = " + stepLength + " " +
+								//		"cond#1 = " + (cond1 ? "TRUE" : "FALSE") + " " +
+								//		"cond#2 = " + (cond2 ? "TRUE" : "FALSE") + " " +
+								//		"deltaE = " + (Ek1 - Ek)
+								//		);
+								//}
 
 								// change step length:
 								if (cond1 && !cond2) { stepLength = increaseStep(stepLength); }
@@ -200,7 +200,7 @@ namespace GraphVis
 							++numIterations;
 
 							// To prevent freeze:
-							if (tries > graphSys.Config.SearchIterations) break;
+							if (tries >= graphSys.Config.SearchIterations) break;
 						}
 						// swap buffers: --------------------------------------------------------------------
 						HostSystem.SwapBuffers();
@@ -223,7 +223,6 @@ namespace GraphVis
 						energy = Ek1;
 						deltaEnergy = Ek1 - Ek;
 						pGradE = pkGradEk1;
-
 					}
 				}
 			}

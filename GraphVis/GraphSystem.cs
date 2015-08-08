@@ -40,7 +40,7 @@ namespace GraphVis {
 			SwitchToManualAfter = 250;
 			UseGPU			= true;
 			StepMode		= LayoutSystem.StepMethod.Fixed;
-			RepulsionForce	= 0.05f;
+			RepulsionForce	= 0.5f;
 			StepSize		= 0.5f;
 			SpringTension	= 0.1f;
 		}
