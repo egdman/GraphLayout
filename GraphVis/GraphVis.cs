@@ -238,7 +238,7 @@ namespace GraphVis
 			var graphSys = GetService<GraphSystem>();
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph graph = Graph.MakeTree( 256, 2 );
+				Graph graph = Graph.MakeTree( 1024, 2 );
 		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
 				graphSys.AddGraph(graph);
 			}

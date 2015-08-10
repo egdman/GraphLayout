@@ -17,7 +17,9 @@ namespace GraphVis
 		float	stepLength;
 
 		float	energy;
+		float	initialEnergy;
 		float	deltaEnergy;
+		float	deltaEnergyBound;
 		float	pGradE;
 		int		stepStability;
 		float	checkSum;
@@ -48,6 +50,8 @@ namespace GraphVis
 			HostSystem.CalcDescentVector(HostSystem.CurrentStateBuffer, param); // calc desc vector and energies
 			HostSystem.CalcTotalEnergyAndDotProduct(HostSystem.CurrentStateBuffer, HostSystem.CurrentStateBuffer,
 					HostSystem.EnergyBuffer, param, out energy, out pGradE, out checkSum);
+			initialEnergy = energy;
+			deltaEnergyBound = energy;
 		}
 
 
@@ -75,6 +79,7 @@ namespace GraphVis
 			bool cond1 = false;
 			bool cond2 = false;
 			float energyThreshold = (float)HostSystem.ParticleCount / 10000.0f;
+//			float energyThreshold = (float)HostSystem.ParticleCount / 5000000.0f;
 			float chosenStepLength = stepLength;
 
 			// Wolfe constants:
@@ -121,7 +126,7 @@ namespace GraphVis
 
 				if (HostSystem.RunPause == LayoutSystem.State.RUN)
 				{
-					StreamWriter sw = File.AppendText( "stepsize.csv" );
+	//				StreamWriter sw = File.AppendText( "stepsize.csv" );
 					for (int i = 0; i < graphSys.Config.IterationsPerFrame; ++i)
 					{
 						float Ek = energy;		// current energy
@@ -219,25 +224,31 @@ namespace GraphVis
 						}
 						chosenStepLength = stepLength;
 
-						
-
-						
+			
 						energy = Ek1;
 						deltaEnergy = Ek1 - Ek;
+						// update bound deltaE:
+						if (Math.Abs(deltaEnergy) < Math.Abs(deltaEnergyBound)) {deltaEnergyBound = deltaEnergy;}
 						pGradE = pkGradEk1;
-						sw.WriteLine(numIterations + "," + stepLength + "," + C1 + "," + C2 + "," + pkGradEk1 + "," + deltaEnergy);
+		//				sw.WriteLine(numIterations + "," + stepLength + "," + C1 + "," + C2 + "," + getChange()
+		//					+ "," + (energy/initialEnergy) + "," + deltaEnergy + "," + deltaEnergyBounded);
 
-						if (stepStability >= graphSys.Config.SwitchToManualAfter) // if stable step length found, switch to fixed step
+						if (!FixedStep && 
+							stepStability >= graphSys.Config.SwitchToManualAfter) // if stable step length found, switch to fixed step
 						{
 							FixedStep = true;
+							Console.WriteLine("Step fixed at iteration #" + numIterations);
 						}
 
-						if (Math.Abs(deltaEnergy) < energyThreshold) // if deltaE is low enough, switch to fixed step
-						{
-							FixedStep = true;
-						}
+						//if (Math.Abs(deltaEnergy) < energyThreshold) // if deltaE is low enough, switch to fixed step
+						//{
+						//	FixedStep = true;
+						//	HostSystem.RunPause = LayoutSystem.State.PAUSE;
+						//	Console.WriteLine( energyThreshold + "  " + deltaEnergy );
+						//	
+						//}
 					}
-					sw.Close();
+	//				sw.Close();
 				}
 			}
 
@@ -246,13 +257,15 @@ namespace GraphVis
 			debStr.Add(Color.Black,		"AUTO MODE");
 			debStr.Add(Color.Black,		"C1 = " + C1);
 			debStr.Add(Color.Black,		"C2 = " + C2);
-			debStr.Add(Color.Aqua,		"Step factor  = " + chosenStepLength);
-			debStr.Add(Color.Aqua,		"Energy         = " + energy);
-//			debStr.Add(Color.Aqua,		"DeltaE         = " + deltaEnergy);
-//			debStr.Add(Color.Aqua,		"pTp            = " + pGradE);
-			debStr.Add(Color.Aqua,		"Iteration      = " + numIterations);
-			debStr.Add(Color.RoyalBlue, "Mode:   " + (FixedStep ? "FIXED" : "AUTO"));
-			debStr.Add(Color.Aqua,		"Stability       = " + stepStability);
+			debStr.Add(Color.Aqua,		"Step factor   = " + chosenStepLength);
+			debStr.Add(Color.Aqua,		"Energy        = " + energy);
+			debStr.Add(Color.Aqua,		"DeltaE        = " + deltaEnergy);
+//			debStr.Add(Color.Aqua,		"pTp           = " + pGradE);
+			debStr.Add(Color.Aqua,		"Iteration     = " + numIterations);
+			debStr.Add(Color.RoyalBlue, "Mode:   " + (FixedStep ? "FIXED" : "SEARCH"));
+			debStr.Add(Color.Aqua,		"Stability     = " + stepStability);
+			debStr.Add(Color.Aqua,		"E/E0          = " + (energy/initialEnergy));
+			debStr.Add(Color.Aqua,		"Change        = " + getChange());
 			debStr.Add(Color.Orchid,	"Check sum     = " + checkSum);
 		}
 
@@ -265,7 +278,8 @@ namespace GraphVis
 		/// <returns></returns>
 		float increaseStep(float step)
 		{
-			return step + 0.01f;
+		//	return step + 0.01f;
+			return step + getChange();
 		}
 
 
@@ -276,7 +290,15 @@ namespace GraphVis
 		/// <returns></returns>
 		float decreaseStep(float step)
 		{
-			return step - 0.01f;
+		//	return step - 0.01f;
+			return step - getChange();
+		}
+
+		float getChange()
+		{
+			float ch = (float)Math.Sqrt( Math.Abs(deltaEnergyBound) / initialEnergy ) * 10f;
+			return (ch > 0.1f ? 0.1f : ch);
+	//		return ch;
 		}
 
 	}

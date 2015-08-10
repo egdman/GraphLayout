@@ -203,10 +203,8 @@ namespace GraphVis
 
 		float [] shortestPaths(int src)
 		{
-		//	int		nodesRemain		= NodeCount;
 			float	[] distances	= new float	[NodeCount];
 			int		[] previous		= new int	[NodeCount];
-		//	bool	[] done			= new bool	[NodeCount];
 			Dictionary<int, float> estim = new Dictionary<int,float>();
 
 			for (int i = 0; i < NodeCount; ++i)
@@ -216,11 +214,9 @@ namespace GraphVis
 			}
 			estim[src] = 0;
 			while (estim.Count > 0)
-		//	while(nodesRemain > 0)
 			{
 				var cheapestNode  = estim.OrderBy( pair => pair.Value ).First();
 				estim.Remove(cheapestNode.Key);
-		//		--nodesRemain;
 				distances[cheapestNode.Key] = cheapestNode.Value;
 				foreach (var edge in adjacencyList[cheapestNode.Key])
 				{
