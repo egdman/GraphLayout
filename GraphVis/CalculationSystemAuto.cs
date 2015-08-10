@@ -219,15 +219,23 @@ namespace GraphVis
 						}
 						chosenStepLength = stepLength;
 
+						
+
+						
+						energy = Ek1;
+						deltaEnergy = Ek1 - Ek;
+						pGradE = pkGradEk1;
+						sw.WriteLine(numIterations + "," + stepLength + "," + C1 + "," + C2 + "," + pkGradEk1 + "," + deltaEnergy);
+
 						if (stepStability >= graphSys.Config.SwitchToManualAfter) // if stable step length found, switch to fixed step
 						{
 							FixedStep = true;
 						}
 
-						sw.WriteLine(numIterations + "," + stepLength + "," + C1 + "," + C2);
-						energy = Ek1;
-						deltaEnergy = Ek1 - Ek;
-						pGradE = pkGradEk1;
+						if (Math.Abs(deltaEnergy) < energyThreshold) // if deltaE is low enough, switch to fixed step
+						{
+							FixedStep = true;
+						}
 					}
 					sw.Close();
 				}
