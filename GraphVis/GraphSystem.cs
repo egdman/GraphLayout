@@ -23,6 +23,17 @@ namespace GraphVis {
 		public float StepSize			{ get; set; }
 		[Category("Simple")]
 		public float SpringTension		{ get; set; }
+		[Category("Simple")]
+		public float EdgeOpacity
+		{
+			get { return linkOpacity; }
+			set
+			{
+				if (value < 0) { linkOpacity = 0; }
+				else if (value > 1) { linkOpacity = 1; }
+				else { linkOpacity = value; }
+			}
+		}
 
 		[Category("Advanced")]
 		public int SearchIterations { get; set; }
@@ -37,10 +48,12 @@ namespace GraphVis {
 		[Category("Advanced")]
 		public float C2 { get; set; }
 
+		float linkOpacity;
+
 		public ParticleConfig()
 		{
 			IterationsPerFrame	= 20;
-			SearchIterations	= 5;
+			SearchIterations	= 1;
 			SwitchToManualAfter = 250;
 			UseGPU			= true;
 			StepMode		= LayoutSystem.StepMethod.Fixed;
@@ -49,6 +62,7 @@ namespace GraphVis {
 			SpringTension	= 0.1f;
 			C1 = 0.1f;
 			C2 = 0.9f;
+			EdgeOpacity		= 0.1f;
 		}
 
 	}
@@ -67,6 +81,7 @@ namespace GraphVis {
 
 		float		particleMass;
 		float		linkSize;
+		float		linkOpacity;
 
 
 		StructuredBuffer	selectedIndicesBuffer;
@@ -97,6 +112,7 @@ namespace GraphVis {
 			[FieldOffset( 64)] public Matrix	Projection;
 			[FieldOffset(128)] public int		MaxParticles;
 			[FieldOffset(132)] public int		SelectedNode;
+			[FieldOffset(136)] public float		edgeOpacity;
 		} 
 
 		/// <summary>
@@ -108,6 +124,8 @@ namespace GraphVis {
 			Config = new ParticleConfig();
 		}
 
+
+		
 		/// <summary>
 		/// 
 		/// </summary>
@@ -516,7 +534,6 @@ namespace GraphVis {
 
 			param.View			= cam.GetViewMatrix(stereoEye);
 			param.Projection	= cam.GetProjectionMatrix(stereoEye);
-			param.MaxParticles = lay.ParticleCount;
 			param.SelectedNode	= referenceNodeIndex;
 
 			render( device, lay, param );
@@ -531,6 +548,9 @@ namespace GraphVis {
 
 		void render( GraphicsDevice device, LayoutSystem ls, Params parameters )
 		{
+			parameters.MaxParticles	= lay.ParticleCount;
+			parameters.edgeOpacity	= Config.EdgeOpacity;
+
 			device.ResetStates();
 			device.ClearBackbuffer( Color.White );
 			device.SetTargets( null, device.BackbufferColor );

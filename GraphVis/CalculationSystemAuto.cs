@@ -297,6 +297,7 @@ namespace GraphVis
 		float getChange()
 		{
 			float ch = (float)Math.Sqrt( Math.Abs(deltaEnergyBound) / initialEnergy ) * 10f;
+//			float ch = (float)(Math.Abs(deltaEnergyBound) / initialEnergy) * 10f;
 			return (ch > 0.1f ? 0.1f : ch);
 	//		return ch;
 		}

@@ -190,6 +190,6 @@
     <CSEntryPoint>CSMain</CSEntryPoint>
     <SourceFile>Render.hlsl</SourceFile>
     <ShowPemutations>false</ShowPemutations>
-    <ListingPath>D:\Graphs\GraphVis\GraphVis\Content\Temp\D2FF2A025CD3CFBBE98E238647ED8262.html</ListingPath>
+    <ListingPath>C:\egorov\graphLayout\GraphVis\Content\Temp\D2FF2A025CD3CFBBE98E238647ED8262.html</ListingPath>
   </Asset>
 </ArrayOfAsset>

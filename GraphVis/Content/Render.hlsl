@@ -7,6 +7,7 @@ struct PARAMS {
 	float4x4	Projection;
 	int			MaxParticles;
 	int			SelectedParticle;
+	float		edgeOpacity;
 };
 
 cbuffer CB1 : register(b0) { 
@@ -164,8 +165,9 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 	p1.TexCoord		=	float2(0, 0);
 	p2.TexCoord		=	float2(0, 0);
 
-	p1.Color		=	float4(0.2f,0.2f,0.2f,0);
-	p2.Color		=	float4(0.2f,0.2f,0.2f,0);
+	float c			=	Params.edgeOpacity;
+	p1.Color		=	float4(c,c,c,0);
+	p2.Color		=	float4(c,c,c,0);
 
 	outputStream.Append(p1);
 	outputStream.Append(p2);
