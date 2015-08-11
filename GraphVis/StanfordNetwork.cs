@@ -9,7 +9,7 @@ namespace GraphVis
 {
 	public class StanfordNetwork : GraphFromFile
 	{
-		const int maxNodes = 10000;
+		const int maxNodes = 50000;
 
 		public override void ReadFromFile(string path)
 		{

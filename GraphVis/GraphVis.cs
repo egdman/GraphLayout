@@ -22,6 +22,7 @@ namespace GraphVis
 		bool isSelected;
 		Tuple<Point, Point> dragFrame;
 		int time;
+		StanfordNetwork stNet;
 
 
 		/// <summary>
@@ -201,6 +202,9 @@ namespace GraphVis
 					//	Color.Blue
 					//	);
 					selectedNodePos = nodePosition;
+					if (selectedNodeIndex < stNet.NodeCount) {
+						Console.WriteLine(((NodeWithText)stNet.Nodes[selectedNodeIndex]).Text);
+					}
 				}
 				else
 				{
@@ -244,11 +248,12 @@ namespace GraphVis
 			}
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
-				StanfordNetwork graph = new StanfordNetwork();
+//				StanfordNetwork graph = new StanfordNetwork();
+				stNet = new StanfordNetwork();
 		//		graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
-				graph.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+				stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
 
-				graphSys.AddGraph(graph);
+				graphSys.AddGraph(stNet);
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);
