@@ -250,11 +250,13 @@ namespace GraphVis
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 //				StanfordNetwork graph = new StanfordNetwork();
-				stNet = new StanfordNetwork();
-		//		graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
-				stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+				//stNet = new StanfordNetwork();			
+				//stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+				//graphSys.AddGraph(stNet);
 
-				graphSys.AddGraph(stNet);
+				CitationGraph graph = new CitationGraph();
+				graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
+				graphSys.AddGraph(graph);
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);

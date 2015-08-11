@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Fusion;
 using Fusion.Development;
+using Fusion.Mathematics;
+using System.Diagnostics;
 
 namespace GraphVis
 {
@@ -13,6 +15,7 @@ namespace GraphVis
 		[STAThread]
 		static void Main(string[] args)
 		{
+			Trace.Listeners.Add(new ColoredTraceListener());
 			using (var game = new GraphVis())
 			{
 				if (DevCon.Prepare(game, @"..\..\..\Content\Content.xml", "Content"))
