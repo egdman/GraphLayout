@@ -180,7 +180,7 @@ namespace GraphVis {
 
 
 
-		public bool CursorNearestNode(Point cursor, StereoEye eye, float threshold, out Vector3 nearestPos, out int nodeIndex )
+		public bool ClickNode(Point cursor, StereoEye eye, float threshold, out Vector3 nearestPos, out int nodeIndex )
 		{
 			nearestPos.X = 0;
 			nearestPos.Y = 0;
@@ -308,18 +308,9 @@ namespace GraphVis {
 			ParticleList.Clear();
 			linkList.Clear();
 			linkIndexLists.Clear();
+			referenceNodeIndex = 0;
 			setBuffers( graph );
 		}
-
-
-		//public void AddGraph(Graph graph)
-		//{
-		//	lay.ResetState();
-		//	ParticleList.Clear();
-		//	linkList.Clear();
-		//	linkIndexLists.Clear();
-		//	setBuffers(graph);
-		//}
 
 
 		public void UpdateGraph(Graph graph)
@@ -444,19 +435,7 @@ namespace GraphVis {
 			setBuffers();
 		}
 
-		//void setBuffers(Graph graph)
-		//{
-		//	foreach (SpatialNode n in graph.Nodes)
-		//	{
-		//		addNode(n.GetSize(), n.GetColor(), n.Position);
-		//	}
-		//	foreach (var e in graph.Edges)
-		//	{
-		//		addLink(e.End1, e.End2);
-		//	}
-		//	setBuffers();
-		//}
-
+		
 
 		void setBuffers()
 		{
@@ -540,7 +519,7 @@ namespace GraphVis {
 			param.MaxParticles = lay.ParticleCount;
 			param.SelectedNode	= referenceNodeIndex;
 
-			render( device, param );
+			render( device, lay, param );
 			
 			// Debug output: ------------------------------------------------------------
 			var debStr = Game.GetService<DebugStrings>();
@@ -550,7 +529,7 @@ namespace GraphVis {
 		}
 
 
-		void render( GraphicsDevice device, Params parameters )
+		void render( GraphicsDevice device, LayoutSystem ls, Params parameters )
 		{
 			device.ResetStates();
 			device.ClearBackbuffer( Color.White );
@@ -568,13 +547,13 @@ namespace GraphVis {
 			device.PipelineState = factory[(int)RenderFlags.DRAW|(int)RenderFlags.POINT];
 			device.SetCSRWBuffer( 0, null );
 			device.PixelShaderResources		[0] = particleTex;
-			device.GeometryShaderResources	[2] = lay.CurrentStateBuffer;
+			device.GeometryShaderResources	[2] = ls.CurrentStateBuffer;
 			device.Draw( ParticleList.Count, 0 );
 						
 			// draw lines: -------------------------------------------------------------------------
 			device.PipelineState = factory[(int)RenderFlags.DRAW|(int)RenderFlags.LINE];
-			device.GeometryShaderResources	[2] = lay.CurrentStateBuffer;
-			device.GeometryShaderResources	[3] = lay.LinksBuffer;
+			device.GeometryShaderResources	[2] = ls.CurrentStateBuffer;
+			device.GeometryShaderResources	[3] = ls.LinksBuffer;
 			device.Draw( linkList.Count, 0 );
 
 			// draw selected points: ---------------------------------------------------------------

@@ -192,7 +192,7 @@ namespace GraphVis
 				Point cursor = InputDevice.MousePosition;
 				Vector3 nodePosition = new Vector3();
 				int selNode = 0;
-				if (pSys.CursorNearestNode(cursor, StereoEye.Mono, 0.025f, out nodePosition, out selNode))
+				if (pSys.ClickNode(cursor, StereoEye.Mono, 0.025f, out nodePosition, out selNode))
 				{
 					selectedNodeIndex = selNode;
 					isSelected = true;
