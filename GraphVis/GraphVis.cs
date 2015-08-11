@@ -202,7 +202,8 @@ namespace GraphVis
 					//	Color.Blue
 					//	);
 					selectedNodePos = nodePosition;
-					if (selectedNodeIndex < stNet.NodeCount) {
+					if (stNet != null && selectedNodeIndex < stNet.NodeCount)
+					{
 						Console.WriteLine(((NodeWithText)stNet.Nodes[selectedNodeIndex]).Text);
 					}
 				}

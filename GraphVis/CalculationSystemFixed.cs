@@ -39,35 +39,36 @@ namespace GraphVis
 			var graphSys	= HostSystem.Environment.GetService<GraphSystem>();
 			LayoutSystem.ComputeParams param = new LayoutSystem.ComputeParams();
 
+			// manual step change:
+			if (userCommand > 0)
+			{
+				stepLength = increaseStep(stepLength);
+			}
+			if (userCommand < 0)
+			{
+				stepLength = decreaseStep(stepLength);
+			}
+
 			if (HostSystem.CurrentStateBuffer != null)
 			{
-				// manual step change:
-				if (userCommand > 0)
+				param.StepLength = stepLength;
+
+				if (HostSystem.RunPause == LayoutSystem.State.RUN)
 				{
-					stepLength = increaseStep(stepLength);
-				}
-				if (userCommand < 0)
-				{
-					stepLength = decreaseStep(stepLength);
-				}
-			}
+					for (int i = 0; i < graphSys.Config.IterationsPerFrame; ++i)
+					{
+						HostSystem.CalcDescentVector(HostSystem.CurrentStateBuffer, param);	// calculate current descent vectors
 
-			param.StepLength = stepLength;
+						HostSystem.MoveVertices(HostSystem.CurrentStateBuffer,
+							HostSystem.NextStateBuffer, param);	// move vertices in the descent direction
 
-			if (HostSystem.RunPause == LayoutSystem.State.RUN)
-			{
-				for (int i = 0; i < graphSys.Config.IterationsPerFrame; ++i)
-				{
-					HostSystem.CalcDescentVector(HostSystem.CurrentStateBuffer, param);	// calculate current descent vectors
-
-					HostSystem.MoveVertices(HostSystem.CurrentStateBuffer,
-						HostSystem.NextStateBuffer, param);	// move vertices in the descent direction
-
-					// swap buffers: --------------------------------------------------------------------
-					HostSystem.SwapBuffers();
-					++numIterations;
+						// swap buffers: --------------------------------------------------------------------
+						HostSystem.SwapBuffers();
+						++numIterations;
+					}
 				}
 			}
+			
 			var debStr = HostSystem.Environment.GetService<DebugStrings>();
 
 			debStr.Add(Color.Black, "FIXED MODE");

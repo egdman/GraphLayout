@@ -124,6 +124,9 @@ namespace GraphVis {
 			Config = new ParticleConfig();
 		}
 
+		public int NodeCount { get { return ParticleList.Count; } }
+		public int EdgeCount { get { return linkList.Count; } }
+
 
 		
 		/// <summary>

@@ -278,26 +278,31 @@ namespace GraphVis
 			if (CurrentStateBuffer != null)
 			{
 				CurrentStateBuffer.Dispose();
+				CurrentStateBuffer = null;
 			}
 
 			if (NextStateBuffer != null)
 			{
 				NextStateBuffer.Dispose();
+				NextStateBuffer = null;
 			}
 
 			if (LinksBuffer != null)
 			{
 				LinksBuffer.Dispose();
+				LinksBuffer = null;
 			}
 
 			if (LinksIndexBuffer != null)
 			{
 				LinksIndexBuffer.Dispose();
+				LinksIndexBuffer = null;
 			}
 
 			if (EnergyBuffer != null)
 			{
 				EnergyBuffer.Dispose();
+				EnergyBuffer = null;
 			}
 		}
 
@@ -367,26 +372,27 @@ namespace GraphVis
 							typeof(Vector4),
 							MathUtil.IntDivUp(particleBufferCPU.Length, BlockSize),
 							StructuredBufferFlags.Counter);
+
+				if (linksBufferCPU.Length != 0)
+				{
+					LinksBuffer = new StructuredBuffer(
+								env.GraphicsDevice,
+								typeof(Link),
+								linksBufferCPU.Length,
+								StructuredBufferFlags.Counter);
+					LinksBuffer.SetData(linksBufferCPU);
+				}
+				if (linksPtrBufferCPU.Length != 0)
+				{
+					LinksIndexBuffer = new StructuredBuffer(
+								env.GraphicsDevice,
+								typeof(LinkId),
+								linksPtrBufferCPU.Length,
+								StructuredBufferFlags.Counter);
+					LinksIndexBuffer.SetData(linksPtrBufferCPU);
+				}
+				initializeCalc();
 			}
-			if (linksBufferCPU.Length != 0)
-			{
-				LinksBuffer = new StructuredBuffer(
-							env.GraphicsDevice,
-							typeof(Link),
-							linksBufferCPU.Length,
-							StructuredBufferFlags.Counter);
-				LinksBuffer.SetData(linksBufferCPU);
-			}
-			if (linksPtrBufferCPU.Length != 0)
-			{
-				LinksIndexBuffer = new StructuredBuffer(
-							env.GraphicsDevice,
-							typeof(LinkId),
-							linksPtrBufferCPU.Length,
-							StructuredBufferFlags.Counter);
-				LinksIndexBuffer.SetData(linksPtrBufferCPU);
-			}
-			initializeCalc();
 		}
 
 

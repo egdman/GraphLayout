@@ -109,21 +109,19 @@ namespace GraphVis
 			// 
 
 
+			// manual step change:
+			if (userCommand > 0)
+			{
+				stepLength += 0.01f;
+			}
+			if (userCommand < 0)
+			{
+				stepLength -= 0.01f;
+			}
 
 
 			if (HostSystem.CurrentStateBuffer != null)
 			{
-				// manual step change:
-				if (userCommand > 0)
-				{
-					stepLength = increaseStep(stepLength);
-				}
-				if (userCommand < 0)
-				{
-					stepLength = decreaseStep(stepLength);
-				}
-
-
 				if (HostSystem.RunPause == LayoutSystem.State.RUN)
 				{
 	//				StreamWriter sw = File.AppendText( "stepsize.csv" );
