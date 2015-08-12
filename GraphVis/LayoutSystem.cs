@@ -70,7 +70,7 @@ namespace GraphVis
 			Wolfram
 		}
 
-		public StepMethod StepMode { get { return Environment.GetService<GraphSystem>().Config.StepMode; } }
+		public StepMethod StepMode { get; set; }
 
 		[StructLayout(LayoutKind.Explicit, Size = 16)]
 		public struct ComputeParams
@@ -201,6 +201,7 @@ namespace GraphVis
 			linkSize			=	100.0f;
 
 			SpringTension = env.GetService<GraphSystem>().Config.SpringTension;
+			StepMode	= env.GetService<GraphSystem>().Config.StepMode;
 			calcAuto	= new CalculationSystemAuto(this);
 			calcFixed	= new CalculationSystemFixed(this);
 			calcWolfram = new CalculationSystemWolfram(this);

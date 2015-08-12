@@ -77,6 +77,7 @@ namespace GraphVis
 			time = 0;
 			//	add keyboard handler :
 			InputDevice.KeyDown += InputDevice_KeyDown;
+			InputDevice.MouseScroll += inputDevice_MouseScroll;
 			//	load content & create graphics and audio resources here:
 		}
 
@@ -96,6 +97,11 @@ namespace GraphVis
 			base.Dispose(disposing);
 		}
 
+		void inputDevice_MouseScroll(object sender, Fusion.Input.InputDevice.MouseScrollEventArgs e)
+		{
+			var cam = GetService<GreatCircleCamera>();
+			cam.DollyZoom(e.WheelDelta / 60.0f);
+		}
 
 
 		/// <summary>
@@ -236,10 +242,8 @@ namespace GraphVis
 		protected override void Update(GameTime gameTime)
 		{
 			var ds = GetService<DebugStrings>();
-
-			var cam = GetService<Camera>();
 			var debRen = GetService<DebugRender>();
-					
+
 			var graphSys = GetService<GraphSystem>();
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
@@ -250,13 +254,13 @@ namespace GraphVis
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 //				StanfordNetwork graph = new StanfordNetwork();
-				//stNet = new StanfordNetwork();			
-				//stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
-				//graphSys.AddGraph(stNet);
+				stNet = new StanfordNetwork();			
+				stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+				graphSys.AddGraph(stNet);
 
-				CitationGraph graph = new CitationGraph();
-				graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
-				graphSys.AddGraph(graph);
+				//CitationGraph graph = new CitationGraph();
+				//graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
+				//graphSys.AddGraph(graph);
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);

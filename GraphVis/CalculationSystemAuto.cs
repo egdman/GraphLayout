@@ -263,7 +263,7 @@ namespace GraphVis
 			debStr.Add(Color.RoyalBlue, "Mode:   " + (FixedStep ? "FIXED" : "SEARCH"));
 			debStr.Add(Color.Aqua,		"Stability     = " + stepStability);
 			debStr.Add(Color.Aqua,		"E/E0          = " + (energy/initialEnergy));
-			debStr.Add(Color.Aqua,		"Change        = " + getChange());
+			debStr.Add(Color.Aqua,		"Change        = " + getChangeRate());
 			debStr.Add(Color.Orchid,	"Check sum     = " + checkSum);
 		}
 
@@ -277,7 +277,7 @@ namespace GraphVis
 		float increaseStep(float step)
 		{
 		//	return step + 0.01f;
-			return step + getChange();
+			return step + getChangeRate();
 		}
 
 
@@ -289,15 +289,21 @@ namespace GraphVis
 		float decreaseStep(float step)
 		{
 		//	return step - 0.01f;
-			return step - getChange();
+			return step - getChangeRate();
 		}
 
-		float getChange()
+
+		/// <summary>
+		/// Get the rate of step length change
+		/// </summary>
+		/// <returns></returns>
+		float getChangeRate()
 		{
 			float ch = (float)Math.Sqrt( Math.Abs(deltaEnergyBound) / initialEnergy ) * 10f;
 //			float ch = (float)(Math.Abs(deltaEnergyBound) / initialEnergy) * 10f;
-			return (ch > 0.1f ? 0.1f : ch);
-	//		return ch;
+			ch = ch <= 0	? 0.0001f	: ch;
+			ch = ch > 0.1f	? 0.1f		: ch ;
+			return ch;
 		}
 
 	}

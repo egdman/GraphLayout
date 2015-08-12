@@ -530,6 +530,9 @@ namespace GraphVis {
 			}
 
 			// Calculate positions: ----------------------------------------------------
+			lay.UseGPU			= Config.UseGPU;
+			lay.SpringTension	= Config.SpringTension;
+			lay.StepMode		= Config.StepMode;
 			lay.Update(lastCommand);
 
 			// Render: -----------------------------------------------------------------
@@ -545,6 +548,7 @@ namespace GraphVis {
 			var debStr = Game.GetService<DebugStrings>();
 			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
 			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
+			debStr.Add( Color.Black, lay.UseGPU ? "Using GPU" : "Not using GPU" );
 			base.Draw( gameTime, stereoEye );
 		}
 

@@ -33,6 +33,14 @@ namespace GraphVis
 			set;
 		}
 
+		public float FOV
+		{
+			get;
+			set;
+		}
+
+
+
 		public Vector3 CenterOfOrbit
 		{
 			get { return centerAbs; }
@@ -44,6 +52,7 @@ namespace GraphVis
 			centerAbs = new Vector3(0, 0, 0);
 			radial = new Vector3();
 			up = new Vector3();
+			FOV = 70.0f;
 		}
 
 		public override void Initialize()
@@ -117,13 +126,23 @@ namespace GraphVis
 
 			Vector3 cameraLocation = CenterOfOrbit + (ZeroRadius + altitude) * radial;
 			base.SetupCamera(cameraLocation, CenterOfOrbit, up, new Vector3(0, 0, 0),
-				PI180 * 70.0f, base.Config.FreeCamZNear, base.Config.FreeCamZFar, 0, 0);
+				PI180 * FOV, base.Config.FreeCamZNear, base.Config.FreeCamZFar, 0, 0);
 
 			//ds.Add( "Altitude = " + altitude + " m" );
 			//ds.Add( "Longitude = " + longitude );
 			//ds.Add( "Latitude = " + latitude );
 
 			base.Update(gameTime);
+		}
+
+
+		public void DollyZoom(float FOVrate)
+		{
+			float FOV2 = FOV + FOVrate;
+			FOV2 = FOV2 < 4		? 4		: FOV2;
+			FOV2 = FOV2 > 150	? 150	: FOV2;
+			altitude = (altitude+ZeroRadius) * (float)(Math.Tan(PI180 * FOV/2.0f) / Math.Tan(PI180*FOV2/2.0f)) - ZeroRadius;
+			FOV = FOV2;
 		}
 
 	}
