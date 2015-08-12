@@ -73,7 +73,7 @@ namespace GraphVis
 			Config.FreeCamEnabled = false;
 			var ds = Game.GetService<DebugStrings>();
 
-			angularVelocity = 0.25f * PI180;
+			angularVelocity = 0.15f * PI180;
 			upDownVelocity = 0.0007f * altitude;
 
 			if (Game.InputDevice.IsKeyDown(Keys.LeftShift))

@@ -15,15 +15,20 @@ using Fusion.Input;
 namespace GraphVis {
 	public class ParticleConfig
 	{
-		[Category("Simple")]
+		[Category("General")]
 		public int IterationsPerFrame	{ get; set; }
-		[Category("Simple")]
-		public float RepulsionForce		{ get; set; }
-		[Category("Simple")]
+		
+		[Category("General")]
 		public float StepSize			{ get; set; }
-		[Category("Simple")]
+		
+
+		[Category("Physics")]
+		public float RepulsionForce		{ get; set; }
+		[Category("Physics")]
 		public float SpringTension		{ get; set; }
-		[Category("Simple")]
+
+
+		[Category("Visuals")]
 		public float EdgeOpacity
 		{
 			get { return linkOpacity; }
@@ -32,6 +37,16 @@ namespace GraphVis {
 				if (value < 0) { linkOpacity = 0; }
 				else if (value > 1) { linkOpacity = 1; }
 				else { linkOpacity = value; }
+			}
+		}
+		[Category("Visuals")]
+		public float NodeScale
+		{
+			get { return nodeScale; }
+			set
+			{
+				if (value < 0) { nodeScale = 0; }
+				else { nodeScale = value; }
 			}
 		}
 
@@ -49,20 +64,30 @@ namespace GraphVis {
 		public float C2 { get; set; }
 
 		float linkOpacity;
+		float nodeScale;
 
 		public ParticleConfig()
 		{
+			// General:
 			IterationsPerFrame	= 20;
-			SearchIterations	= 1;
-			SwitchToManualAfter = 250;
-			UseGPU			= true;
-			StepMode		= LayoutSystem.StepMethod.Fixed;
-			RepulsionForce	= 0.5f;
-			StepSize		= 0.5f;
+			StepSize			= 0.02f;
+			
+			// Visuals:
+			EdgeOpacity			= 0.1f;
+			nodeScale			= 1.0f;
+
+			// Physics constants:
+			RepulsionForce	= 1.0f;
 			SpringTension	= 0.1f;
+
+			// Advanced defaults:
+			StepMode = LayoutSystem.StepMethod.Fixed;
+			SwitchToManualAfter	= 250;
+			SearchIterations	= 1;	
 			C1 = 0.1f;
 			C2 = 0.9f;
-			EdgeOpacity		= 0.1f;
+			UseGPU		= true;	
+			
 		}
 
 	}
@@ -113,6 +138,7 @@ namespace GraphVis {
 			[FieldOffset(128)] public int		MaxParticles;
 			[FieldOffset(132)] public int		SelectedNode;
 			[FieldOffset(136)] public float		edgeOpacity;
+			[FieldOffset(140)] public float		nodeScale;
 		} 
 
 		/// <summary>
@@ -557,6 +583,7 @@ namespace GraphVis {
 		{
 			parameters.MaxParticles	= lay.ParticleCount;
 			parameters.edgeOpacity	= Config.EdgeOpacity;
+			parameters.nodeScale	= Config.NodeScale;
 
 			device.ResetStates();
 			device.ClearBackbuffer( Color.White );

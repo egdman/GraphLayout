@@ -124,7 +124,7 @@ namespace GraphVis
 			{
 				if (HostSystem.RunPause == LayoutSystem.State.RUN)
 				{
-	//				StreamWriter sw = File.AppendText( "stepsize.csv" );
+		//			StreamWriter sw = File.AppendText( "stepsize.csv" );
 					for (int i = 0; i < graphSys.Config.IterationsPerFrame; ++i)
 					{
 						float Ek = energy;		// current energy
@@ -228,14 +228,15 @@ namespace GraphVis
 						// update bound deltaE:
 						if (Math.Abs(deltaEnergy) < Math.Abs(deltaEnergyBound)) {deltaEnergyBound = deltaEnergy;}
 						pGradE = pkGradEk1;
-		//				sw.WriteLine(numIterations + "," + stepLength + "," + C1 + "," + C2 + "," + getChange()
-		//					+ "," + (energy/initialEnergy) + "," + deltaEnergy + "," + deltaEnergyBounded);
+
+						// write to file:
+			//			sw.WriteLine(numIterations + "," + stepLength + "," + (float)Math.Sqrt(Math.Abs(deltaEnergyBound) / initialEnergy));
 
 						if (!FixedStep && 
 							stepStability >= graphSys.Config.SwitchToManualAfter) // if stable step length found, switch to fixed step
 						{
 							FixedStep = true;
-							Console.WriteLine("Step fixed at iteration #" + numIterations);
+	//						Console.WriteLine("Step fixed at iteration #" + numIterations);
 						}
 
 						//if (Math.Abs(deltaEnergy) < energyThreshold) // if deltaE is low enough, switch to fixed step
@@ -246,7 +247,7 @@ namespace GraphVis
 						//	
 						//}
 					}
-	//				sw.Close();
+			//		sw.Close();
 				}
 			}
 
@@ -300,10 +301,12 @@ namespace GraphVis
 		float getChangeRate()
 		{
 			float ch = (float)Math.Sqrt( Math.Abs(deltaEnergyBound) / initialEnergy ) * 10f;
+	//		float ch = (float)Math.Sqrt( Math.Abs(deltaEnergy) / initialEnergy ) * 10f;
 //			float ch = (float)(Math.Abs(deltaEnergyBound) / initialEnergy) * 10f;
 			ch = ch <= 0	? 0.0001f	: ch;
-			ch = ch > 0.1f	? 0.1f		: ch ;
+			ch = ch > 0.1f	? 0.1f		: ch;
 			return ch;
+	//		return 0.01f;
 		}
 
 	}

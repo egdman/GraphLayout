@@ -254,9 +254,15 @@ namespace GraphVis
 
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 //				StanfordNetwork graph = new StanfordNetwork();
-				stNet = new StanfordNetwork();			
+				stNet = new StanfordNetwork();
+	//			stNet.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
 				stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
 				graphSys.AddGraph(stNet);
+
+				// graph file names:
+				// CA-GrQc small
+				// CA-HepTh middle
+				// CA-CondMat large
 
 				//CitationGraph graph = new CitationGraph();
 				//graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
