@@ -124,7 +124,7 @@ namespace GraphVis
 			{
 				if (HostSystem.RunPause == LayoutSystem.State.RUN)
 				{
-		//			StreamWriter sw = File.AppendText( "stepsize.csv" );
+			//		StreamWriter sw = File.AppendText( "stepsize.csv" );
 					for (int i = 0; i < graphSys.Config.IterationsPerFrame; ++i)
 					{
 						float Ek = energy;		// current energy
@@ -230,7 +230,8 @@ namespace GraphVis
 						pGradE = pkGradEk1;
 
 						// write to file:
-			//			sw.WriteLine(numIterations + "," + stepLength + "," + (float)Math.Sqrt(Math.Abs(deltaEnergyBound) / initialEnergy));
+			//			sw.WriteLine(numIterations + "," + stepLength + "," + (float)Math.Sqrt(Math.Abs(deltaEnergyBound) / initialEnergy)
+			//				+ "," + getChangeRate());
 
 						if (!FixedStep && 
 							stepStability >= graphSys.Config.SwitchToManualAfter) // if stable step length found, switch to fixed step

@@ -9,6 +9,8 @@ struct PARAMS {
 	int			SelectedParticle;
 	float		edgeOpacity;
 	float		nodeScale;
+	float4		nodeColor;
+	float4		edgeColor;
 };
 
 cbuffer CB1 : register(b0) { 
@@ -191,7 +193,8 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 	PARTICLE3D referencePrt = particleReadBuffer[ Params.SelectedParticle ];
 
 	float sz = prt.Size0*1.5f*Params.nodeScale;
-	float4 color	=	float4(0, 1, 0, 1);
+//	float4 color	=	float4(0, 1, 0, 1);
+	float4 color	=	Params.nodeColor;
 	float4 pos		=	float4( prt.Position.xyz - referencePrt.Position.xyz, 1 );
 	float4 posV		=	mul( pos, Params.View );
 
@@ -251,8 +254,8 @@ void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStrea
 	p1.TexCoord		=	float2(0, 0);
 	p2.TexCoord		=	float2(0, 0);
 
-	p1.Color		=	float4(0,1,0,0);
-	p2.Color		=	float4(0,1,0,0);
+	p1.Color		=	Params.edgeColor;
+	p2.Color		=	Params.edgeColor;
 
 	outputStream.Append(p1);
 	outputStream.Append(p2);

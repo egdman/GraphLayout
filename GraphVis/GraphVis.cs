@@ -69,7 +69,6 @@ namespace GraphVis
 			base.Initialize();
 
 			var cam = GetService<Camera>();
-
 			cam.Config.FreeCamEnabled = false;
 			selectedNodeIndex = 0;
 			selectedNodePos = new Vector3();
@@ -138,33 +137,33 @@ namespace GraphVis
 			//{
 			//	GetService<GraphSystem>().SwitchStepMode();
 			//}
-			if (e.Key == Keys.M)
-			{
-				Graph graph = Graph.MakeTree( 256, 2 );				
-				float[] centralities = new float[graph.NodeCount];
-				float maxC = graph.GetCentrality(0);
-				float minC = maxC;
-				for (int i = 0; i < graph.NodeCount; ++i)
-				{
-					centralities[i] = graph.GetCentrality(i);
-					maxC = maxC < centralities[i] ? centralities[i] : maxC;
-					minC = minC > centralities[i] ? centralities[i] : minC;
-					Log.Message( ":{0}", i );
-				}
+			//if (e.Key == Keys.M)
+			//{
+			//	Graph graph = Graph.MakeTree( 256, 2 );				
+			//	float[] centralities = new float[graph.NodeCount];
+			//	float maxC = graph.GetCentrality(0);
+			//	float minC = maxC;
+			//	for (int i = 0; i < graph.NodeCount; ++i)
+			//	{
+			//		centralities[i] = graph.GetCentrality(i);
+			//		maxC = maxC < centralities[i] ? centralities[i] : maxC;
+			//		minC = minC > centralities[i] ? centralities[i] : minC;
+			//		Log.Message( ":{0}", i );
+			//	}
 
-				float range = maxC - minC;
-				for (int i = 0; i < graph.NodeCount; ++i)
-				{
-					centralities[i] -= minC;
-					centralities[i] /= range;
-					centralities[i] *= 0.9f;
-					centralities[i] += 0.1f;
-					var color = new Color(0.6f, 0.3f, centralities[i], 1.0f);
-			//		var color = new Color(centralities[i]); // B/W
-					graph.Nodes[i] = new BaseNode(5.0f, color);
-				}
-				GetService<GraphSystem>().AddGraph(graph);
-			}
+			//	float range = maxC - minC;
+			//	for (int i = 0; i < graph.NodeCount; ++i)
+			//	{
+			//		centralities[i] -= minC;
+			//		centralities[i] /= range;
+			//		centralities[i] *= 0.9f;
+			//		centralities[i] += 0.1f;
+			//		var color = new Color(0.6f, 0.3f, centralities[i], 1.0f);
+			////		var color = new Color(centralities[i]); // B/W
+			//		graph.Nodes[i] = new BaseNode(5.0f, color);
+			//	}
+			//	GetService<GraphSystem>().AddGraph(graph);
+			//}
 			if (e.Key == Keys.Q)
 			{
 				Graph graph = GetService<GraphSystem>().GetGraph();
@@ -182,7 +181,7 @@ namespace GraphVis
 				else
 				{
 	//				cam.CenterOfOrbit = pSys.GetGraph().Nodes[selectedNodeIndex].Position;
-					pSys.ChangeReference(selectedNodeIndex);
+					pSys.Focus(selectedNodeIndex);
 				}
 			}
             if (e.Key == Keys.G) // collapse random edge
@@ -199,14 +198,10 @@ namespace GraphVis
 				Point cursor = InputDevice.MousePosition;
 				Vector3 nodePosition = new Vector3();
 				int selNode = 0;
-				if (pSys.ClickNode(cursor, StereoEye.Mono, 0.025f, out nodePosition, out selNode))
+				if (pSys.ClickNode(cursor, StereoEye.Mono, 0.025f, out selNode))
 				{
 					selectedNodeIndex = selNode;
 					isSelected = true;
-					//dr.DrawBox(new BoundingBox(-5.0f * Vector3.One, 5.0f * Vector3.One),
-					//	Matrix.Translation(nodePosition),
-					//	Color.Blue
-					//	);
 					selectedNodePos = nodePosition;
 					if (stNet != null && selectedNodeIndex < stNet.NodeCount)
 					{
@@ -255,8 +250,9 @@ namespace GraphVis
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 //				StanfordNetwork graph = new StanfordNetwork();
 				stNet = new StanfordNetwork();
-				stNet.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
-	//			stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+	//			stNet.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
+	//			stNet.ReadFromFile("../../../../p2p_networks/p2p-Gnutella25.txt");
+				stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
 	//			stNet.ReadFromFile("../../../../cit_networks/Cit-HepTh.txt");
 				
 				graphSys.AddGraph(stNet);

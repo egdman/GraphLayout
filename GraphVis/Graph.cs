@@ -253,7 +253,7 @@ namespace GraphVis
 			throw new InvalidOperationException( "Requested edges are not adjacent" );
 		}
 
-		public void WriteToFile(string path)
+		public virtual void WriteToFile(string path)
 		{
 			using (StreamWriter wr = new StreamWriter(path))
 			{

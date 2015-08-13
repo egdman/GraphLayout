@@ -124,6 +124,17 @@ namespace GraphVis {
 		int		numSelectedEdges;
 		int		referenceNodeIndex;
 
+		public Vector4 HighlightNodeColor
+		{
+			get;
+			set;
+		}
+
+		public Vector4 HighlightEdgeColor
+		{
+			get;
+			set;
+		}
 
 		enum RenderFlags {
 			DRAW			= 0x1,
@@ -134,7 +145,7 @@ namespace GraphVis {
 		}
 
 
-		[StructLayout(LayoutKind.Explicit, Size = 144)]
+		[StructLayout(LayoutKind.Explicit)]
 		struct Params {
 			[FieldOffset(  0)] public Matrix	View;
 			[FieldOffset( 64)] public Matrix	Projection;
@@ -142,6 +153,8 @@ namespace GraphVis {
 			[FieldOffset(132)] public int		SelectedNode;
 			[FieldOffset(136)] public float		edgeOpacity;
 			[FieldOffset(140)] public float		nodeScale;
+			[FieldOffset(144)] public Vector4	highNodeColor;
+			[FieldOffset(160)] public Vector4	highEdgeColor;
 		} 
 
 		/// <summary>
@@ -151,6 +164,8 @@ namespace GraphVis {
 		public GraphSystem ( Game game ) : base (game)
 		{
 			Config = new ParticleConfig();
+			HighlightNodeColor = new Vector4(0, 1, 0, 1);
+			HighlightEdgeColor = new Vector4(0, 1, 0, 1);
 		}
 
 		public int NodeCount { get { return nodeList.Count; } }
@@ -231,11 +246,8 @@ namespace GraphVis {
 
 
 
-		public bool ClickNode(Point cursor, StereoEye eye, float threshold, out Vector3 nearestPos, out int nodeIndex )
+		public bool ClickNode(Point cursor, StereoEye eye, float threshold, out int nodeIndex )
 		{
-			nearestPos.X = 0;
-			nearestPos.Y = 0;
-			nearestPos.Z = 0;
 			nodeIndex = 0;
 
 			var cam = Game.GetService<GreatCircleCamera>();
@@ -261,9 +273,6 @@ namespace GraphVis {
 					if (minZ > posProj.Z)
 					{
 						minZ = posProj.Z;
-						nearestPos.X = posWorld.X;
-						nearestPos.Y = posWorld.Y;
-						nearestPos.Z = posWorld.Z;
 						nodeIndex = currentIndex;
 					}
 				}
@@ -345,7 +354,7 @@ namespace GraphVis {
 		}
 
 
-		public void ChangeReference(int nodeIndex)
+		public void Focus(int nodeIndex)
 		{
 			referenceNodeIndex = nodeIndex;
 		}
@@ -595,6 +604,8 @@ namespace GraphVis {
 			parameters.MaxParticles	= lay.ParticleCount;
 			parameters.edgeOpacity	= Config.EdgeOpacity;
 			parameters.nodeScale	= Config.NodeScale;
+			parameters.highNodeColor = HighlightNodeColor;
+			parameters.highEdgeColor = HighlightEdgeColor;
 
 			device.ResetStates();
 			device.ClearBackbuffer( Color.White );
