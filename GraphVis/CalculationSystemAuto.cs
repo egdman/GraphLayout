@@ -248,7 +248,7 @@ namespace GraphVis
 						//	
 						//}
 					}
-			//		sw.Close();
+		//			sw.Close();
 				}
 			}
 
@@ -304,7 +304,7 @@ namespace GraphVis
 			float ch = (float)Math.Sqrt( Math.Abs(deltaEnergyBound) / initialEnergy ) * 10f;
 	//		float ch = (float)Math.Sqrt( Math.Abs(deltaEnergy) / initialEnergy ) * 10f;
 //			float ch = (float)(Math.Abs(deltaEnergyBound) / initialEnergy) * 10f;
-			ch = ch <= 0	? 0.0001f	: ch;
+			ch = ch <= 0	? 0.000000001f	: ch;
 			ch = ch > 0.1f	? 0.1f		: ch;
 			return ch;
 	//		return 0.01f;
