@@ -139,7 +139,7 @@ namespace GraphVis
 		public void DollyZoom(float FOVrate)
 		{
 			float FOV2 = FOV + FOVrate;
-			FOV2 = FOV2 < 4		? 4		: FOV2;
+			FOV2 = FOV2 < 2		? 2		: FOV2;
 			FOV2 = FOV2 > 150	? 150	: FOV2;
 			altitude = (altitude+ZeroRadius) * (float)(Math.Tan(PI180 * FOV/2.0f) / Math.Tan(PI180*FOV2/2.0f)) - ZeroRadius;
 			FOV = FOV2;

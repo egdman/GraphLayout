@@ -1,5 +1,5 @@
 #if 0
-$ubershader	DRAW POINT|LINE|SELECTION
+$ubershader	DRAW POINT|LINE|SELECTION|HIGH_LINE
 #endif
 
 struct PARAMS {
@@ -47,7 +47,8 @@ Texture2D						Texture 			: 	register(t0);
 Texture2D						SelectionTexture	:	register(t1);
 StructuredBuffer<PARTICLE3D>	particleReadBuffer	:	register(t2);
 StructuredBuffer<Link>			linksBuffer			:	register(t3);
-StructuredBuffer<int>			SelectedIndices		:	register(t4);
+StructuredBuffer<int>			SelectedNodeIndices	:	register(t4);
+StructuredBuffer<int>			SelectedLinkIndices	:	register(t5);
 
 
 #ifdef DRAW
@@ -186,7 +187,7 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 {
 	GSOutput p0, p1, p2, p3;
 
-	PARTICLE3D prt = particleReadBuffer[ SelectedIndices[inputPoint[0].vertexID] ];
+	PARTICLE3D prt = particleReadBuffer[ SelectedNodeIndices[inputPoint[0].vertexID] ];
 	PARTICLE3D referencePrt = particleReadBuffer[ Params.SelectedParticle ];
 
 	float sz = prt.Size0*1.5f*Params.nodeScale;
@@ -224,12 +225,53 @@ void GSMain( point VSOutput inputPoint[1], inout TriangleStream<GSOutput> output
 #endif // SELECTION
 
 
-#ifdef LINE
+
+
+// Draw highlighted links: --------------------------------------------------------------------
+#ifdef HIGH_LINE
+[maxvertexcount(2)]
+void GSMain( point VSOutput inputLine[1], inout LineStream<GSOutput> outputStream )
+{
+	GSOutput p1, p2;
+
+	Link lk = linksBuffer[ SelectedLinkIndices[inputLine[0].vertexID] ];
+	PARTICLE3D end1 = particleReadBuffer[ lk.par1 ];
+	PARTICLE3D end2 = particleReadBuffer[ lk.par2 ];
+	PARTICLE3D referencePrt = particleReadBuffer[ Params.SelectedParticle ];
+
+	float4 pos1 = float4( end1.Position.xyz - referencePrt.Position.xyz, 1 );
+	float4 pos2 = float4( end2.Position.xyz - referencePrt.Position.xyz, 1 );
+
+	float4 posV1	=	mul( pos1, Params.View );
+	float4 posV2	=	mul( pos2, Params.View );
+
+	p1.Position		=	mul( posV1, Params.Projection );
+	p2.Position		=	mul( posV2, Params.Projection );
+
+	p1.TexCoord		=	float2(0, 0);
+	p2.TexCoord		=	float2(0, 0);
+
+	p1.Color		=	float4(0,1,0,0);
+	p2.Color		=	float4(0,1,0,0);
+
+	outputStream.Append(p1);
+	outputStream.Append(p2);
+	outputStream.RestartStrip(); 
+
+}
+
+
+
+
+#endif // HIGH_LINE
+
+
+#if defined(LINE) || defined(HIGH_LINE)
 float4 PSMain( GSOutput input ) : SV_Target
 {
 	return float4(input.Color.rgb,1);
 }
-#endif // LINE
+#endif // LINE || HIGH_LINE
 
 
 

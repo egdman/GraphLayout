@@ -255,8 +255,10 @@ namespace GraphVis
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 //				StanfordNetwork graph = new StanfordNetwork();
 				stNet = new StanfordNetwork();
-	//			stNet.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
-				stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+				stNet.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
+	//			stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+	//			stNet.ReadFromFile("../../../../cit_networks/Cit-HepTh.txt");
+				
 				graphSys.AddGraph(stNet);
 
 				// graph file names:

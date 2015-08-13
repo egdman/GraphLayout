@@ -105,21 +105,23 @@ namespace GraphVis {
 		StateFactory	factory;
 
 		float		particleMass;
-		float		linkSize;
-		float		linkOpacity;
+		float		edgeSize;
 
 
-		StructuredBuffer	selectedIndicesBuffer;
+		StructuredBuffer	selectedNodesBuffer; // list of indices of highlighted nodes
+		StructuredBuffer	selectedEdgesBuffer; // list of indices of highlighted edges
+
 		ConstantBuffer		paramsCB;
-		List<List<int> >	linkIndexLists;
-		List<Link>			linkList;
-		List<Particle3d>	ParticleList;
+		List<List<int> >	edgeIndexLists;
+		List<Link>			edgeList;
+		List<Particle3d>	nodeList;
 		Queue<int>			commandQueue;
 		Random				rand = new Random();
 
 		LayoutSystem		lay;
 
 		int		numSelectedNodes;
+		int		numSelectedEdges;
 		int		referenceNodeIndex;
 
 
@@ -128,6 +130,7 @@ namespace GraphVis {
 			POINT			= 0x1 << 1,
 			LINE			= 0x1 << 2,
 			SELECTION		= 0x1 << 3,
+			HIGH_LINE		= 0x1 << 4,
 		}
 
 
@@ -150,8 +153,8 @@ namespace GraphVis {
 			Config = new ParticleConfig();
 		}
 
-		public int NodeCount { get { return ParticleList.Count; } }
-		public int EdgeCount { get { return linkList.Count; } }
+		public int NodeCount { get { return nodeList.Count; } }
+		public int EdgeCount { get { return edgeList.Count; } }
 
 
 		
@@ -180,13 +183,14 @@ namespace GraphVis {
 
 			paramsCB			=	new ConstantBuffer( Game.GraphicsDevice, typeof(Params) );
 			particleMass		=	1.0f;
-			linkSize			=	1000.0f;
-			linkList			=	new List<Link>();
-			ParticleList		=	new List<Particle3d>();
-			linkIndexLists		=	new List<List<int> >();
+			edgeSize			=	1000.0f;
+			edgeList			=	new List<Link>();
+			nodeList		=	new List<Particle3d>();
+			edgeIndexLists		=	new List<List<int> >();
 			commandQueue		=	new Queue<int>();
 
 			numSelectedNodes	=	0;
+			numSelectedEdges	=	0;
 			referenceNodeIndex	=	0;
 
 			Game.InputDevice.KeyDown += keyboardHandler;
@@ -310,19 +314,34 @@ namespace GraphVis {
 
 		public void Select(ICollection<int> nodeIndices)
 		{
-			if (selectedIndicesBuffer != null)
+			if (selectedNodesBuffer != null)
 			{
-				selectedIndicesBuffer.Dispose();
+				selectedNodesBuffer.Dispose();
 			}
-			
-			selectedIndicesBuffer = new StructuredBuffer(Game.GraphicsDevice, typeof(int), nodeIndices.Count, StructuredBufferFlags.Counter);
-			selectedIndicesBuffer.SetData(nodeIndices.ToArray());
+			if (selectedEdgesBuffer != null)
+			{
+				selectedEdgesBuffer.Dispose();
+			}
+			List<int> selEdges = new List<int>(); 
+			foreach (var ind in nodeIndices)
+			{
+				foreach (var l in edgeIndexLists[ind])
+				{
+					selEdges.Add(l);
+				}
+			}
+			selectedNodesBuffer = new StructuredBuffer(Game.GraphicsDevice, typeof(int), nodeIndices.Count, StructuredBufferFlags.Counter);
+			selectedEdgesBuffer = new StructuredBuffer(Game.GraphicsDevice, typeof(int), selEdges.Count, StructuredBufferFlags.Counter);
+			selectedNodesBuffer.SetData(nodeIndices.ToArray());
+			selectedEdgesBuffer.SetData(selEdges.ToArray());
 			numSelectedNodes = nodeIndices.Count;
+			numSelectedEdges = selEdges.Count;
 		}
 
 		public void Deselect()
 		{
 			numSelectedNodes = 0;
+			numSelectedEdges = 0;
 		}
 
 
@@ -352,9 +371,9 @@ namespace GraphVis {
 		public void AddGraph(Graph graph)
 		{
 			lay.ResetState();
-			ParticleList.Clear();
-			linkList.Clear();
-			linkIndexLists.Clear();
+			nodeList.Clear();
+			edgeList.Clear();
+			edgeIndexLists.Clear();
 			referenceNodeIndex = 0;
 			setBuffers( graph );
 		}
@@ -362,16 +381,16 @@ namespace GraphVis {
 
 		public void UpdateGraph(Graph graph)
 		{
-			ParticleList.Clear();
-			linkList.Clear();
-			linkIndexLists.Clear();
+			nodeList.Clear();
+			edgeList.Clear();
+			edgeIndexLists.Clear();
 			setBuffers(graph);
 		}
 
 
 		void addParticle( Vector3 pos, float size, Vector4 color, float colorBoost = 1 )
 		{
-			ParticleList.Add( new Particle3d {
+			nodeList.Add( new Particle3d {
 					Position		=	pos,
 					Velocity		=	Vector3.Zero,
 					Color			=	color * colorBoost,
@@ -381,24 +400,24 @@ namespace GraphVis {
 					Charge			=	Config.RepulsionForce
 				}
 			);
-			linkIndexLists.Add( new List<int>() );
+			edgeIndexLists.Add( new List<int>() );
 		}
 
 
-		void addLink( int end1, int end2 )
+		void addEdge( int end1, int end2 )
 		{
-			int linkNumber = linkList.Count;
-			linkList.Add( new Link{
+			int edgeNumber = edgeList.Count;
+			edgeList.Add( new Link{
 					par1 = (uint)end1,
 					par2 = (uint)end2,
 					length = 1.0f,
 				}
 			);
-			linkIndexLists[end1].Add(linkNumber);
+			edgeIndexLists[end1].Add(edgeNumber);
 
-			linkIndexLists[end2].Add(linkNumber);
+			edgeIndexLists[end2].Add(edgeNumber);
 
-			// modify particles sizes according to number of links:
+			// modify particles sizes according to number of edges:
 	//		Particle3d newPrt1 = ParticleList[end1];
 	//		Particle3d newPrt2 = ParticleList[end2];
 	//		newPrt1.Size	+= 0.1f;
@@ -410,18 +429,6 @@ namespace GraphVis {
 
 		}
 
-
-		void stretchLinks( int particleId )
-		{
-			var lList = linkIndexLists[particleId];
-
-			foreach ( var link in lList )
-			{
-				Link modifLink = linkList[link];
-				modifLink.length *= 1.1f;
-				linkList[link] = modifLink;
-			}
-		}
 
 
 		public Graph GetGraph()
@@ -435,7 +442,7 @@ namespace GraphVis {
 				{
 					graph.AddNode(new SpatialNode(p.Position, p.Size, new Color(p.Color)));
 				}
-				foreach (var l in linkList)
+				foreach (var l in edgeList)
 				{
 					graph.AddEdge((int)l.par1, (int)l.par2);
 				}
@@ -450,7 +457,7 @@ namespace GraphVis {
 		{
 			var zeroV = new Vector3(0, 0, 0);
 			addParticle(
-					zeroV + RadialRandomVector() * linkSize,
+					zeroV + RadialRandomVector() * edgeSize,
 					size, color.ToVector4(), 1.0f );
 		}
 
@@ -477,7 +484,7 @@ namespace GraphVis {
 			}
 			foreach (var e in graph.Edges)
 			{
-				addLink( e.End1, e.End2 );
+				addEdge( e.End1, e.End2 );
 			}
 			setBuffers();
 		}
@@ -486,7 +493,7 @@ namespace GraphVis {
 
 		void setBuffers()
 		{
-			lay.SetData(ParticleList, linkList, linkIndexLists);
+			lay.SetData(nodeList, edgeList, edgeIndexLists);
 		}
 
 	
@@ -523,9 +530,13 @@ namespace GraphVis {
 
 		void disposeOfBuffers()
 		{
-			if (selectedIndicesBuffer != null)
+			if (selectedNodesBuffer != null)
 			{
-				selectedIndicesBuffer.Dispose();
+				selectedNodesBuffer.Dispose();
+			}
+			if (selectedEdgesBuffer != null)
+			{
+				selectedEdgesBuffer.Dispose();
 			}
 		}
 
@@ -572,8 +583,8 @@ namespace GraphVis {
 			
 			// Debug output: ------------------------------------------------------------
 			var debStr = Game.GetService<DebugStrings>();
-			debStr.Add( Color.Yellow, "drawing " + ParticleList.Count + " points" );
-			debStr.Add( Color.Yellow, "drawing " + linkList.Count + " lines" );
+			debStr.Add( Color.Yellow, "drawing " + nodeList.Count + " points" );
+			debStr.Add( Color.Yellow, "drawing " + edgeList.Count + " lines" );
 			debStr.Add( Color.Black, lay.UseGPU ? "Using GPU" : "Not using GPU" );
 			base.Draw( gameTime, stereoEye );
 		}
@@ -602,19 +613,24 @@ namespace GraphVis {
 			device.SetCSRWBuffer( 0, null );
 			device.PixelShaderResources		[0] = particleTex;
 			device.GeometryShaderResources	[2] = ls.CurrentStateBuffer;
-			device.Draw( ParticleList.Count, 0 );
+			device.Draw( nodeList.Count, 0 );
 						
 			// draw lines: -------------------------------------------------------------------------
 			device.PipelineState = factory[(int)RenderFlags.DRAW|(int)RenderFlags.LINE];
 			device.GeometryShaderResources	[2] = ls.CurrentStateBuffer;
 			device.GeometryShaderResources	[3] = ls.LinksBuffer;
-			device.Draw( linkList.Count, 0 );
+			device.Draw( edgeList.Count, 0 );
 
 			// draw selected points: ---------------------------------------------------------------
 			device.PipelineState = factory[(int)RenderFlags.DRAW | (int)RenderFlags.SELECTION];
 			device.PixelShaderResources		[1] = selectionTex;
-			device.GeometryShaderResources	[4] = selectedIndicesBuffer;
+			device.GeometryShaderResources	[4] = selectedNodesBuffer;
 			device.Draw(numSelectedNodes, 0);
+
+			// draw selected lines: ----------------------------------------------------------------
+			device.PipelineState = factory[(int)RenderFlags.DRAW | (int)RenderFlags.HIGH_LINE];
+			device.GeometryShaderResources	[5] = selectedEdgesBuffer;
+			device.Draw(numSelectedEdges, 0);
 		}
 	}
 }
