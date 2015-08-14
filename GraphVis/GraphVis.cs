@@ -242,7 +242,7 @@ namespace GraphVis
 			var graphSys = GetService<GraphSystem>();
 
 			if(InputDevice.IsKeyDown(Keys.X)) {
-				Graph graph = Graph.MakeTree( 128, 2 );
+				Graph graph = Graph.MakeTree( 4096, 40 );
 		//		Graph<BaseNode> graph = Graph<BaseNode>.MakeRing( 512 );
 				graphSys.AddGraph(graph);
 			}
@@ -250,10 +250,16 @@ namespace GraphVis
 			if(InputDevice.IsKeyDown(Keys.Z)) {
 //				StanfordNetwork graph = new StanfordNetwork();
 				stNet = new StanfordNetwork();
-	//			stNet.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
+
 	//			stNet.ReadFromFile("../../../../p2p_networks/p2p-Gnutella25.txt");
-				stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+
+
+	//			stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+	//			stNet.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
+				stNet.ReadFromFile("../../../../collab_networks/CA-CondMat.txt");
+
 	//			stNet.ReadFromFile("../../../../cit_networks/Cit-HepTh.txt");
+
 				
 				graphSys.AddGraph(stNet);
 

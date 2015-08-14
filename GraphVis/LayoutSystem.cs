@@ -143,14 +143,18 @@ namespace GraphVis
 
 		float	linkSize;
 		int		numParticles;
+		int		numLinks;
 
 
 		public int ParticleCount
 		{
 			get { return numParticles; }
 		}
-	
-	
+
+		public int LinkCount
+		{
+			get { return numLinks; }
+		}
 
 		public State RunPause
 		{
@@ -336,6 +340,7 @@ namespace GraphVis
 		public void SetData(List<Particle3d> ParticleList, List<Link> linkList, List<List<int>> linkIndexLists)
 		{
 			numParticles = ParticleList.Count;
+			numLinks = linkList.Count;
 
 			Particle3d[] particleBufferCPU = ParticleList.ToArray();
 

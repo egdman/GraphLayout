@@ -18,6 +18,7 @@ namespace GraphVis
 
 		float	energy;
 		float	initialEnergy;
+		float	energyEstim;
 		float	deltaEnergy;
 		float	deltaEnergyBound;
 		float	pGradE;
@@ -52,6 +53,23 @@ namespace GraphVis
 					HostSystem.EnergyBuffer, param, out energy, out pGradE, out checkSum);
 			initialEnergy = energy;
 			deltaEnergyBound = energy;
+
+
+			energyEstim = estimEnergy();
+		}
+
+
+		float estimEnergy()
+		{
+			var grSys = HostSystem.Environment.GetService<GraphSystem>();
+			float q = 100.0f * grSys.Config.RepulsionForce;
+			float size = 1000.0f;
+			float springLen = 1.0f;
+			float N = (float)HostSystem.ParticleCount;
+			float E = (float)HostSystem.LinkCount;
+			float stiff = grSys.Config.SpringTension;
+			return ( N*N*q*q/size + E*stiff*(size-springLen)*(size-springLen) );
+
 		}
 
 
@@ -267,6 +285,12 @@ namespace GraphVis
 			debStr.Add(Color.Aqua,		"E/E0          = " + (energy/initialEnergy));
 			debStr.Add(Color.Aqua,		"Change        = " + getChangeRate());
 			debStr.Add(Color.Orchid,	"Check sum     = " + checkSum);
+
+			debStr.Add(Color.Black, "E0/N          = " + (initialEnergy / (float)HostSystem.ParticleCount));
+			debStr.Add(Color.Black,	"nodes/edges   = " + ((float)HostSystem.ParticleCount / (float)HostSystem.LinkCount ));
+			debStr.Add(Color.Black, "ESTIM   = " + energyEstim);
+			debStr.Add(Color.Black, "REAL/ESTIM      = " + (initialEnergy / energyEstim));
+
 		}
 
 
@@ -301,11 +325,16 @@ namespace GraphVis
 		/// <returns></returns>
 		float getChangeRate()
 		{
+			float upperBound = 0.1f;
+			float lowerBound = 0.000000001f;
 			float ch = (float)Math.Sqrt( Math.Abs(deltaEnergyBound) / initialEnergy ) * 10f;
 	//		float ch = (float)Math.Sqrt( Math.Abs(deltaEnergy) / initialEnergy ) * 10f;
 //			float ch = (float)(Math.Abs(deltaEnergyBound) / initialEnergy) * 10f;
-			ch = ch <= 0	? 0.000000001f	: ch;
-			ch = ch > 0.1f	? 0.1f		: ch;
+			// lower bound:
+			ch = ch < lowerBound ? lowerBound : ch;
+			ch = ch > upperBound ? upperBound : ch;
+//			ch = ch > 0.1f	? 0.1f		: ch;
+//			ch = ch > 10.0f	? 10.0f		: ch;
 			return ch;
 	//		return 0.01f;
 		}
