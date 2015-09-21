@@ -413,13 +413,14 @@ namespace GraphVis {
 		}
 
 
-		void addEdge( int end1, int end2 )
+		void addEdge( int end1, int end2, float length, float strength )
 		{
 			int edgeNumber = edgeList.Count;
 			edgeList.Add( new Link{
 					par1 = (uint)end1,
 					par2 = (uint)end2,
-					length = 1.0f,
+					length = length,
+					strength = strength,
 				}
 			);
 			edgeIndexLists[end1].Add(edgeNumber);
@@ -493,7 +494,7 @@ namespace GraphVis {
 			}
 			foreach (var e in graph.Edges)
 			{
-				addEdge( e.End1, e.End2 );
+				addEdge(e.End1, e.End2, e.Length, e.Value);
 			}
 			setBuffers();
 		}

@@ -14,6 +14,7 @@ namespace GraphVis
 			public int		End1;
 			public int		End2;
 			public float	Length;
+			public float	Value;
 		}
 
 		List<BaseNode>	nodeList;
@@ -48,11 +49,21 @@ namespace GraphVis
 				{
 					End1 = node1,
 					End2 = node2,
-					Length = 1.0f
+					Length = 1.0f,
+					Value = 0.0f,
 				}
 			);
 			adjacencyList[node1].Add( EdgeCount - 1 );
 			adjacencyList[node2].Add( EdgeCount - 1 );
+		}
+
+
+
+		public void AddEdge(Edge edge)
+		{
+			edgeList.Add(edge);
+			adjacencyList[edge.End1].Add(EdgeCount - 1);
+			adjacencyList[edge.End2].Add(EdgeCount - 1);
 		}
 
 

@@ -1,5 +1,5 @@
 #if 0
-$ubershader COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA +LINKS)
+$ubershader COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA +LINKS)|LOCAL
 #endif
 
 
@@ -10,8 +10,7 @@ $ubershader COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA +LINK
 struct PARAMS {
 	uint		MaxParticles;
 	float		DeltaTime;
-	float		LinkSize;
-	float		SpringTension;
+	float4		LocalCenter;
 };
 
 cbuffer CB1 : register(b0) {
@@ -42,6 +41,7 @@ struct Link {
 	uint par1;
 	uint par2;
 	float length;
+	float strength;
 };
 
 
@@ -55,6 +55,7 @@ RWStructuredBuffer<float4>			energyRWBuffer		:	register(u1);
 StructuredBuffer<LinkId>			linksPtrBuffer		:	register(t2);
 StructuredBuffer<Link>				linksBuffer			:	register(t3);
 
+StructuredBuffer<int>				selectBuffer		:	register(t4);
 
 
 
@@ -79,12 +80,13 @@ inline float4 pairBodyForce( float4 thisPos, float4 otherPos ) // 4th component 
 
 
 float4 springForce( float4 pos, float4 otherPos ) // 4th component in otherPos is link length
+												  // 4th component in pos is link strength
 {
 	float3 R			= (otherPos - pos).xyz;
 	float Rabs			= length( R ) + 0.1f;
 	float deltaR		= Rabs - otherPos.w;
-	float absForce		= Params.SpringTension * ( deltaR ) / ( Rabs );
-	float energy		= 0.5f * Params.SpringTension * deltaR * deltaR;
+	float absForce		= pos.w * ( deltaR ) / ( Rabs );
+	float energy		= 0.5f * pos.w * deltaR * deltaR;
 	return float4( mul( absForce, R ), energy );  // we write energy into the 4th component
 }
 
@@ -165,6 +167,7 @@ float4 calcLinksForce( float4 pos, uint id, uint linkListStart, uint linkCount )
 		}
 		otherP = particleRWBuffer[otherId];
 		float4 otherPos = float4( otherP.Position, link.length );
+		pos.w = link.strength;
 		force += springForce( pos, otherPos );
 	}
 	return force;
@@ -218,6 +221,34 @@ void CSMain(
 }
 
 #endif // SIMULATION
+
+
+#ifdef LOCAL
+[numthreads( BLOCK_SIZE, 1, 1 )]
+void CSMain( 
+	uint3 groupID			: SV_GroupID,
+	uint3 groupThreadID 	: SV_GroupThreadID, 
+	uint3 dispatchThreadID 	: SV_DispatchThreadID,
+	uint  groupIndex 		: SV_GroupIndex
+)
+{
+	uint id = selectBuffer[dispatchThreadID.x];
+	PARTICLE3D prt = particleRWBuffer[id];
+
+	float4 force = float4(0,0,0,0);
+	float3 R = Params.LocalCenter.xyz - prt.Position;
+	float Rsq = dot(R, R) + 100000.0f;
+	float Rabs = sqrt(Rsq);
+
+	float factor = 300000.0f;
+
+	force.xyz += mul(R, factor / (Rsq*Rabs));
+	prt.Force += force.xyz;
+	prt.Energy += force.w;
+	particleRWBuffer[id] = prt;
+}
+
+#endif // LOCAL
 
 
 #ifdef MOVE

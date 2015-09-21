@@ -50,6 +50,8 @@ namespace GraphVis
 		public uint par2;
 		[FieldOffset(8)]
 		public float length;
+		[FieldOffset(12)]
+		public float strength;
 	}
 
 
@@ -72,7 +74,7 @@ namespace GraphVis
 
 		public StepMethod StepMode { get; set; }
 
-		[StructLayout(LayoutKind.Explicit, Size = 16)]
+		[StructLayout(LayoutKind.Explicit, Size = 32)]
 		public struct ComputeParams
 		{
 			[FieldOffset(0)]
@@ -80,9 +82,7 @@ namespace GraphVis
 			[FieldOffset(4)]
 			public float StepLength;
 			[FieldOffset(8)]
-			public float LinkSize;
-			[FieldOffset(12)]
-			public float SpringTension;
+			public Vector4 LocalCenter;
 		}
 
 
@@ -95,7 +95,8 @@ namespace GraphVis
 			REDUCTION		= 0x1 << 4,
 			EULER			= 0x1 << 5,
 			RUNGE_KUTTA		= 0x1 << 6,
-			LINKS			= 0x1 << 7
+			LINKS			= 0x1 << 7,
+			LOCAL			= 0x1 << 8,
 		}
 
 		public enum State
@@ -132,6 +133,12 @@ namespace GraphVis
 		}
 
 		public StructuredBuffer EnergyBuffer
+		{
+			get;
+			set;
+		}
+
+		public StructuredBuffer SelectBuffer
 		{
 			get;
 			set;
@@ -309,6 +316,11 @@ namespace GraphVis
 				EnergyBuffer.Dispose();
 				EnergyBuffer = null;
 			}
+			if (SelectBuffer != null)
+			{
+				SelectBuffer.Dispose();
+				SelectBuffer = null;
+			}
 		}
 
 		public void Dispose()
@@ -397,6 +409,23 @@ namespace GraphVis
 								StructuredBufferFlags.Counter);
 					LinksIndexBuffer.SetData(linksPtrBufferCPU);
 				}
+
+				SelectBuffer = new StructuredBuffer(
+								env.GraphicsDevice,
+								typeof(int),
+								particleBufferCPU.Length,
+								StructuredBufferFlags.Counter);
+
+
+				// Test stuff:  ////////////////////////////////////
+				List<int> indices = new List<int>();
+				for (int i = 0; i < particleBufferCPU.Length; ++i)
+				{
+					indices.Add(i);
+				}
+				SelectBuffer.SetData(indices.ToArray());
+				////////////////////////////////////////////////////
+
 				initializeCalc();
 			}
 		}
@@ -415,8 +444,8 @@ namespace GraphVis
 		public void CalcDescentVector(StructuredBuffer rwVertexBuffer, ComputeParams parameters)
 		{
 			parameters.MaxParticles = (uint)ParticleCount;
-			parameters.LinkSize = linkSize;
-			parameters.SpringTension = SpringTension;
+			parameters.LocalCenter = new Vector4(0, 0, 0, 0);
+
 			paramsCB.SetData(parameters);
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
@@ -425,9 +454,22 @@ namespace GraphVis
 			device.PipelineState = factory[(int)(
 				ComputeFlags.COMPUTE | ComputeFlags.SIMULATION |
 				ComputeFlags.EULER | ComputeFlags.LINKS)];
+
+	//		device.PipelineState = factory[(int)(
+	//			ComputeFlags.COMPUTE | ComputeFlags.SIMULATION |
+	//			ComputeFlags.EULER)];
+			device.Dispatch(MathUtil.IntDivUp((int)parameters.MaxParticles, BlockSize));
+			device.ResetStates();
+
+			// add localization forces:
+			device.ComputeShaderConstants[0] = paramsCB;
+			device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
+			device.ComputeShaderResources[4] = SelectBuffer;
+			device.PipelineState = factory[(int)(ComputeFlags.COMPUTE | ComputeFlags.LOCAL)];
 			device.Dispatch(MathUtil.IntDivUp((int)parameters.MaxParticles, BlockSize));
 			device.ResetStates();
 		}
+
 
 
 
@@ -445,8 +487,6 @@ namespace GraphVis
 							StructuredBuffer dstVertexBuffer, ComputeParams parameters)
 		{
 			parameters.MaxParticles = (uint)ParticleCount;
-			parameters.LinkSize = linkSize;
-			parameters.SpringTension = SpringTension;
 			paramsCB.SetData(parameters);
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.ComputeShaderResources[0] = srcVertexBuffer;
@@ -475,8 +515,6 @@ namespace GraphVis
 			out float energy, out float pTgradE, out float checkSum)
 		{
 			parameters.MaxParticles = (uint)ParticleCount;
-			parameters.LinkSize = linkSize;
-			parameters.SpringTension = SpringTension;
 			energy = 0;
 			pTgradE = 0;
 			checkSum = 0;

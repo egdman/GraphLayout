@@ -254,9 +254,9 @@ namespace GraphVis
 	//			stNet.ReadFromFile("../../../../p2p_networks/p2p-Gnutella25.txt");
 
 
-	//			stNet.ReadFromFile("../../../../collab_networks/CA-GrQc.txt");
+				stNet.ReadFromFile("D:/Graphs/collab_networks/CA-GrQc.txt");
 	//			stNet.ReadFromFile("../../../../collab_networks/CA-HepTh.txt");
-				stNet.ReadFromFile("../../../../collab_networks/CA-CondMat.txt");
+	//			stNet.ReadFromFile("../../../../collab_networks/CA-CondMat.txt");
 
 	//			stNet.ReadFromFile("../../../../cit_networks/Cit-HepTh.txt");
 
@@ -271,6 +271,15 @@ namespace GraphVis
 				//CitationGraph graph = new CitationGraph();
 				//graph.ReadFromFile("../../../../articles_data/idx_edges.txt");
 				//graphSys.AddGraph(graph);
+			}
+
+
+			if (InputDevice.IsKeyDown(Keys.V))
+			{
+				var protGraph = new ProteinGraph();
+				protGraph.ReadFromFile("D:/proteins/signalling_table.csv");
+				graphSys.AddGraph(protGraph);
+
 			}
 
 			ds.Add(Color.Orange, "FPS {0}", gameTime.Fps);
@@ -308,6 +317,7 @@ namespace GraphVis
 			dr.View = cam.GetViewMatrix(stereoEye);
 			dr.Projection = cam.GetProjectionMatrix(stereoEye);
 
+	//		dr.DrawGrid(20);
 			var ds = GetService<DebugStrings>();
 			if (isSelected)
 			{
