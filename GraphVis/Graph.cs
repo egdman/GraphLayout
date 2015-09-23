@@ -50,7 +50,7 @@ namespace GraphVis
 					End1 = node1,
 					End2 = node2,
 					Length = 1.0f,
-					Value = 0.0f,
+					Value = 0.1f,
 				}
 			);
 			adjacencyList[node1].Add( EdgeCount - 1 );

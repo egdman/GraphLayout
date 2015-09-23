@@ -4,6 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Fusion;
+using Fusion.Graphics;
+using Fusion.Mathematics;
+using Fusion.Input;
+
 namespace GraphVis
 {
 	class NodeWithText : BaseNode
@@ -14,6 +19,14 @@ namespace GraphVis
 		{
 			text = Text;
 		}
+
+
+		public NodeWithText(string Text, float size, Color color)
+			: base(size, color)
+		{
+			text = Text;
+		}
+
 
 		public NodeWithText() : this("no text") { }
 

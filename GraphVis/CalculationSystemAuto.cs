@@ -55,7 +55,7 @@ namespace GraphVis
 			deltaEnergyBound = energy;
 
 
-			energyEstim = estimEnergy();
+//			energyEstim = estimEnergy();
 		}
 
 
@@ -273,23 +273,23 @@ namespace GraphVis
 			var debStr = HostSystem.Environment.GetService<DebugStrings>();
 
 			debStr.Add(Color.Black,		"AUTO MODE");
-			debStr.Add(Color.Black,		"C1 = " + C1);
-			debStr.Add(Color.Black,		"C2 = " + C2);
+//			debStr.Add(Color.Black,		"C1 = " + C1);
+//			debStr.Add(Color.Black,		"C2 = " + C2);
 			debStr.Add(Color.Aqua,		"Step factor   = " + chosenStepLength);
-			debStr.Add(Color.Aqua,		"Energy        = " + energy);
+//			debStr.Add(Color.Aqua,		"Energy        = " + energy);
 			debStr.Add(Color.Aqua,		"DeltaE        = " + deltaEnergy);
 //			debStr.Add(Color.Aqua,		"pTp           = " + pGradE);
 			debStr.Add(Color.Aqua,		"Iteration     = " + numIterations);
 			debStr.Add(Color.RoyalBlue, "Mode:   " + (FixedStep ? "FIXED" : "SEARCH"));
 			debStr.Add(Color.Aqua,		"Stability     = " + stepStability);
-			debStr.Add(Color.Aqua,		"E/E0          = " + (energy/initialEnergy));
+//			debStr.Add(Color.Aqua,		"E/E0          = " + (energy/initialEnergy));
 			debStr.Add(Color.Aqua,		"Change        = " + getChangeRate());
-			debStr.Add(Color.Orchid,	"Check sum     = " + checkSum);
+//			debStr.Add(Color.Orchid,	"Check sum     = " + checkSum);
 
-			debStr.Add(Color.Black, "E0/N          = " + (initialEnergy / (float)HostSystem.ParticleCount));
-			debStr.Add(Color.Black,	"nodes/edges   = " + ((float)HostSystem.ParticleCount / (float)HostSystem.LinkCount ));
-			debStr.Add(Color.Black, "ESTIM   = " + energyEstim);
-			debStr.Add(Color.Black, "REAL/ESTIM      = " + (initialEnergy / energyEstim));
+//			debStr.Add(Color.Black, "E0/N          = " + (initialEnergy / (float)HostSystem.ParticleCount));
+//			debStr.Add(Color.Black,	"nodes/edges   = " + ((float)HostSystem.ParticleCount / (float)HostSystem.LinkCount ));
+//			debStr.Add(Color.Black, "ESTIM   = " + energyEstim);
+//			debStr.Add(Color.Black, "REAL/ESTIM      = " + (initialEnergy / energyEstim));
 
 		}
 

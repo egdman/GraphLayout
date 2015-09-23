@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attractor.cs" />
     <Compile Include="GreatCircleCamera.cs" />
     <Compile Include="CalculationSystem.cs" />
     <Compile Include="CalculationSystemWolfram.cs" />

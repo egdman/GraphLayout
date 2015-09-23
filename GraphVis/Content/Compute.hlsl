@@ -8,9 +8,11 @@ $ubershader COMPUTE INJECTION|MOVE|REDUCTION|(SIMULATION EULER|RUNGE_KUTTA +LINK
 #define HALF_BLOCK BLOCK_SIZE/2
 
 struct PARAMS {
-	uint		MaxParticles;
-	float		DeltaTime;
 	float4		LocalCenter;
+	uint		MaxParticles;
+	int			StartIndex;
+	int			EndIndex;
+	float		DeltaTime;
 };
 
 cbuffer CB1 : register(b0) {
@@ -232,20 +234,28 @@ void CSMain(
 	uint  groupIndex 		: SV_GroupIndex
 )
 {
-	uint id = selectBuffer[dispatchThreadID.x];
-	PARTICLE3D prt = particleRWBuffer[id];
+	int numberOfVertices = Params.EndIndex - Params.StartIndex;
+	if( dispatchThreadID.x < numberOfVertices )
+	{
+		uint id = selectBuffer[Params.StartIndex + dispatchThreadID.x];
+		PARTICLE3D prt = particleRWBuffer[id];
 
-	float4 force = float4(0,0,0,0);
-	float3 R = Params.LocalCenter.xyz - prt.Position;
-	float Rsq = dot(R, R) + 100000.0f;
-	float Rabs = sqrt(Rsq);
+		float4 force = float4(0,0,0,0);
 
-	float factor = 300000.0f;
+		float Radius = length(Params.LocalCenter.xyz);
 
-	force.xyz += mul(R, factor / (Rsq*Rabs));
-	prt.Force += force.xyz;
-	prt.Energy += force.w;
-	particleRWBuffer[id] = prt;
+		float3 R = prt.Position;
+		float Rabs = length(R) + 0.01f;
+
+		float diff = Radius - Rabs;
+
+		float factor = 0.003f;
+
+		force.xyz += mul(R, factor*diff/Rabs);
+		prt.Force += force.xyz;
+		prt.Energy += force.w;
+		particleRWBuffer[id] = prt;
+	}
 }
 
 #endif // LOCAL

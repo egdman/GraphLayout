@@ -12,6 +12,17 @@ using Fusion.Input;
 
 namespace GraphVis
 {
+	public class Category
+	{
+		public Category() { }
+
+		public int startIndex;
+		public int endIndex;
+		public Vector3 Center;
+
+	}
+
+
 	// particle in 3d space:
 	[StructLayout(LayoutKind.Explicit)]
 	public struct Particle3d
@@ -78,11 +89,19 @@ namespace GraphVis
 		public struct ComputeParams
 		{
 			[FieldOffset(0)]
-			public uint MaxParticles;
-			[FieldOffset(4)]
-			public float StepLength;
-			[FieldOffset(8)]
 			public Vector4 LocalCenter;
+
+			[FieldOffset(16)]
+			public uint MaxParticles;
+
+			[FieldOffset(20)]
+			public int StartIndex;
+
+			[FieldOffset(24)]
+			public int EndIndex;
+
+			[FieldOffset(28)]
+			public float StepLength;
 		}
 
 
@@ -148,10 +167,11 @@ namespace GraphVis
 		StateFactory		factory;
 		ConstantBuffer		paramsCB;
 
-		float	linkSize;
 		int		numParticles;
 		int		numLinks;
 
+		List<Category>	categories;
+		List<int>		categoryIndices;
 
 		public int ParticleCount
 		{
@@ -209,7 +229,8 @@ namespace GraphVis
 
 			paramsCB = new ConstantBuffer(env.GraphicsDevice, typeof(ComputeParams));
 
-			linkSize			=	100.0f;
+			categories		= new List<Category>();
+			categoryIndices	= new List<int>();
 
 			SpringTension = env.GetService<GraphSystem>().Config.SpringTension;
 			StepMode	= env.GetService<GraphSystem>().Config.StepMode;
@@ -219,6 +240,17 @@ namespace GraphVis
 		}
 		// ----------------------------------------------------------------------------------------------------
 
+		public void AddCategory(ICollection<int> indices, Vector3 center)
+		{
+			int startIndex = categoryIndices.Count;
+			int endIndex = startIndex + indices.Count;
+			categoryIndices = categoryIndices.Concat(indices).ToList();
+			Category newCat = new Category();
+			newCat.startIndex	= startIndex;
+			newCat.endIndex		= endIndex;
+			newCat.Center		= center;
+			categories.Add(newCat);
+		}
 
 		public bool UseGPU
 		{
@@ -413,17 +445,17 @@ namespace GraphVis
 				SelectBuffer = new StructuredBuffer(
 								env.GraphicsDevice,
 								typeof(int),
-								particleBufferCPU.Length,
+								categoryIndices.Count,
 								StructuredBufferFlags.Counter);
 
 
 				// Test stuff:  ////////////////////////////////////
-				List<int> indices = new List<int>();
-				for (int i = 0; i < particleBufferCPU.Length; ++i)
-				{
-					indices.Add(i);
-				}
-				SelectBuffer.SetData(indices.ToArray());
+	//			List<int> indices = new List<int>();
+	//			for (int i = 0; i < particleBufferCPU.Length; ++i)
+	//			{
+	//				indices.Add(i);
+	//			}
+				SelectBuffer.SetData(categoryIndices.ToArray());
 				////////////////////////////////////////////////////
 
 				initializeCalc();
@@ -444,7 +476,6 @@ namespace GraphVis
 		public void CalcDescentVector(StructuredBuffer rwVertexBuffer, ComputeParams parameters)
 		{
 			parameters.MaxParticles = (uint)ParticleCount;
-			parameters.LocalCenter = new Vector4(0, 0, 0, 0);
 
 			paramsCB.SetData(parameters);
 			device.ComputeShaderConstants[0] = paramsCB;
@@ -462,12 +493,23 @@ namespace GraphVis
 			device.ResetStates();
 
 			// add localization forces:
-			device.ComputeShaderConstants[0] = paramsCB;
-			device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
-			device.ComputeShaderResources[4] = SelectBuffer;
-			device.PipelineState = factory[(int)(ComputeFlags.COMPUTE | ComputeFlags.LOCAL)];
-			device.Dispatch(MathUtil.IntDivUp((int)parameters.MaxParticles, BlockSize));
-			device.ResetStates();
+			if (categories.Count > 0)
+			{
+				foreach (var cat in categories)
+				{
+					parameters.LocalCenter = new Vector4(cat.Center, 0);
+					parameters.StartIndex = cat.startIndex;
+					parameters.EndIndex = cat.endIndex;
+					paramsCB.SetData(parameters);
+
+					device.ComputeShaderConstants[0] = paramsCB;
+					device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
+					device.ComputeShaderResources[4] = SelectBuffer;
+					device.PipelineState = factory[(int)(ComputeFlags.COMPUTE | ComputeFlags.LOCAL)];
+					device.Dispatch(MathUtil.IntDivUp((int)(cat.endIndex - cat.startIndex), BlockSize));
+					device.ResetStates();
+				}
+			}
 		}
 
 

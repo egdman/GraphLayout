@@ -5,6 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
+using Fusion;
+using Fusion.Graphics;
+using Fusion.Mathematics;
+using Fusion.Input;
+
 namespace GraphVis
 {
 	class ProteinGraph : GraphFromFile
@@ -37,11 +42,17 @@ namespace GraphVis
 				}
 				string edgeType = parts[3];
 
+				int cat1 = int.Parse(parts[4]);
+				int cat2 = int.Parse(parts[5]);
+				int cat3 = int.Parse(parts[6]);
+
 				if (!uniqueIds.ContainsKey(id))
 				{
 					uniqueIds.Add(id, numNodes);
 					++numNodes;
-					AddNode( new NodeWithText(name) );
+
+					Color color = new Color((float)cat1, (float)cat2, (float)cat3);
+					AddNode(new NodeWithText(name, 1.0f, color));
 				}
 				if (otherId >= 0)
 				{
@@ -69,11 +80,11 @@ namespace GraphVis
 			}
 			if (interType[0] == '+')
 			{
-				strength = 0.5f;
+				strength = 0.1f;
 			}
 			else if (interType[0] == '-')
 			{
-				strength = 0.5f;
+				strength = 0.1f;
 			}
 			else if (interType[0] == 'b')
 			{
