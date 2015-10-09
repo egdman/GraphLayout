@@ -15,6 +15,19 @@ namespace GraphVis
 			public int		End2;
 			public float	Length;
 			public float	Value;
+
+			public Edge(int end1, int end2, float length, float value)
+			{
+				End1 = end1;
+				End2 = end2;
+				Length = length;
+				Value = value;
+			}
+
+			public string GetInfo()
+			{
+				return "id1:" + End1 + ",id2:" + End2 + ",length:" + Length + ",value:" + Value;
+			}
 		}
 
 		List<BaseNode>	nodeList;
@@ -268,9 +281,15 @@ namespace GraphVis
 		{
 			using (StreamWriter wr = new StreamWriter(path))
 			{
+				wr.WriteLine("nodes:");
 				foreach (var node in Nodes)
 				{
 					wr.WriteLine(node.GetInfo());
+				}
+				wr.WriteLine("edges:");
+				foreach (var edge in Edges)
+				{
+					wr.WriteLine(edge.GetInfo());
 				}
 			}
 		}

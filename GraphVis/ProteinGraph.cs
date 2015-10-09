@@ -80,11 +80,11 @@ namespace GraphVis
 			}
 			if (interType[0] == '+')
 			{
-				strength = 0.1f;
+				strength = 0.5f;
 			}
 			else if (interType[0] == '-')
 			{
-				strength = 0.1f;
+				strength = 0.5f;
 			}
 			else if (interType[0] == 'b')
 			{

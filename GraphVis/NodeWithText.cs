@@ -32,7 +32,7 @@ namespace GraphVis
 
 		public override string GetInfo()
 		{
-			return (base.GetInfo() + ", " + text);
+			return (base.GetInfo() + ",text:" + text);
 		}
 
 		public string Text { get { return text; } set { text = value; } }

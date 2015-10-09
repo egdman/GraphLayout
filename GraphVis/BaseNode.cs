@@ -40,8 +40,8 @@ namespace GraphVis
 		public virtual string GetInfo()
 		{
 			var color = this.GetColor();
-			return (this.Id + "," + this.GetSize() + ","
-				+ "A:" + color.A + " R:" + color.R + " G:" + color.G + " B:" + color.B );
+			return ("id:" + this.Id + ",size:" + this.GetSize() +
+				",A:" + color.A + ",R:" + color.R + ",G:" + color.G + ",B:" + color.B );
 		}
 
 

@@ -19,6 +19,7 @@ namespace GraphVis
 		public int startIndex;
 		public int endIndex;
 		public Vector3 Center;
+		public float Radius;
 
 	}
 
@@ -85,7 +86,7 @@ namespace GraphVis
 
 		public StepMethod StepMode { get; set; }
 
-		[StructLayout(LayoutKind.Explicit, Size = 32)]
+		[StructLayout(LayoutKind.Explicit, Size = 48)]
 		public struct ComputeParams
 		{
 			[FieldOffset(0)]
@@ -102,6 +103,9 @@ namespace GraphVis
 
 			[FieldOffset(28)]
 			public float StepLength;
+
+			[FieldOffset(32)]
+			public float LocalRadius;
 		}
 
 
@@ -240,7 +244,7 @@ namespace GraphVis
 		}
 		// ----------------------------------------------------------------------------------------------------
 
-		public void AddCategory(ICollection<int> indices, Vector3 center)
+		public void AddCategory(ICollection<int> indices, Vector3 center, float Radius)
 		{
 			int startIndex = categoryIndices.Count;
 			int endIndex = startIndex + indices.Count;
@@ -249,6 +253,7 @@ namespace GraphVis
 			newCat.startIndex	= startIndex;
 			newCat.endIndex		= endIndex;
 			newCat.Center		= center;
+			newCat.Radius		= Radius;
 			categories.Add(newCat);
 		}
 
@@ -442,11 +447,15 @@ namespace GraphVis
 					LinksIndexBuffer.SetData(linksPtrBufferCPU);
 				}
 
-				SelectBuffer = new StructuredBuffer(
-								env.GraphicsDevice,
-								typeof(int),
-								categoryIndices.Count,
-								StructuredBufferFlags.Counter);
+				if (categoryIndices.Count > 0)
+				{
+					SelectBuffer = new StructuredBuffer(
+									env.GraphicsDevice,
+									typeof(int),
+									categoryIndices.Count,
+									StructuredBufferFlags.Counter);
+					SelectBuffer.SetData(categoryIndices.ToArray());
+				}
 
 
 				// Test stuff:  ////////////////////////////////////
@@ -455,7 +464,7 @@ namespace GraphVis
 	//			{
 	//				indices.Add(i);
 	//			}
-				SelectBuffer.SetData(categoryIndices.ToArray());
+				
 				////////////////////////////////////////////////////
 
 				initializeCalc();
@@ -480,8 +489,10 @@ namespace GraphVis
 			paramsCB.SetData(parameters);
 			device.ComputeShaderConstants[0] = paramsCB;
 			device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
+
 			device.ComputeShaderResources[2] = LinksIndexBuffer;
 			device.ComputeShaderResources[3] = LinksBuffer;
+			device.ComputeShaderResources[4] = SelectBuffer;
 			device.PipelineState = factory[(int)(
 				ComputeFlags.COMPUTE | ComputeFlags.SIMULATION |
 				ComputeFlags.EULER | ComputeFlags.LINKS)];
@@ -490,26 +501,24 @@ namespace GraphVis
 	//			ComputeFlags.COMPUTE | ComputeFlags.SIMULATION |
 	//			ComputeFlags.EULER)];
 			device.Dispatch(MathUtil.IntDivUp((int)parameters.MaxParticles, BlockSize));
-			device.ResetStates();
+	//		device.ResetStates();
 
 			// add localization forces:
+			device.PipelineState = factory[(int)(ComputeFlags.COMPUTE | ComputeFlags.LOCAL)];
 			if (categories.Count > 0)
 			{
 				foreach (var cat in categories)
 				{
 					parameters.LocalCenter = new Vector4(cat.Center, 0);
+					parameters.LocalRadius = cat.Radius;
 					parameters.StartIndex = cat.startIndex;
 					parameters.EndIndex = cat.endIndex;
 					paramsCB.SetData(parameters);
-
-					device.ComputeShaderConstants[0] = paramsCB;
-					device.SetCSRWBuffer(0, rwVertexBuffer, (int)parameters.MaxParticles);
-					device.ComputeShaderResources[4] = SelectBuffer;
-					device.PipelineState = factory[(int)(ComputeFlags.COMPUTE | ComputeFlags.LOCAL)];
+					//			device.ComputeShaderConstants[0] = paramsCB;	
 					device.Dispatch(MathUtil.IntDivUp((int)(cat.endIndex - cat.startIndex), BlockSize));
-					device.ResetStates();
 				}
 			}
+			device.ResetStates();
 		}
 
 

@@ -13,6 +13,7 @@ struct PARAMS {
 	int			StartIndex;
 	int			EndIndex;
 	float		DeltaTime;
+	float		LocalRadius;
 };
 
 cbuffer CB1 : register(b0) {
@@ -242,14 +243,14 @@ void CSMain(
 
 		float4 force = float4(0,0,0,0);
 
-		float Radius = length(Params.LocalCenter.xyz);
+		float Radius = Params.LocalRadius;
 
-		float3 R = prt.Position;
+		float3 R = prt.Position - Params.LocalCenter;
 		float Rabs = length(R) + 0.01f;
 
 		float diff = Radius - Rabs;
 
-		float factor = 0.003f;
+		float factor = 0.3f;
 
 		force.xyz += mul(R, factor*diff/Rabs);
 		prt.Force += force.xyz;

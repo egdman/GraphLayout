@@ -261,8 +261,11 @@ namespace GraphVis
 	//			stNet.ReadFromFile("../../../../cit_networks/Cit-HepTh.txt");
 
 				
-				graphSys.AddGraph(stNet);
+				
 
+				
+
+				graphSys.AddGraph(stNet);
 				// graph file names:
 				// CA-GrQc small
 				// CA-HepTh middle
@@ -277,7 +280,18 @@ namespace GraphVis
 			if (InputDevice.IsKeyDown(Keys.V))
 			{
 				var protGraph = new ProteinGraph();
-				protGraph.ReadFromFile("D:/proteins/signalling_table.csv");
+				protGraph.ReadFromFile("../../../../signalling_table.csv");
+
+				// add categories of nodes with different localization:
+				// category 1 (membrane):
+				graphSys.AddCategory(new List<int> { 0, 1, 2, 20 }, new Vector3(0, 0, 0), 700);
+
+				// category 2 (cytoplasma):
+				graphSys.AddCategory(new List<int> { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, new Vector3(0, 0, 0), 300);
+
+				// category 3 (nucleus):
+				graphSys.AddCategory(new List<int> { 8, 12, 13, 14, 15, 16, 17, 18, 19 }, new Vector3(0, 0, 0), 100);
+
 				graphSys.AddGraph(protGraph);
 
 			}

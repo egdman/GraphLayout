@@ -454,7 +454,7 @@ namespace GraphVis {
 				}
 				foreach (var l in edgeList)
 				{
-					graph.AddEdge((int)l.par1, (int)l.par2);
+					graph.AddEdge(new Graph.Edge((int)l.par1, (int)l.par2, l.length, l.strength));
 				}
 				return graph;
 			}
@@ -499,19 +499,16 @@ namespace GraphVis {
 			setBuffers();
 		}
 
-		
+
+		public void AddCategory(ICollection<int> indices, Vector3 Location, float Radius)
+		{
+			lay.AddCategory(indices, Location, Radius);
+		}
+
+
 
 		void setBuffers()
-		{
-			// category 1 (membrane):
-			lay.AddCategory(new List<int>{ 0,1,2,20 }, new Vector3(700, 0, 0));
-
-			// category 2 (cytoplasma):
-			lay.AddCategory(new List<int>{3,4,5,6,7,8,9,10,11,12}, new Vector3(500, 0, 0));
-
-			// category 3 (nucleus):
-			lay.AddCategory(new List<int> {8,12,13,14,15,16,17,18,19}, new Vector3(100, 0, 0));
-			
+		{				
 			lay.SetData(nodeList, edgeList, edgeIndexLists);
 		}
 
